@@ -190,7 +190,10 @@ data.tools.rect = new Tool("square-o", {}, function(event, target) {
     smooth: 50
   }, false, false);
   this.data = p;
-}, spanObject, resetData);
+}, spanObject, function() {
+  resetData.call(this);
+  tourEvent("rect-added");
+});
 
 data.tools.ellipse = new Tool("circle-o", {}, function(event, target) {
   app.sublayers_open = true;

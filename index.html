@@ -3,11 +3,13 @@
 <html>
     <head>
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
-        <link rel="stylesheet" type="text/css" href="css/styles.css">
         <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
         <link rel="stylesheet" href="css/mfglabs_iconset.css">
 
         <link rel="stylesheet" href="css/shepherd-theme-dark.css" />
+        <link rel="stylesheet" href="css/shepherd-theme-arrows.css" />
+
+        <link rel="stylesheet" type="text/css" href="css/styles.css">
 
         <!-- Insert this line above script imports  -->
         <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
@@ -45,11 +47,13 @@
           </div>
           <div id="panels">
             <div id="toolbar" class="panel">
-              <span v-for="tool in tools" v-on:click="selectedTool=tool; selectedLayer=(tool==tools.select?selectedLayer:null)" v-bind:class="[tool==selectedTool?'selected':'']">
-                  <i class="fa fa-fw" v-bind:class="['fa-'+tool.icon]" ></i>
-                  <i class="fa fa-plus" v-show="tool != tools.select"></i>
-              </span>
-              <div class="sidepanel-icons">
+              <div id="tools">
+                <span v-for="tool in tools" v-on:click="selectedTool=tool; selectedLayer=(tool==tools.select?selectedLayer:null)" v-bind:class="[tool==selectedTool?'selected':'']">
+                    <i class="fa fa-fw" v-bind:class="['fa-'+tool.icon]" ></i>
+                    <i class="fa fa-plus" v-show="tool != tools.select"></i>
+                </span>
+              </div>
+              <div id="sidepanel-icons">
                 <div v-on:click="sidepanel=0" v-bind:class="[sidepanel==0?'selected':'']">
                   <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 54.953 54.953"  xml:space="preserve" width="24px" height="24px">
                     <g>
@@ -80,7 +84,7 @@
                 <i v-if="sublayers_open" class="fa fa-fw fa-angle-left"></i>
                 <span>{{sublayers_open?'Fräsbereich':'Arbeitsbereich'}}</span>
               </div>
-              <transition-group name="move-layers" v-if="sublayers_open" tag="div">
+              <transition-group name="move-layers" v-if="sublayers_open" tag="div" id="layerList">
                 <div class="layer-item" v-bind:key="layer.$.id" v-bind:class="[selectedLayer==layer?'selected':'']" v-for="(layer, index) in layers.reduce((arr, el) => arr.unshift(el)?arr:arr, [])" v-on:click="selectedLayer = layer">
                   <i v-bind:class="['fa', 'fa-fw', 'fa-'+layer.icon]"></i>
                   {{layer.$.title}}
@@ -91,7 +95,7 @@
                 </div>
               </transition-group>
               <template v-else>
-                <div class="layer-item" v-bind:class="[selectedLayer==machine?'selected':'']" v-on:click="selectedLayer = machine" v-on:dblclick="sublayers_open = true">
+                <div class="layer-item" v-bind:class="[selectedLayer==machine?'selected':'']" v-on:click="selectedLayer = machine" v-on:dblclick="selectedLayer = null; sublayers_open = true">
                   <i class="fa fa-th-large fa-fw"></i>
                   Fräsbereich
                   <span class="sublayer_link"><i class="fa fa-angle-right" v-on:click.stop="sublayers_open = true"></i></span>
@@ -124,6 +128,7 @@
                 <span>Layouts</span>
                 <i class="fa fa-fw" v-bind:class="[sublayers_open?'fa-angle-down':'fa-angle-up']"></i>
               </div>
+              <i class="fa fa-plus" id="add-layout" v-on:click="saveLayout"></i> 
               <div>
                 <div class="layer-item" v-for="layout in layouts" v-on:click="loadLayout(layout)" v-bind:class="[selectedLayout==layout?'selected':'']">
                   <i class="fa fa-columns"></i>{{layout.title}}

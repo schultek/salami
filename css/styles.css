@@ -82,34 +82,37 @@ html, body, #app {
 #toolbar {
   width: 50px;
   border-right-style: solid;
-  display: flex;
-  flex-flow: column nowrap;
-  align-items: center;
   padding-top: 10px;
   position: relative;
 }
 
-#toolbar span {
+#tools {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+}
+
+#tools span {
   position: relative;
   margin: 10px;
 }
 
-#toolbar span.selected {
+#tools span.selected {
   color: #008dea;
 }
 
-#toolbar .fa:first-child {
+#tools .fa:first-child {
   font-size: 18px;
 }
 
-#toolbar .fa:nth-child(2) {
+#tools .fa:nth-child(2) {
   position: absolute;
   top: 12px;
   left: 20px;
   font-size: 12px;
 }
 
-.sidepanel-icons {
+#sidepanel-icons {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -120,15 +123,15 @@ html, body, #app {
   margin: 10px 0;
 }
 
-.sidepanel-icons div {
+#sidepanel-icons div {
   margin: 8px;
 }
 
-.sidepanel-icons svg {
+#sidepanel-icons svg {
   fill: #505050;
 }
 
-.sidepanel-icons .selected svg, .sidepanel-icons .selected i {
+#sidepanel-icons .selected svg, #sidepanel-icons .selected i {
   fill: #008dea;
   color: #008dea;
 }
@@ -136,6 +139,19 @@ html, body, #app {
 .sidepanel {
   width: 200px;
   border-right-style: solid;
+  position: relative;
+}
+
+#add-layout {
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 10px;
+  color: #959595;
+}
+
+#add-layout:hover {
+  color: #008dea;
 }
 
 #workarea {

@@ -35,7 +35,14 @@ new Vue({
   },
   watch: {
     selectedLayer: function(sl) {
-      setTimeout(() => document.body.dispatchEvent(new Event("layer-selected")), 100);
+      if (sl instanceof Image) {
+        setTimeout(() => tourEvent("image-selected"), 100);
+      }
+    },
+    selectedTool: function(st) {
+      if (st == this.tools.rect) {
+        tourEvent("rect-selected");
+      }
     }
   },
   methods: {
@@ -156,7 +163,9 @@ new Vue({
           layer.$.url = files[0];
           getDataURL(files[0], (data) => {
             layer.$.data = data;
-            loadImage(layer, data);
+            loadImage(layer, data, () => {
+              tourEvent("image-loaded");
+            });
           });
         }
       });

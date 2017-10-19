@@ -142,8 +142,8 @@
 
 .shepherd-element.shepherd-theme-dark {
   z-index: 9999;
-  max-width: 24em;
-  font-size: 1em; }
+  max-width: 20em;
+  font-size: 14px; }
   .shepherd-element.shepherd-theme-dark.shepherd-element-attached-top.shepherd-element-attached-center.shepherd-has-title .shepherd-content:before, .shepherd-element.shepherd-theme-dark.shepherd-element-attached-top.shepherd-element-attached-right.shepherd-target-attached-bottom.shepherd-has-title .shepherd-content:before, .shepherd-element.shepherd-theme-dark.shepherd-element-attached-top.shepherd-element-attached-left.shepherd-target-attached-bottom.shepherd-has-title .shepherd-content:before {
     border-bottom-color: #303030; }
   .shepherd-element.shepherd-theme-dark.shepherd-has-title .shepherd-content header {
