@@ -1,0 +1,16 @@
+{
+  "name": "WebCarve",
+  "version": "1.0.0",
+  "description": "Generate GCODE of an Halftone Image",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "~1.6.2"
+  },
+  "dependencies": {
+    "base64-img": "^1.0.3",
+    "get-pixels": "^3.3.0"
+  }
+}

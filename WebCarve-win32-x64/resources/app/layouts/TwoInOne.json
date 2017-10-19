@@ -1,0 +1,68 @@
+{
+  "title": "TwoInOne",
+  "template": {
+    "machine": {
+      "dimens": {
+        "w": 300,
+        "h": 200,
+        "x": 0,
+        "y": 0
+      }
+    },
+    "layers": [
+      {
+        "title": "RightRenderer",
+        "type": "rect",
+        "dimens": {
+          "w": 145,
+          "h": 190,
+          "x": 150,
+          "y": 5,
+          "rot": 0
+        },
+        "mask": true,
+        "ownRenderer": true,
+        "render": {
+          "curve": "rc"
+        }
+      },
+      {
+        "title": "LeftRenderer",
+        "type": "rect",
+        "dimens": {
+          "w": 145,
+          "h": 190,
+          "x": 5,
+          "y": 5,
+          "rot": 0
+        },
+        "mask": true
+      },
+      {
+        "title": "BaseLayer",
+        "dimens": {
+          "w": 300,
+          "h": 200,
+          "x": 0,
+          "y": 0,
+          "rot": 0
+        },
+        "render": {
+          "curve": "lc"
+        }
+      }
+    ],
+    "curves": [
+      {
+        "title": "LeftCurve",
+        "id": "lc",
+        "direction": 45
+      },
+      {
+        "title": "RightCurve",
+        "id": "rc",
+        "direction": 315
+      }
+    ]
+  }
+}

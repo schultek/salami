@@ -1,0 +1,37 @@
+{
+  "title": "DoubleLayout",
+  "template": {
+    "machine": {
+      "w": 300,
+      "h": 200,
+      "x": 0,
+      "y": 0
+    },
+    "layers": [
+      {
+        "title": "LeftLayer",
+        "w": 150,
+        "h": 200,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "title": "RightLayer",
+        "w": 150,
+        "h": 200,
+        "x": 150,
+        "y": 0
+      }
+    ],
+    "images": [
+      {
+        "title": "Heißluftballons",
+        "url": "/Users/kilian/Desktop/549959.jpg",
+        "w": 300,
+        "h": 200,
+        "x": 0,
+        "y": 0
+      }
+    ]
+  }
+}

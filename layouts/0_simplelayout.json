@@ -1,0 +1,21 @@
+{
+  "init": true,
+  "title": "SimpleLayout",
+  "template": {
+    "machine": {
+      "w": 300,
+      "h": 200,
+      "x": 0,
+      "y": 0
+    },
+    "layers": [
+      {
+        "title": "SimpleLayer",
+        "w": 300,
+        "h": 200,
+        "x": 0,
+        "y": 0
+      }
+    ]
+  }
+}
