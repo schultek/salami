@@ -166,8 +166,8 @@ data.tools.part = new Tool("th-large", {}, function(event, target) {
   app.sublayers_open = true;
   var p = localPos(event.x, event.y);
   app.selectedLayer = new CPart(p.x, p.y, 0, 0, 0, "Part "+(app.layers.length+1), {
-    curve: app.curves[0].$.id,
-    image: app.images[0].$.id,
+    curve: app.curves[0] ? app.curves[0].$.id : null,
+    image: app.images[0] ? app.images[0].$.id : null,
     lines: {l: 10, r: 10},
     inverted: false,
     dotted: false,
@@ -181,8 +181,8 @@ data.tools.rect = new Tool("square-o", {}, function(event, target) {
   app.sublayers_open = true;
   var p = localPos(event.x, event.y);
   app.selectedLayer = new Rect(p.x, p.y, 0, 0, 0, "Form "+(app.layers.length+1), {
-    curve: app.curves[0].$.id,
-    image: app.images[0].$.id,
+    curve: app.curves[0] ? app.curves[0].$.id : null,
+    image: app.images[0] ? app.images[0].$.id : null,
     lines: {l: 10, r: 10},
     inverted: false,
     dotted: false,
@@ -199,8 +199,8 @@ data.tools.ellipse = new Tool("circle-o", {}, function(event, target) {
   app.sublayers_open = true;
   var p = localPos(event.x, event.y);
   app.selectedLayer = new Ellipse(p.x, p.y, 0, 0, 0, "Form "+(app.layers.length+1), {
-    curve: app.curves[0].$.id,
-    image: app.images[0].$.id,
+    curve: app.curves[0] ? app.curves[0].$.id : null,
+    image: app.images[0] ? app.images[0].$.id : null,
     lines: {l: 10, r: 10},
     inverted: false,
     dotted: false,

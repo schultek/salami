@@ -98,7 +98,12 @@ function startTour() {
     attachTo: "#layers right",
     buttons: [{
       text: "Tour beenden",
-      action: tour.next
+      action: () => {
+        tour.next();
+        app.sublayers_open = false;
+        app.sidepanel = 0;
+        app.selectedLayer = null;
+      }
     }]
   })
   tour.start();

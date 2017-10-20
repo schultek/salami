@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "base64-img": "^1.0.3",
+    "electron-store": "^1.3.0",
     "get-pixels": "^3.3.0"
   }
 }

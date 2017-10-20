@@ -327,8 +327,7 @@ function getCurvePoint(globals, curve, step, cdata) {
     var f = cdata.f1+cdata.f2*step;
     return {x: cdata.c0.x+f*(f*cdata.c1.x+cdata.c2.x), y: cdata.c0.y+f*(f*cdata.c1.y+cdata.c2.y)};
   } else if (curve.type == "Kreis") {
-    var p = {x: globals.center.x+Math.cos(step*globals.twoPi)*cdata.r, y: globals.center.y+Math.sin(step*globals.twoPi)*cdata.r};
-    return p;
+    return {x: globals.center.x+Math.cos(step*globals.twoPi)*cdata.r, y: globals.center.y+Math.sin(step*globals.twoPi)*cdata.r};
   } else if (curve.type == "Welle") {
     var f = cdata.f1+cdata.f2*step;
     return globals.getPoint(f, cdata.mid);

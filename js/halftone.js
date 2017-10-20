@@ -1,4 +1,4 @@
-var layer, image, curve, machine, forms;
+var layer, image, curve, machine, forms, gcode;
 
 var toPix, f, globals;
 
@@ -10,6 +10,7 @@ self.addEventListener("message", function(e) {
   curve = e.data.curve;
   machine = e.data.machine;
   forms = e.data.forms;
+  gcode = e.data.gcode;
 
   curve.direction = curve.direction/360*Math.PI*2;
   curve.dcos = Math.cos(curve.direction);
@@ -657,10 +658,10 @@ function generateGCode(lines) {
 
   var sq = (a) => a*a;
   var add = function(g, x, y, z, s) {
-    var str = "G"+g+(x!=null?" X"+round(x, 1000):"")+(y!=null?" Y"+round(y,1000):"")+(z!=null?" Z"+round(z,1000):"")+" F"+s;
+    var str = "G"+g+(x!=null?" X"+round(x-machine.x, 1000):"")+(y!=null?" Y"+round(y-machine.y,1000):"")+(z!=null?" Z"+round(z,1000):"")+" F"+s;
     output.push(str);
-    x = x!=null ? x : pos.x;
-    y = y!=null ? y : pos.y;
+    x = x!=null ? x-machine.x : pos.x;
+    y = y!=null ? y-machine.y : pos.y;
     z = z!=null ? z : pos.z;
     var td = Math.sqrt(sq(Math.sqrt(sq(pos.x-x)+sq(pos.y-y)))+sq(pos.z-z))/s;
     time += td;
@@ -679,15 +680,7 @@ function generateGCode(lines) {
   var sOut = machine.speed.seekrate;
   var sIn = machine.speed.feedrate;
   var sInD = machine.speed.feedrateDot;
-  output.push("G92 X0 Y0 Z0");
-  output.push("G21");
-  output.push("G90");
-  add(1, null, null, 5, sOut);
-
-  add(1, machine.w, null, null, sOut);
-  add(1, null, machine.h, null, sOut);
-  add(1, 0, null, null, sOut);
-  add(1, null, 0, null, sOut);
+  output.push(gcode.pre.replace(/\$W/g, machine.w).replace(/\$H/g, machine.h));
 
   for (let i in lines) {
     for (let line of lines[i]) {
@@ -724,10 +717,6 @@ function generateGCode(lines) {
       }
     }
   }
-  if (isIn) {
-    add(1, null, null, machine.outHeight, layer.render.dotted?sInD:sIn);
-    isIn = false;
-  }
-  add(0, 0, 0, null, sOut);
+  output.push(gcode.post.replace(/\$W/g, machine.w).replace(/\$H/g, machine.h));
   return {time: time, gcode: output};
 }

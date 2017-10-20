@@ -21,7 +21,7 @@ function createWindow () {
   }))
 
 
-  //mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 
   mainWindow.on('closed', function () {
     mainWindow = null
@@ -38,6 +38,14 @@ function createWindow () {
           {label: 'Layout', click: () => mainWindow.webContents.send('file', 'save-layout')},
           {label: 'GCode', click: () => mainWindow.webContents.send('file', 'save-gcode')},
         ]}
+      ]
+    },
+    {
+      label: 'Erweitert',
+      submenu: [
+        {label: 'Tour ansehen', click: () => mainWindow.webContents.send('file', 'tour')},
+        {label: 'Pre-Gcode', click: () => mainWindow.webContents.send('file', 'pregcode')},
+        {label: 'Post-Gcode', click: () => mainWindow.webContents.send('file', 'postgcode')}
       ]
     },
     {
@@ -76,7 +84,7 @@ function createWindow () {
     })
 
     // Window menu
-    template[3].submenu = [
+    template[4].submenu = [
       {role: 'close'},
       {role: 'minimize'},
       {role: 'zoom'},

@@ -81,12 +81,12 @@ function runWorker(finishWorkers, layer, forms, image, curve) {
     }
   }, false);
   startmillis = Date.now();
-  worker.postMessage({layer: layer.toObj(), forms: forms.map(e => e.toObj()), image: image.toObj(true), curve: curve.toObj(), machine: app.machine.toObj()});
+  worker.postMessage({layer: layer.toObj(), forms: forms.map(e => e.toObj()), image: image.toObj(true), curve: curve.toObj(), machine: app.machine.toObj(), gcode: store.get('gcode')});
 }
 
 function workerFunc(filterFunc) {
   startWorkers(function() {
-    var layers = app.layers.filter(el => el instanceof CPart && filterFunc(el));
+    var layers = app.layers.filter((el, i) => el instanceof CPart && filterFunc(el, i));
     console.log("Start workers for "+layers.length+" Layers");
     for (var l of layers) {
       createWorker(l);

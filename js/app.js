@@ -1,4 +1,16 @@
 var getPixels = require("get-pixels");
+var Store = require("electron-store");
+
+var store = new Store({
+  defaults: {
+    madeTour: false,
+    gcode: {
+      pre: "G92 X0 Y0 Z0\nG21\nG90\nG1 Z5\nG1 X$W\nG1 Y$H\nG1 X0\nG1 Y0",
+      post: "G1 Z2\nG0 X0 Y0"
+    }
+  }
+})
+
 var app;
 
 new Vue({
@@ -6,7 +18,10 @@ new Vue({
   data: data,
   mounted: function() {
     $("#overlay").fadeOut(1000);
-    startTour();
+    if (!store.get('madeTour')) {
+      startTour();
+      store.set('madeTour', true);
+    }
   },
   created: function() {
     app = this;
@@ -15,7 +30,7 @@ new Vue({
     this.workerFunc = workerFunc;
     this.bufferURL = dir+"img/imgbuf.png";
     getDataURL(this.bufferURL, (data) => {
-      $this.bufferData = data;
+      this.bufferData = data;
       this.s = Snap("#svg");
       initSVG(this);
       loadLayouts(this, () => {
@@ -23,6 +38,10 @@ new Vue({
         this.machine.createSVGWatcher(this.machine.watcherFunc);
       });
     });
+    this.$watch(function() { return {l: this.layers, i: this.images, c: this.curves, m: this.machine} }, (arr) => {
+      console.log("change");
+      $this.project.saved = false;
+    }, {deep: true});
     //initConnection(this);
   },
   computed: {
@@ -34,7 +53,7 @@ new Vue({
     }
   },
   watch: {
-    selectedLayer: function(sl) {
+    selectedLayer: function(sl, oldSl) {
       if (sl instanceof Image) {
         setTimeout(() => tourEvent("image-selected"), 100);
       }
@@ -66,29 +85,50 @@ new Vue({
             if (err) throw err;
             app.centerProject();
             console.log("Project loaded from "+files[0]);
-            app.project.name = files[0].slice(files[0].lastIndexOf("/")+1);
+            app.project.name = files[0].substring(files[0].lastIndexOf("/")+1, files[0].lastIndexOf("."));
+            app.project.file = files[0];
           });
         else console.log("No File selected");
       })
     },
     saveProject: function() {
-      dialog.showSaveDialog({filters: [{name: 'Carve', extensions: ['crv']}]}, file => {
+      let save = (file) => {
         if (file)
           saveProject(file, (err) => {
             if (err) throw err;
             console.log("Project saved to "+file);
-            app.project.name = file.slice(file.lastIndexOf("/")+1);
+            app.project.file = file;
+            app.project.name = file.substring(file.lastIndexOf("/")+1, file.lastIndexOf("."));
+            app.project.saved = true;
           });
-      });
+      };
+      if (app.project.file) {
+        save(app.project.file);
+      } else {
+        dialog.showSaveDialog({filters: [{name: 'Carve', extensions: ['crv']}]}, save);
+      }
     },
     saveLayout: function() {
       dialog.showSaveDialog({filters: [{name: "Template", extensions: ["json"]}]}, file => {
         if (file) {
-          saveLayout(file, (err) => {
+          var name = file.substring(file.lastIndexOf("/") + 1, file.lastIndexOf('.'));
+          var title = name.charAt(0).toUpperCase() + name.slice(1);
+          saveLayout(file, title, (err) => {
             if (err) throw err;
             console.log("Layout saved to "+file);
           });
         }
+      });
+    },
+    addLayout: function() {
+      let p = (i) => remote.app.getPath('userData')+"/layouts/"+this.project.name+i+".json";
+      let i = "";
+      while (this.layouts.find(l => l.url == p(i))) {
+        i = i === "" ? 0 : i + 1;
+      }
+      saveLayout(p(i), this.project.name, (err) => {
+        if (err) throw err;
+        console.log("Layout saved to "+p);
       });
     },
     saveGCode: function() {
@@ -228,6 +268,16 @@ new Vue({
     }
   }
 });
+
+function editGcodeSnippet(id) {
+  $("body").append("<div id='gcode-config'><p>Verwende '$W' für die Breite und '$H' für die Höhe der Arbeitsfläche.</p><textarea id='gcode-snippet'>"+store.get(id)+"</textarea><input type='button' value='Speichern' onclick='saveGcodeSnippet(\""+id+"\")'/></div>");
+}
+
+function saveGcodeSnippet(id) {
+  store.set(id, document.getElementById("gcode-snippet").value);
+  document.getElementById("gcode-config").remove();
+  workerFunc(() => true);
+}
 
 function handleShortcuts(event) {
   if (event.ctrlKey) {

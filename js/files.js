@@ -9,6 +9,9 @@ ipcRenderer.on('file', (event, arg) => {
   else if (arg == 'load-project') app.loadProject();
   else if (arg == 'save-layout') app.saveLayout();
   else if (arg == 'save-gcode') app.saveGCode();
+  else if (arg == 'tour') startTour();
+  else if (arg == 'pregcode') editGcodeSnippet('gcode.pre');
+  else if (arg == 'postgcode') editGcodeSnippet('gcode.post');
 });
 
 console.log();
@@ -60,7 +63,7 @@ function loadProject(file, callback) {
       callback();
     });
   } else if (file.endsWith(".json")) {
-    loadLayout(file, true, callback);
+    loadLayout(file, true, true, callback);
   } else if (file.endsWith(".jpg") || file.endsWith(".png") || file.endsWith(".gif")) {
     if (app.images.length > 0) {
       let img = app.images[app.images.length - 1];
@@ -82,7 +85,7 @@ function buildProject(project) {
   app.project = project.project;
   project.texts.forEach(e => Text.fromObj(e));
   project.fonts.forEach(e => Font.fromObj(e));
-  project.layouts.forEach(e => Layout.fromObj(e));
+  project.layouts.forEach(e => Layout.fromObj(e, e.url));
 }
 
 function saveProject(file, callback) {
@@ -99,28 +102,33 @@ function saveProject(file, callback) {
   fs.writeFile(file, JSON.stringify(fileObj), callback);
 }
 
-function saveLayout(file, callback) {
-  var name = file.substring(file.lastIndexOf("/") + 1, file.lastIndexOf('.'));
-  var title = name.charAt(0).toUpperCase() + name.slice(1);
-  fs.writeFile(file, JSON.stringify(Layout.createNew(title).toObj()), callback);
+function saveLayout(file, title, callback) {
+  fs.writeFile(file, JSON.stringify(Layout.createNew(title, file, true).toObj()), callback);
 }
 
 function loadLayouts(app, callback) {
-  fs.readdir(dir+"layouts/", (err, files) => {
-    if (files) {
-      for (var f in files) {
-        loadLayout(dir+"layouts/" + files[f], false, callback);
-      }
+  let load = (d, c) => {
+    if (!fs.existsSync(d)){
+      fs.mkdirSync(d);
     }
-  });
+    fs.readdir(d, (err, files) => {
+      if (files) {
+        for (var f in files) {
+          loadLayout(d + files[f], c, false, callback);
+        }
+      }
+    });
+  }
+  load(remote.app.getPath('userData')+"/layouts/", true);
+  load(dir+"layouts/", false);
 }
 
-function loadLayout(file, custom, callback) {
+function loadLayout(file, custom, build, callback) {
   fs.readFile(file, (err, data) => {
     let l = JSON.parse(data);
-    var layout = Layout.fromObj(l);
-    layout.deleteable = custom;
-    if (l.init || custom) {
+    l.deleteable = custom;
+    var layout = Layout.fromObj(l, file);
+    if (l.init || build) {
       layout.build();
       callback();
     }
@@ -130,9 +138,9 @@ function loadLayout(file, custom, callback) {
 function saveGCode(file, callback) {
 
   for (var layer of app.layers) {
-    var gcode = app.gcodes.find(el => el.id == layer.$.id);
-    if (gcode) {
-      fs.writeFile(file + "/" + layer.$.title+".gcode", gcode.data.gcode.join('\n'), (err) => {
+    if (layer.gcode) {
+      console.log(layer.gcode);
+      fs.writeFile(file + "/" + layer.$.title+".gcode", layer.gcode.gcode.join('\n'), (err) => {
         if (err) throw err;
       });
     }

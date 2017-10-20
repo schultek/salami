@@ -178,6 +178,11 @@ class Form extends Layer {
       /*, filter: app.svg.shadow*/
     };
   }
+  remove() {
+    let index = this.objGroup.indexOf(this);
+    workerFunc((e, i) => i < index);
+    super.remove();
+  }
   toObj() {
     return {
       x: this.$.x, y: this.$.y, w: this.$.w, h: this.$.h, rot: this.$.rot,
@@ -245,7 +250,7 @@ data.Ellipse = Ellipse;
 class Image extends SVG {
   constructor(x, y, w, h, rot, title, url, data) {
     super(x || 0, y || 0, w || 300, h || 200, rot, app.images, "#svgImages");
-    this.$.title = title || "Image";
+    this.$.title = title || "Bild";
     this.$.url = url || app.bufferURL;
     this.$.data = data || app.bufferData;
     if (data) {
@@ -424,19 +429,22 @@ class Font {
 data.Font = Font;
 
 class Layout {
-  constructor(title, template) {
+  constructor(title, template, deleteable, url) {
     this.title = title;
     this.template = template;
+    this.url = url;
+    this.deleteable = deleteable;
+    this.edit = false;
 
     app.layouts.push(this);
   }
-  static createNew(title) {
+  static createNew(title, url, deleteable) {
     return new Layout(title, {machine: app.machine.toObj(), layers: app.layers.map(e => e.toObj()),
       images: app.images.map(e => e.toObj()), curves: app.curves.map(e => e.toObj()),
-      texts: app.texts.map(e => e.toObj()), fonts: app.fonts.map(e => e.toObj())});
+      texts: app.texts.map(e => e.toObj()), fonts: app.fonts.map(e => e.toObj())}, deleteable, url);
   }
-  static fromObj(obj) {
-    return new Layout(obj.title, obj.template);
+  static fromObj(obj, url) {
+    return new Layout(obj.title, obj.template, obj.deleteable, url);
   }
   toObj() {
     return {title: this.title, template: this.template}
@@ -456,14 +464,14 @@ class Layout {
     if (this.template.images) {
       this.template.images.forEach((i) => Image.fromObj(i));
     } else {
-      Image.fromObj({title: "Image"});
+      Image.fromObj({title: "Bild"});
     }
     app.curves.forEach(c => c.remove());
     app.curves = [];
     if (this.template.curves) {
       this.template.curves.forEach((c) => Curve.fromObj(c));
     } else {
-      Curve.fromObj({title: "Curve"});
+      Curve.fromObj({title: "Linie"});
     }
     app.layers.forEach((l) => {
       if (!l.$.render.curve && app.curves.length>0) l.$.render.curve = app.curves[0].$.id;
@@ -472,6 +480,24 @@ class Layout {
   }
   remove() {
     app.layouts.splice(app.layouts.indexOf(this), 1);
+    fs.unlink(this.url, (err) => {
+      if (err) throw err;
+    });
+  }
+  startEdit() {
+    app.layouts.forEach(l => { if (l.edit) l.closeEdit() });
+    this.edit = true;
+  }
+  closeEdit() {
+    this.edit = false;
+    let $this = this;
+    fs.readFile(this.url, (err, data) => {
+      let l = JSON.parse(data);
+      l.title = $this.title;
+      fs.writeFile($this.url, JSON.stringify(l), (err) => {
+        if (err) throw err;
+      });
+    });
   }
 }
 

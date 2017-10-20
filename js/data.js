@@ -5,7 +5,7 @@ var data = {
     yPos: 50,
     zoom: 2,
     progress: [],
-    autoAdjustMachine: true
+    autoAdjustMachine: false
   },
   machine: {},
   layers: [],
