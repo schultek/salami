@@ -44,19 +44,15 @@
             </div>
             <div class="menu-right">
               <span class="loader" v-bind:style="{opacity: progress<100?1:0}"><span></span><span v-bind:style="{width: progress+'px'}"></span></span>
-              <span id="quickMode">
-                <div>
-                  <div>
-                    teeeest
-                  </div>
-                </div>
+              <span class="switch" v-on:click="changeQuickMode" v-bind:class="[quickMode?'active':'']">
+                <div><div></div></div>
               </span>
               <span id="fullPreview" v-on:click="showPreview"><i class="fa fa-magic" v-bind:style="{color: fullPreview?'#008dea':'inherit'}"></i></span>
               <span id="showSettings" v-show="selectedLayer!=null" v-on:click="selectedLayer=null"><i class="fa fa-wrench"></i><i class="fa fa-angle-right"></i></span>
             </div>
           </div>
           <div id="panels">
-            <div id="toolbar" class="panel">
+            <div v-show="!quickMode" id="toolbar" class="panel">
               <div id="tools">
                 <span v-for="tool in tools" v-on:click="selectedTool=tool; selectedLayer=(tool==tools.select?selectedLayer:null)" v-bind:class="[tool==selectedTool?'selected':'']">
                     <i class="fa fa-fw" v-bind:class="['fa-'+tool.icon]" ></i>
@@ -89,7 +85,29 @@
                 </div>
               </div>
             </div>
-            <div id="layers" v-if="sidepanel==0" class="sidepanel panel">
+            <div id="layers" v-if="sidepanel==1||quickMode" class="sidepanel panel">
+              <div id="layer-heading" v-on:click="sublayers_open = !sublayers_open">
+                <span>Layouts</span>
+                <i class="fa fa-fw" v-bind:class="[sublayers_open?'fa-angle-down':'fa-angle-up']"></i>
+              </div>
+              <i class="fa fa-plus" id="add-layout" v-on:click="addLayout"></i>
+              <div>
+                <div class="layer-item" v-for="layout in layouts" v-on:click="loadLayout(layout)" v-bind:class="[selectedLayout==layout?'selected':'']">
+                  <i class="fa fa-columns"></i>
+                  <template v-if="layout.edit">
+                    <input type="text" v-model="layout.title" v-on:click.stop="" v-on:blur="layout.closeEdit()" v-on:keyup.enter="$event.srcElement.blur()" />
+                  </template>
+                  <template v-else>
+                    {{layout.title}}
+                  </template>
+                  <span style="display: block">
+                    <i v-if="layout.deleteable" class="fa fa-pencil" v-on:click.stop="layout.startEdit()"></i>
+                    <i v-if="layout.deleteable" class="fa fa-trash-o" v-on:click.stop="layout.remove()"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div id="layers" v-else-if="sidepanel==0" class="sidepanel panel">
               <div id="layer-heading" v-on:click="sublayers_open=false">
                 <i v-if="sublayers_open" class="fa fa-fw fa-angle-left"></i>
                 <span>{{sublayers_open?'Fräsbereich':'Arbeitsbereich'}}</span>
@@ -133,28 +151,6 @@
                 </div>
               </template>
             </div>
-            <div id="layers" v-if="sidepanel==1" class="sidepanel panel">
-              <div id="layer-heading" v-on:click="sublayers_open = !sublayers_open">
-                <span>Layouts</span>
-                <i class="fa fa-fw" v-bind:class="[sublayers_open?'fa-angle-down':'fa-angle-up']"></i>
-              </div>
-              <i class="fa fa-plus" id="add-layout" v-on:click="addLayout"></i>
-              <div>
-                <div class="layer-item" v-for="layout in layouts" v-on:click="loadLayout(layout)" v-bind:class="[selectedLayout==layout?'selected':'']">
-                  <i class="fa fa-columns"></i>
-                  <template v-if="layout.edit">
-                    <input type="text" v-model="layout.title" v-on:click.stop="" v-on:blur="layout.closeEdit()" v-on:keyup.enter="$event.srcElement.blur()" />
-                  </template>
-                  <template v-else>
-                    {{layout.title}}
-                  </template>
-                  <span style="display: block">
-                    <i v-if="layout.deleteable" class="fa fa-pencil" v-on:click.stop="layout.startEdit()"></i>
-                    <i v-if="layout.deleteable" class="fa fa-trash-o" v-on:click.stop="layout.remove()"></i>
-                  </span>
-                </div>
-              </div>
-            </div>
             <div id="layers" v-if="sidepanel==2" class="sidepanel panel">
               <div id="layer-heading">
                 <span>Live-Project</span>
@@ -180,7 +176,7 @@
                 </div>
               </div>
             </div>
-            <div v-show="selectedLayer!=null" id="settings" class="panel">
+            <div v-show="!quickMode && selectedLayer" id="settings" class="panel">
               <template v-if="is(selectedLayer, CPart)">
                 <div class="settings-title">
                   <span>Titel <input type="text" v-model.lazy="selectedLayer.$.title" v-on:keyup.enter="$event.srcElement.blur()"/></span>
@@ -546,6 +542,111 @@
                   </div>
                 </div>
               </template>
+            </div>
+            <div v-show="quickMode" id="quickSettings" class="panel">
+              <div class="settings-panel">
+                <div class="settings-header">
+                  <span>Projekt - Schnelleinstellungen</span>
+                </div>
+                <div class="settings-dimensions dimen-row">
+                  <div class="dimen">
+                    <span>B</span><input type="number" v-model.lazy.number="quickSettings.w" v-on:keyup.enter="$event.srcElement.blur()"/>
+                  </div>
+                  <div class="dimen">
+                    <span>H</span><input type="number" v-model.lazy.number="quickSettings.h" v-on:keyup.enter="$event.srcElement.blur()"/>
+                  </div>
+                  <div class="dimen">
+                    <span>Tiefe</span><input type="number" v-model.lazy.number="quickSettings.depth" v-on:keyup.enter="$event.srcElement.blur()"/>
+                  </div>
+                </div>
+              </div>
+              <div class="settings-panel" v-for="layer in layers.filter(e => is(e, CPart))">
+                <div class="settings-header">
+                  <span>{{layer.$.title}}</span>
+                </div>
+                <div class="settings-dimensions dimen-row">
+                  <div class="dimen" v-show="curves.length>1">
+                    <span>Kurve</span>
+                    <select v-model="layer.$.render.curve">
+                      <option v-bind:value="curve.$.id" v-for="curve in curves">
+                        {{curve.$.title}}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="dimen" v-show="images.length>1">
+                    <span>Bild</span>
+                    <select v-model="layer.$.render.image">
+                      <option v-bind:value="image.$.id" v-for="image in images">
+                        {{image.$.title}}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="settings-dimensions dimen-row">
+                  <div class="dimen">
+                    <span>Linien</span><span>L</span><input type="number" v-model.lazy.number="layer.$.render.lines.l" v-on:keyup.enter="$event.srcElement.blur()"/>
+                  </div>
+                  <div class="dimen">
+                    <span>R</span><input type="number" v-model.lazy.number="layer.$.render.lines.r" v-on:keyup.enter="$event.srcElement.blur()"/>
+                  </div>
+                  <div class="dimen">
+                    <input type="button" value="Füllen" v-on:click="layer.fill = true; workerFunc(el => el == layer);"/>
+                  </div>
+                </div>
+                <div v-if="layer.gcode" class="settings-dimensions dimen-row">
+                  <div class="dimen">
+                    <span>Benötigte Zeit</span><span>{{asTimeString(layer.gcode.time)}}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="settings-panel" v-for="image in images">
+                <div class="settings-header">
+                  <span>{{image.$.title}}</span>
+                </div>
+                <div class="settings-dimensions dimen-row">
+                  <div class="dimen">
+                    <input id="imageInput" type="button" value="Datei auswählen" v-on:click="loadImage(image)" style="width: auto"/>
+                  </div>
+                  <div v-show="image.$.data" class="dimen" style="height: auto">
+                    <img id="preview" v-bind:src="image.$.data" width="100%" />
+                  </div>
+                </div>
+              </div>
+              <div class="settings-panel" v-for="curve in curves">
+                <div class="settings-header">
+                  <span>{{curve.$.title}}</span>
+                </div>
+              <div class="settings-dimensions dimen-row">
+                  <div class="dimen">
+                    <select v-model="curve.$.type">
+                      <option>Linie</option>
+                      <option>Kurve</option>
+                      <option>Kreis</option>
+                      <option>Bogen</option>
+                      <option>Welle</option>
+                    </select>
+                  </div>
+                  <div class="dimen">
+                    <span>Biegung</span><input type="number" v-model.lazy.number="curve.$.stretch" v-on:keyup.enter="$event.srcElement.blur()"/>
+                  </div>
+                  <div class="dimen">
+                    <span>Richtung</span><input type="number" v-model.lazy.number="curve.$.direction" v-on:change="mapRotation('direction', curve)" v-on:keyup.enter="$event.srcElement.blur()"/>
+                  </div>
+                </div>
+              </div>
+              <div class="settings-panel">
+                <div class="settings-header">
+                  <span>Aktionen</span>
+                </div>
+                <div class="settings-dimensions dimen-row">
+                  <div class="dimen">
+                    <input type="button" value="Projekt speichern" v-on:click="saveProject" style="width: auto" />
+                  </div>
+                  <div class="dimen">
+                    <input type="button" value="GCode speichern" v-on:click="saveGCode" style="width: auto" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

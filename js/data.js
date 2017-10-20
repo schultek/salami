@@ -29,7 +29,9 @@ var data = {
     id: ""
   },
   linkingBorder: false,
-  linkingRender: false
+  linkingRender: false,
+  quickMode: false,
+  quickSettings: {}
 };
 
 

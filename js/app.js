@@ -46,7 +46,7 @@ new Vue({
   },
   computed: {
     cursor: function() {
-      return this.project.workers>0?"wait":this.selectedTool==this.tools.select?this.selectedTool.data.mode=="move"?"move":this.selectedTool.data.mode=="zoom"?"zoom-in":"auto":"cell";
+      return this.project.workers>0?"wait":this.selectedTool?this.selectedTool==this.tools.select?this.selectedTool.data.mode=="move"?"move":this.selectedTool.data.mode=="zoom"?"zoom-in":"auto":"cell":"auto";
     },
     progress: function() {
       return this.project.progress.length ? this.project.progress.reduce((sum, el) => sum+el.p, 0) / this.project.progress.length : 100;
@@ -152,7 +152,7 @@ new Vue({
       this.project.yPos = $("#workarea").height()/2-(this.machine.$.y+this.machine.$.h/2)*this.project.zoom;
     },
     mouseDown: function(event) {
-      if (this.selectedTool!=null) {
+      if (!this.quickMode && this.selectedTool!=null) {
         var e = event.target;
         while ($(e).attr("type")===undefined&&e!==undefined) {
           e = $(e).parent().get(0);
@@ -177,7 +177,7 @@ new Vue({
       }
     },
     mouseUp: function(event) {
-      if (this.selectedTool) {
+      if (!this.quickMode && this.selectedTool) {
         this.selectedTool.mouseUp(event);
         if (this.lastTool) {
           this.selectedTool = this.lastTool;
@@ -196,8 +196,8 @@ new Vue({
       this.selectedTool = liftTool;
       liftTool.mouseDown(event, {elem, layer});
     },
-    loadImage: function() {
-      var layer = this.selectedLayer;
+    loadImage: function(l) {
+      var layer = l || this.selectedLayer;
       dialog.showOpenDialog({filters: [{name: 'Images', extensions: ['jpg', 'png', 'gif']}]}, (files) => {
         if (files && files[0]) {
           layer.$.url = files[0];
@@ -260,11 +260,17 @@ new Vue({
     joinProject: function() {
       joinProject(this.live.id);
     },
-    loadLayout(layout) {
+    loadLayout: function(layout) {
       layout.build();
       this.selectedLayout = layout;
       this.centerProject();
       this.machine.createSVGWatcher(this.machine.watcherFunc);
+    },
+    changeQuickMode: function() {
+      this.quickMode = !this.quickMode;
+      this.selectedTool = this.tools.select;
+      this.selectedLayer = null;
+      this.sublayers_open = this.quickMode ? true : false;
     }
   }
 });
