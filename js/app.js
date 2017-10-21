@@ -62,6 +62,50 @@ new Vue({
       if (st == this.tools.rect) {
         tourEvent("rect-selected");
       }
+    },
+    "quickSettings.w": function(w, ow) {
+      console.log(w);
+      if (!w || !ow) return;
+      if (w != this.machine.$.w) {
+        let c = this.machine.$.x + this.machine.$.w/2;
+        let d = w / this.machine.$.w;
+        this.machine.$.x = c - w/2;
+        this.machine.$.w = w;
+        this.layers.forEach(l => {
+          l.$.x = c - (c - l.$.x) * d;
+          l.$.w *= d;
+        });
+        this.curves.forEach(l => {
+          l.$.x = c - (c - l.$.x) * d;
+        });
+      }
+    },
+    "quickSettings.h": function(h, oh) {
+      console.log(h);
+      if (!h || !oh) return;
+      if (h != this.machine.$.h) {
+        let c = this.machine.$.y + this.machine.$.h/2;
+        let d = h / this.machine.$.h;
+        this.machine.$.y = c - h/2;
+        this.machine.$.h = h;
+        this.layers.forEach(l => {
+          l.$.y = c - (c - l.$.y) * d;
+          l.$.h *= d;
+        });
+        this.curves.forEach(l => {
+          l.$.y = c - (c - l.$.y) * d;
+        });
+      }
+    },
+    "quickSettings.depth": function(d) {
+      this.machine.$.bit.inDepth = d;
+      let machine = this.machine.toObj();
+      let maxRad = Math.round(machine.bit.inDepth/machine.bit.height*machine.bit.width/2*100)/100;
+      this.curves.forEach(c => {
+        let maxLen = getGlobalConstants(c.toObj(), machine).maxlength;
+        c.$.steps = maxLen / (maxRad*2+0.5);
+        c.$.gap = maxRad*2+0.5
+      });
     }
   },
   methods: {
@@ -152,7 +196,7 @@ new Vue({
       this.project.yPos = $("#workarea").height()/2-(this.machine.$.y+this.machine.$.h/2)*this.project.zoom;
     },
     mouseDown: function(event) {
-      if (!this.quickMode && this.selectedTool!=null) {
+      if (this.selectedTool!=null) {
         var e = event.target;
         while ($(e).attr("type")===undefined&&e!==undefined) {
           e = $(e).parent().get(0);
@@ -167,13 +211,13 @@ new Vue({
             this.lastTool = this.selectedTool;
             this.selectedTool = this.tools.select;
           default:
-            this.selectedTool.mouseDown(event, e);
+            this.selectedTool.mouseDown(event, e, this.quickMode);
         }
       }
     },
     mouseMove: function(event) {
-      if (this.selectedLayer && this.selectedTool) {
-        this.selectedTool.mouseMove(event);
+      if (this.selectedTool && (this.selectedLayer || (this.selectedTool == this.tools.select && this.selectedTool.mode != "select"))) {
+          this.selectedTool.mouseMove(event);
       }
     },
     mouseUp: function(event) {
@@ -187,6 +231,10 @@ new Vue({
         if (this.project.autoAdjustMachine) {
           this.adjustMachine();
         }
+        handleToolKey(event);
+      } else if (this.quickMode) {
+        this.tools.select.mouseUp(event);
+        this.selectedLayer = null;
         handleToolKey(event);
       }
     },
@@ -271,6 +319,22 @@ new Vue({
       this.selectedTool = this.tools.select;
       this.selectedLayer = null;
       this.sublayers_open = this.quickMode ? true : false;
+      if (this.quickMode) {
+        this.quickSettings.w = this.machine.$.w;
+        this.quickSettings.h = this.machine.$.h;
+        this.quickSettings.depth = this.machine.$.bit.inDepth;
+      }
+    },
+    zoomImage: function(image, zoom) {
+      let center = {x: image.$.x+image.$.w/2, y: image.$.y+image.$.h/2};
+      image.$.x = center.x - image.$.w*(0.5+zoom/10);
+      image.$.y = center.y - image.$.h*(0.5+zoom/10);
+      image.$.w *= 1+zoom/5;
+      image.$.h *= 1+zoom/5;
+    },
+    moveImage: function(image) {
+      this.selectedLayer = image;
+      this.sublayers_open = false;
     }
   }
 });

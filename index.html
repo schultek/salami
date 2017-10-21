@@ -48,7 +48,7 @@
                 <div><div></div></div>
               </span>
               <span id="fullPreview" v-on:click="showPreview"><i class="fa fa-magic" v-bind:style="{color: fullPreview?'#008dea':'inherit'}"></i></span>
-              <span id="showSettings" v-show="selectedLayer!=null" v-on:click="selectedLayer=null"><i class="fa fa-wrench"></i><i class="fa fa-angle-right"></i></span>
+              <span id="showSettings" v-show="!quickMode && selectedLayer!=null" v-on:click="selectedLayer=null"><i class="fa fa-wrench"></i><i class="fa fa-angle-right"></i></span>
             </div>
           </div>
           <div id="panels">
@@ -556,7 +556,7 @@
                     <span>H</span><input type="number" v-model.lazy.number="quickSettings.h" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>Tiefe</span><input type="number" v-model.lazy.number="quickSettings.depth" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Detailgrad</span><input type="number" v-model.lazy.number="quickSettings.depth" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                 </div>
               </div>
@@ -593,6 +593,14 @@
                     <input type="button" value="Füllen" v-on:click="layer.fill = true; workerFunc(el => el == layer);"/>
                   </div>
                 </div>
+                <div class="settings-dimensions dimen-row">
+                  <div class="dimen">
+                    <span>Punkte</span><input type="checkbox" v-model="layer.$.render.dotted" />
+                  </div>
+                  <div class="dimen">
+                    <span><i class="fa fa-adjust"></i></span><input type="checkbox" v-model="layer.$.inverted"/>
+                  </div>
+                </div>
                 <div v-if="layer.gcode" class="settings-dimensions dimen-row">
                   <div class="dimen">
                     <span>Benötigte Zeit</span><span>{{asTimeString(layer.gcode.time)}}</span>
@@ -606,6 +614,15 @@
                 <div class="settings-dimensions dimen-row">
                   <div class="dimen">
                     <input id="imageInput" type="button" value="Datei auswählen" v-on:click="loadImage(image)" style="width: auto"/>
+                  </div>
+                  <div class="dimen">
+                    <button v-on:click="zoomImage(image, 1)"><i class='fa fa-search-plus'></i></button>
+                  </div>
+                  <div class="dimen">
+                    <button v-on:click="zoomImage(image, -1)"><i class='fa fa-search-minus'></i></button>
+                  </div>
+                  <div class="dimen">
+                    <button v-on:click="moveImage(image)"><i class='fa fa-arrows-alt'></i></button>
                   </div>
                   <div v-show="image.$.data" class="dimen" style="height: auto">
                     <img id="preview" v-bind:src="image.$.data" width="100%" />

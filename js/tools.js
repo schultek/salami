@@ -6,8 +6,8 @@ class Tool {
     this.mM = mM.bind(this);
     this.mU = mU.bind(this);
   }
-  mouseDown(event, target) {
-    return this.mD(event, target);
+  mouseDown(event, target, qM) {
+    return this.mD(event, target, qM);
   }
   mouseMove(event) {
     return this.mM.call(this, event);
@@ -35,7 +35,7 @@ function resetData(event) {
 
 data.tools = {};
 
-data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, target) {
+data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, target, quickMode) {
   if ($(target).attr("type") == "zoom") {
     var e = {x: $("#workarea").position().left+$("#workarea").width()/2,y: $("#workarea").position().top+$("#workarea").height()/2 };
     var p = localPos(e.x, e.y);
@@ -53,46 +53,48 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
         app.project.autoAdjustMachine = false;
       }
     } else {
-      this.data.resize = "0";
-      app.selectedLayer = null;
+      if (!quickMode) {
+        app.selectedLayer = null;
 
-      if (app.machine.svgEquals(target)) {
-        app.selectedLayer = app.machine;
-      } else {
-        for (var l in app.layers) {
-          if (app.layers[l].svgEquals(target)) {
-            app.selectedLayer = app.layers[l];
-            break;
+        if (app.machine.svgEquals(target)) {
+          app.selectedLayer = app.machine;
+        } else {
+          for (var l in app.layers) {
+            if (app.layers[l].svgEquals(target)) {
+              app.selectedLayer = app.layers[l];
+              break;
+            }
           }
-        }
-        if (!app.selectedLayer) {
-          for (var i in app.images) {
-            if (app.images[i].svgEquals(target)) {
-              app.selectedLayer = app.images[i];
-              if (app.selectedLayer.$.url == app.bufferURL) {
-                app.loadImage();
+          if (!app.selectedLayer) {
+            for (var i in app.images) {
+              if (app.images[i].svgEquals(target)) {
+                app.selectedLayer = app.images[i];
+                if (app.selectedLayer.$.url == app.bufferURL) {
+                  app.loadImage();
+                }
+                break;
               }
-              break;
             }
           }
-        }
-        if (!app.selectedLayer) {
-          for (var c in app.curves) {
-            if (app.curves[c].svgEquals(target)) {
-              app.selectedLayer = app.curves[c];
-              break;
+          if (!app.selectedLayer) {
+            for (var c in app.curves) {
+              if (app.curves[c].svgEquals(target)) {
+                app.selectedLayer = app.curves[c];
+                break;
+              }
             }
           }
-        }
-        if (!app.selectedLayer) {
-          for (var t in app.texts) {
-            if (app.texts[t].svgEquals(target)) {
-              app.selectedLayer = app.texts[t];
-              break;
+          if (!app.selectedLayer) {
+            for (var t in app.texts) {
+              if (app.texts[t].svgEquals(target)) {
+                app.selectedLayer = app.texts[t];
+                break;
+              }
             }
           }
         }
       }
+      this.data.resize = "0";
     }
     if (app.selectedLayer!=null) {
       var p = localPos(event.x, event.y);

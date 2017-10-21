@@ -220,7 +220,7 @@ function getLine(num) {
 }
 
 function findEdgePoint(pnt, ilow, ihigh, cdata, n) {
-  if (layer.render.refinedEdges==0 || Math.abs(ihigh-ilow)<0.1/layer.render.refinedEdges) { return  pnt; }
+  if (layer.render.dotted || layer.render.refinedEdges==0 || Math.abs(ihigh-ilow)<0.1/layer.render.refinedEdges) { return  pnt; }
   try {
     var p = getPoint((ilow+ihigh)/2, cdata);
     if (p && p.data) {
@@ -640,7 +640,7 @@ function funcAngle(line) {
 function funcRad(line) {
   var maxRad = Math.round(machine.bit.inDepth/machine.bit.height*machine.bit.width/2*100)/100;
   return function(i) {
-    var r = (!layer.render.inverted?(1-line[i].data):line[i].data)*maxRad;
+    var r = (!layer.inverted?(1-line[i].data):line[i].data)*maxRad;
     return r<machine.bit.tiprad?machine.bit.tiprad:r;
   };
 }
@@ -672,7 +672,7 @@ function generateGCode(lines) {
 
   var minD = round(machine.bit.tiprad/machine.bit.width*2*machine.bit.height, 100);
   var zd = function(data) {
-    var d = (!layer.render.inverted?(1-data):data)*machine.bit.inDepth;
+    var d = (!layer.inverted?(1-data):data)*machine.bit.inDepth;
     return d<minD?-minD:-d;
   };
 
