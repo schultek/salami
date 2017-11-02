@@ -28,7 +28,8 @@ function initSVG(a) {
     s.circle(w,h,r).attr({class: "resize-diag-1", type: "resize", num: 5}),
     s.circle(w/2,h,r).attr({class: "resize-vert", type: "resize", num: 6}),
     s.circle(0,h,r).attr({class: "resize-diag-2", type: "resize", num: 7}),
-    s.circle(0,h/2,r).attr({class: "resize-hori", type: "resize", num: 8})
+    s.circle(0,h/2,r).attr({class: "resize-hori", type: "resize", num: 8}),
+    s.line(w/2, 0, w/2, -15), s.circle(w/2, -15, r).attr({class: "rotate", type: "rotate"})
   ).attr({
     id: "svgBox",
     fill: "#008dea",
@@ -43,6 +44,8 @@ function initSVG(a) {
     for (var i=4; i<12; i++) {
       childs[i].attr({r: 3/p.zoom});
     }
+    childs[13].attr({r: 3/p.zoom});
+
     s.select("#svgCurves").attr({
       strokeWidth: 1/p.zoom
     });
@@ -55,7 +58,7 @@ function initSVG(a) {
 
   app.$watch('selectedLayer', function(l) {
 
-    if (l) app.fullPreview = false;
+    if (l) this.fullPreview = false;
 
     var x = l ? l.$.x : 0;    var y = l ? l.$.y : 0;
     var w = l ? l.$.w : 0;    var h = l ? l.$.h : 0;
@@ -63,6 +66,7 @@ function initSVG(a) {
 
     var b = Snap("#svg").select("#svgBox").attr({
       style: "display: " + ( (!l || l instanceof Curve) ? "none" : "inherit"),
+      strokeWidth: 1/this.project.zoom,
       transform: "translate("+x+", "+y+") "+( l instanceof Layer || l instanceof Image ?("rotate("+r+" "+(w/2)+" "+(h/2)+")"):"")
     }).children();
 
@@ -80,6 +84,11 @@ function initSVG(a) {
     b[11].attr({cy: h/2});            b[0].attr({x2: w});
     b[1].attr({x1: w, x2: w, y2: h}); b[2].attr({x1: w, y1: h, y2: h});
     b[3].attr({y1: h});
+
+    let style = "display: " + (l instanceof Image || l instanceof Form ? "inherit" : "none");
+
+    b[12].attr({style: style, x1: w/2, x2: w/2, y2: -15});
+    b[13].attr({style: style, cx: w/2, cy: -15});
 
   }, {deep: true, immediate: true});
 
@@ -171,8 +180,8 @@ function getGlobalConstants(curve, machine) {
     var mid = {x: (start.x+end.x)/2+curve.dcos*(curve.stretch*l/mlength), y: (start.y+end.y)/2+curve.dsin*(curve.stretch*l/mlength)};
     return {start: start, end: end, mid: mid, maxlength: mlength};
   } else if (curve.type == "Kreis") {
-    var r = Math.min(machine.w, machine.h)/4
-    return {center: curve.dimens, r: r, maxlength: 2*Math.PI*r, twoPi: Math.PI*2};
+    var r = Math.min(machine.w, machine.h)/4;
+    return {x: curve.x, y: curve.y, r: r, maxlength: 2*Math.PI*r, twoPi: Math.PI*2};
   } else if (curve.type == "Welle") {
     var cotstr = (curve.dcos / curve.dsin) / curve.stretch;
     var tanstr = (curve.dsin / curve.dcos) / curve.stretch;
@@ -327,7 +336,7 @@ function getCurvePoint(globals, curve, step, cdata) {
     var f = cdata.f1+cdata.f2*step;
     return {x: cdata.c0.x+f*(f*cdata.c1.x+cdata.c2.x), y: cdata.c0.y+f*(f*cdata.c1.y+cdata.c2.y)};
   } else if (curve.type == "Kreis") {
-    return {x: globals.center.x+Math.cos(step*globals.twoPi)*cdata.r, y: globals.center.y+Math.sin(step*globals.twoPi)*cdata.r};
+    return {x: globals.x+Math.cos(step*globals.twoPi)*cdata.r, y: globals.y+Math.sin(step*globals.twoPi)*cdata.r};
   } else if (curve.type == "Welle") {
     var f = cdata.f1+cdata.f2*step;
     return globals.getPoint(f, cdata.mid);

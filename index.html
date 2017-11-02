@@ -44,7 +44,7 @@
             </div>
             <div class="menu-right">
               <span class="loader" v-bind:style="{opacity: progress<100?1:0}"><span></span><span v-bind:style="{width: progress+'px'}"></span></span>
-              <span class="switch" v-on:click="changeQuickMode" v-bind:class="[quickMode?'active':'']">
+              <span id="quickModeSwitch" class="switch" v-on:click="changeQuickMode" v-bind:class="[quickMode?'active':'']">
                 <div><div></div></div>
               </span>
               <span id="fullPreview" v-on:click="showPreview"><i class="fa fa-magic" v-bind:style="{color: fullPreview?'#008dea':'inherit'}"></i></span>
@@ -80,9 +80,11 @@
                     </g>
                   </svg>
                 </div>
-                <div v-on:click="sidepanel=2" v-bind:class="[sidepanel==2?'selected':'']">
+
+                <!-- <div v-on:click="sidepanel=2" v-bind:class="[sidepanel==2?'selected':'']">
                   <i class="fa fa-users"></i>
-                </div>
+                </div> -->
+
               </div>
             </div>
             <div id="layers" v-if="sidepanel==1||quickMode" class="sidepanel panel">
@@ -182,21 +184,18 @@
                   <span>Titel <input type="text" v-model.lazy="selectedLayer.$.title" v-on:keyup.enter="$event.srcElement.blur()"/></span>
                   <i class="fa fa-trash-o" v-on:click="selectedLayer.remove()"></i>
                 </div>
-                <div class="settings-dimensions dimen-row-3">
+                <div class="settings-dimensions dimen-row-2">
                   <div class="dimen">
-                    <span>B</span><input type="number" v-model.lazy.number="selectedLayer.$.w" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>B</span><input type="number" v-model.number="selectedLayer.$.w" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>X</span><input type="number" v-model.lazy.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>X</span><input type="number" v-model.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span><i class="fa fa-repeat"></i></span><input type="number" v-model.lazy.number="selectedLayer.$.rot" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>H</span><input type="number" v-model.number="selectedLayer.$.h" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>H</span><input type="number" v-model.lazy.number="selectedLayer.$.h" v-on:keyup.enter="$event.srcElement.blur()"/>
-                  </div>
-                  <div class="dimen">
-                    <span>Y</span><input type="number" v-model.lazy.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Y</span><input type="number" v-model.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                 </div>
                 <div class="settings-panel">
@@ -214,16 +213,16 @@
                   </div>
                   <div class="settings-dimensions dimen-row-4">
                     <div class="dimen">
-                      <span><i class="fa fa-caret-right"></i></span><input type="number" v-model.lazy.number="selectedLayer.$.border.left" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span><i class="fa fa-caret-right"></i></span><input type="number" v-model.number="selectedLayer.$.border.left" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span><i class="fa fa-caret-left"></i></span><input type="number" v-model.lazy.number="selectedLayer.$.border.right" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span><i class="fa fa-caret-left"></i></span><input type="number" v-model.number="selectedLayer.$.border.right" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span><i class="fa fa-caret-down"></i></span><input type="number" v-model.lazy.number="selectedLayer.$.border.top" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span><i class="fa fa-caret-down"></i></span><input type="number" v-model.number="selectedLayer.$.border.top" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span><i class="fa fa-caret-up"></i></span><input type="number" v-model.lazy.number="selectedLayer.$.border.bottom" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span><i class="fa fa-caret-up"></i></span><input type="number" v-model.number="selectedLayer.$.border.bottom" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                   </div>
                 </div>
@@ -263,10 +262,10 @@
                   <div class="settings-dimensions dimen-row">
                     <div class="dimen">
                       <span>Linien</span>
-                      <span>L</span><input type="number" v-model.lazy.number="selectedLayer.$.render.lines.l" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>L</span><input type="number" v-model.number="selectedLayer.$.render.lines.l" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span>R</span><input type="number" v-model.lazy.number="selectedLayer.$.render.lines.r" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>R</span><input type="number" v-model.number="selectedLayer.$.render.lines.r" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
                       <input type="button" value="Füllen" v-on:click="selectedLayer.fill = true; workerFunc(el => el == selectedLayer);"/>
@@ -278,10 +277,10 @@
                       <span><i class="fa fa-adjust"></i></span><input type="checkbox" v-model="selectedLayer.$.inverted"/>
                     </div>
                     <div class="dimen">
-                      <span>Kantenglättung</span><input type="number" v-model.lazy.number="selectedLayer.$.render.refinedEdges" v-on:keyup.enter="$event.srcElement.blur()" />
+                      <span>Kantenglättung</span><input type="number" v-model.number="selectedLayer.$.render.refinedEdges" v-on:keyup.enter="$event.srcElement.blur()" />
                     </div>
                     <div class="dimen">
-                      <span>Pixelglättung (%)</span><input type="number" v-model.lazy.number="selectedLayer.$.render.smooth" v-on:keyup.enter="$event.srcElement.blur()" />
+                      <span>Pixelglättung (%)</span><input type="number" v-model.number="selectedLayer.$.render.smooth" v-on:keyup.enter="$event.srcElement.blur()" />
                     </div>
                   </div>
                 </div>
@@ -299,13 +298,13 @@
               <template v-else-if="is(selectedLayer, Machine)">
                 <div class="settings-dimensions dimen-row">
                   <div class="dimen">
-                    <span>B</span><input type="number" v-model.lazy.number="selectedLayer.$.w" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>B</span><input type="number" v-model.number="selectedLayer.$.w" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>H</span><input type="number" v-model.lazy.number="selectedLayer.$.h" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>H</span><input type="number" v-model.number="selectedLayer.$.h" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>Tiefe</span><input type="number" v-model.lazy.number="selectedLayer.$.bit.inDepth" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Tiefe</span><input type="number" v-model.number="selectedLayer.$.bit.inDepth" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
                     <span>Autom. Anpassen</span><input type="checkbox" v-model.lazy="project.autoAdjustMachine" v-on:click="adjustMachine()"/>
@@ -317,13 +316,13 @@
                   </div>
                   <div class="settings-dimensions dimen-row">
                     <div class="dimen">
-                      <span>Breite</span><input type="number" v-model.lazy.number="selectedLayer.$.bit.width" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Breite</span><input type="number" v-model.number="selectedLayer.$.bit.width" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span>Höhe</span><input type="number" v-model.lazy.number="selectedLayer.$.bit.height" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Höhe</span><input type="number" v-model.number="selectedLayer.$.bit.height" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span>Spitze</span><input type="number" v-model.lazy.number="selectedLayer.$.bit.tip" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Spitze</span><input type="number" v-model.number="selectedLayer.$.bit.tip" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                   </div>
                 </div>
@@ -333,16 +332,16 @@
                   </div>
                   <div class="settings-dimensions dimen-row">
                     <div class="dimen">
-                      <span>Seekrate</span><input type="number" v-model.lazy.number="selectedLayer.$.speed.seekrate" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Seekrate</span><input type="number" v-model.number="selectedLayer.$.speed.seekrate" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span>Feedrate</span><input type="number" v-model.lazy.number="selectedLayer.$.speed.feedrate" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Feedrate</span><input type="number" v-model.number="selectedLayer.$.speed.feedrate" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span>Feedrate (Dot.)</span><input type="number" v-model.lazy.number="selectedLayer.$.speed.feedrateDot" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Feedrate (Dot.)</span><input type="number" v-model.number="selectedLayer.$.speed.feedrateDot" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span>Höhe über Material</span><input type="number" v-model.lazy.number="selectedLayer.$.outHeight" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Höhe über Material</span><input type="number" v-model.number="selectedLayer.$.outHeight" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                   </div>
                 </div>
@@ -354,19 +353,19 @@
                 </div>
                 <div class="settings-dimensions dimen-row-3">
                   <div class="dimen">
-                    <span>B</span><input type="number" v-model.lazy.number="selectedLayer.$.w" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>B</span><input type="number" v-model.number="selectedLayer.$.w" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>X</span><input type="number" v-model.lazy.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>X</span><input type="number" v-model.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span><i class="fa fa-repeat"></i></span><input type="number" v-model.lazy.number="selectedLayer.$.rot" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span><i class="fa fa-repeat"></i></span><input type="number" v-model.number="selectedLayer.$.rot" v-on:change="mapRotation('rot', selectedLayer.$)" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>H</span><input type="number" v-model.lazy.number="selectedLayer.$.h" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>H</span><input type="number" v-model.number="selectedLayer.$.h" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>Y</span><input type="number" v-model.lazy.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Y</span><input type="number" v-model.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                 </div>
                 <div class="settings-dimensions dimen-row settings-panel">
@@ -374,7 +373,7 @@
                     <span>Datei</span>
                   </div>
                   <div class="dimen">
-                    <input id="imageInput" type="button" value="Datei auswählen" v-on:click="loadImage" style="width: auto"/>
+                    <input id="imageInput" type="button" value="Datei auswählen" v-on:click="loadImage(selectedLayer)" style="width: auto"/>
                   </div>
                   <div v-show="selectedLayer.$.data" class="dimen" style="height: auto">
                     <img id="preview" v-bind:src="selectedLayer.$.data" width="100%" />
@@ -388,19 +387,19 @@
                 </div>
                 <div class="settings-dimensions dimen-row-3">
                   <div class="dimen">
-                    <span>B</span><input type="number" v-model.lazy.number="selectedLayer.$.w" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>B</span><input type="number" v-model.number="selectedLayer.$.w" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>X</span><input type="number" v-model.lazy.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>X</span><input type="number" v-model.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span><i class="fa fa-repeat"></i></span><input type="number" v-model.lazy.number="selectedLayer.$.rot" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span><i class="fa fa-repeat"></i></span><input type="number" v-model.number="selectedLayer.$.rot" v-on:change="mapRotation('rot', selectedLayer.$)" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>H</span><input type="number" v-model.lazy.number="selectedLayer.$.h" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>H</span><input type="number" v-model.number="selectedLayer.$.h" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>Y</span><input type="number" v-model.lazy.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Y</span><input type="number" v-model.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                 </div>
                 <div class="settings-dimensions dimen-row">
@@ -446,19 +445,19 @@
                   </div>
                   <div class="settings-dimensions dimen-row">
                     <div class="dimen">
-                      <span>Linien</span><span>L</span><input type="number" v-model.lazy.number="selectedLayer.$.render.lines.l" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Linien</span><span>L</span><input type="number" v-model.number="selectedLayer.$.render.lines.l" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span>R</span><input type="number" v-model.lazy.number="selectedLayer.$.render.lines.r" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>R</span><input type="number" v-model.number="selectedLayer.$.render.lines.r" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
                       <input type="button" value="Füllen" v-on:click="selectedLayer.fill = true; workerFunc(el => el == selectedLayer);"/>
                     </div>
                     <div class="dimen">
-                      <span>Kantenglättung</span><input type="number" v-model.lazy.number="selectedLayer.$.render.refinedEdges" v-on:keyup.enter="$event.srcElement.blur()" />
+                      <span>Kantenglättung</span><input type="number" v-model.number="selectedLayer.$.render.refinedEdges" v-on:keyup.enter="$event.srcElement.blur()" />
                     </div>
                     <div class="dimen">
-                      <span>Pixelglättung (%)</span><input type="number" v-model.lazy.number="selectedLayer.$.render.smooth" v-on:keyup.enter="$event.srcElement.blur()" />
+                      <span>Pixelglättung (%)</span><input type="number" v-model.number="selectedLayer.$.render.smooth" v-on:keyup.enter="$event.srcElement.blur()" />
                     </div>
                   </div>
                 </div>
@@ -487,17 +486,16 @@
                     <div class="dimen">
                       <select v-model="selectedLayer.$.type">
                         <option>Linie</option>
-                        <option>Kurve</option>
-                        <option>Kreis</option>
                         <option>Bogen</option>
+                        <option>Kreis</option>
                         <option>Welle</option>
                       </select>
                     </div>
                     <div class="dimen">
-                      <span>Biegung</span><input type="number" v-model.lazy.number="selectedLayer.$.stretch" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Biegung</span><input type="number" v-model.number="selectedLayer.$.stretch" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen" v-bind:class="[selectedLayer.$.type==0?'disabled':'']">
-                      <span>Richtung</span><input type="number" v-model.lazy.number="selectedLayer.$.direction" v-on:change="mapRotation('direction', selectedLayer)" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span>Richtung</span><input type="number" v-model.number="selectedLayer.$.direction" v-on:change="mapRotation('direction', selectedLayer.$)" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                   </div>
                 </div>
@@ -507,18 +505,18 @@
                   </div>
                   <div class="settings-dimensions dimen-row">
                     <div class="dimen">
-                      <span style="width: 40px; text-align: right">X</span><input type="number" v-model.lazy.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span style="width: 40px; text-align: right">X</span><input type="number" v-model.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span style="width: 40px; text-align: right">Y</span><input type="number" v-model.lazy.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span style="width: 40px; text-align: right">Y</span><input type="number" v-model.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                   </div>
                   <div class="settings-dimensions dimen-row">
                     <div class="dimen">
-                      <span style="width: 40px; text-align: right">Schritte</span><input type="number" v-model.lazy.number="selectedLayer.$.steps" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span style="width: 40px; text-align: right">Schritte</span><input type="number" v-model.number="selectedLayer.$.steps" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                     <div class="dimen">
-                      <span style="width: 40px; text-align: right">Abstand</span><input type="number" v-model.lazy.number="selectedLayer.$.gap" v-on:keyup.enter="$event.srcElement.blur()"/>
+                      <span style="width: 40px; text-align: right">Abstand</span><input type="number" v-model.number="selectedLayer.$.gap" v-on:keyup.enter="$event.srcElement.blur()"/>
                     </div>
                   </div>
                 </div>
@@ -530,15 +528,15 @@
                 </div>
                 <div class="settings-dimensions dimen-row-3">
                   <div class="dimen">
-                    <span>X</span><input type="number" v-model.lazy.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>X</span><input type="number" v-model.number="selectedLayer.$.x" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>Y</span><input type="number" v-model.lazy.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Y</span><input type="number" v-model.number="selectedLayer.$.y" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                 </div>
                 <div class="settings-dimensions dimen-row">
                   <div class="dimen">
-                    <span>Size</span><input type="number" v-model.lazy.number="selectedLayer.$.size" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Size</span><input type="number" v-model.number="selectedLayer.$.size" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                 </div>
               </template>
@@ -550,13 +548,13 @@
                 </div>
                 <div class="settings-dimensions dimen-row">
                   <div class="dimen">
-                    <span>B</span><input type="number" v-model.lazy.number="quickSettings.w" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>B</span><input type="number" v-model.number="quickSettings.w" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>H</span><input type="number" v-model.lazy.number="quickSettings.h" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>H</span><input type="number" v-model.number="quickSettings.h" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>Detailgrad</span><input type="number" v-model.lazy.number="quickSettings.depth" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Detailgrad</span><input type="number" v-model.number="quickSettings.depth" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                 </div>
               </div>
@@ -584,10 +582,10 @@
                 </div>
                 <div class="settings-dimensions dimen-row">
                   <div class="dimen">
-                    <span>Linien</span><span>L</span><input type="number" v-model.lazy.number="layer.$.render.lines.l" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Linien</span><span>L</span><input type="number" v-model.number="layer.$.render.lines.l" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>R</span><input type="number" v-model.lazy.number="layer.$.render.lines.r" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>R</span><input type="number" v-model.number="layer.$.render.lines.r" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
                     <input type="button" value="Füllen" v-on:click="layer.fill = true; workerFunc(el => el == layer);"/>
@@ -637,17 +635,16 @@
                   <div class="dimen">
                     <select v-model="curve.$.type">
                       <option>Linie</option>
-                      <option>Kurve</option>
-                      <option>Kreis</option>
                       <option>Bogen</option>
+                      <option>Kreis</option>
                       <option>Welle</option>
                     </select>
                   </div>
                   <div class="dimen">
-                    <span>Biegung</span><input type="number" v-model.lazy.number="curve.$.stretch" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Biegung</span><input type="number" v-model.number="curve.$.stretch" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                   <div class="dimen">
-                    <span>Richtung</span><input type="number" v-model.lazy.number="curve.$.direction" v-on:change="mapRotation('direction', curve)" v-on:keyup.enter="$event.srcElement.blur()"/>
+                    <span>Richtung</span><input type="number" v-model.number="curve.$.direction" v-on:change="mapRotation('direction', curve.$)" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
                 </div>
               </div>

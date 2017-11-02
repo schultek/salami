@@ -36,12 +36,11 @@ new Vue({
       loadLayouts(this, () => {
         this.centerProject();
         this.machine.createSVGWatcher(this.machine.watcherFunc);
+        this.$watch(function() { return {l: this.layers, i: this.images, c: this.curves, m: this.machine} }, function(arr) {
+          this.project.saved = false;
+        }, {deep: true});
       });
     });
-    this.$watch(function() { return {l: this.layers, i: this.images, c: this.curves, m: this.machine} }, (arr) => {
-      console.log("change");
-      $this.project.saved = false;
-    }, {deep: true});
     //initConnection(this);
   },
   computed: {
@@ -55,7 +54,7 @@ new Vue({
   watch: {
     selectedLayer: function(sl, oldSl) {
       if (sl instanceof Image) {
-        setTimeout(() => tourEvent("image-selected"), 100);
+        setTimeout(() => tourEvent("image-selected"), 10);
       }
     },
     selectedTool: function(st) {
@@ -120,7 +119,7 @@ new Vue({
       this.fullPreview = true;
       this.selectedLayer = null;
       let $this = this;
-      setTimeout(() => $this.centerProject(), 100);
+      setTimeout(() => $this.centerProject(), 10);
     },
     loadProject: function() {
       dialog.showOpenDialog({filters: [{name: "Carve", extensions: ['crv']}, {name: "Image", extensions: ['jpg', 'png', 'gif']}, {name: "Layout", extensions: ['json']}]}, files => {
@@ -186,14 +185,17 @@ new Vue({
               if (err) throw err;
               console.log("GCode saved to "+files[0]);
             });
-          }, 200);
+          }, 10);
         }
       });
     },
     centerProject: function() {
       this.project.zoom = $("#workarea").width()/this.machine.$.w*0.9;
-      this.project.xPos = $("#workarea").width()/2-(this.machine.$.x+this.machine.$.w/2)*this.project.zoom;
+      if (this.machine.$.h*this.project.zoom > $("#workarea").height()*0.9) {
+        this.project.zoom = $("#workarea").height()/this.machine.$.h*0.9;
+      }
       this.project.yPos = $("#workarea").height()/2-(this.machine.$.y+this.machine.$.h/2)*this.project.zoom;
+      this.project.xPos = $("#workarea").width()/2-(this.machine.$.x+this.machine.$.w/2)*this.project.zoom;
     },
     mouseDown: function(event) {
       if (this.selectedTool!=null) {
@@ -207,6 +209,7 @@ new Vue({
         switch ($(e).attr("type")) {
           case "action": break;
           case "resize":
+          case "rotate":
           case "zoom":
             this.lastTool = this.selectedTool;
             this.selectedTool = this.tools.select;
@@ -244,9 +247,11 @@ new Vue({
       this.selectedTool = liftTool;
       liftTool.mouseDown(event, {elem, layer});
     },
-    loadImage: function(l) {
-      var layer = l || this.selectedLayer;
+    loadImage: function(layer) {
+      if (this.dialogOpen) return;
+      let $this = this;
       dialog.showOpenDialog({filters: [{name: 'Images', extensions: ['jpg', 'png', 'gif']}]}, (files) => {
+        $this.dialogOpen = false;
         if (files && files[0]) {
           layer.$.url = files[0];
           getDataURL(files[0], (data) => {
@@ -257,6 +262,7 @@ new Vue({
           });
         }
       });
+      this.dialogOpen = true;
     },
     mapRotation: function(prop, obj) {
       while (obj[prop]<0) obj[prop]+=360;
@@ -324,6 +330,9 @@ new Vue({
         this.quickSettings.h = this.machine.$.h;
         this.quickSettings.depth = this.machine.$.bit.inDepth;
       }
+      let $this = this;
+      setTimeout(() => $this.centerProject(), 10);
+      tourEvent("change-quickmode");
     },
     zoomImage: function(image, zoom) {
       let center = {x: image.$.x+image.$.w/2, y: image.$.y+image.$.h/2};

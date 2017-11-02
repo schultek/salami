@@ -20,8 +20,7 @@ function createWindow () {
     slashes: true
   }))
 
-
-  mainWindow.webContents.openDevTools()
+  //mainWindow.webContents.openDevTools()
 
   mainWindow.on('closed', function () {
     mainWindow = null
@@ -94,10 +93,6 @@ function createWindow () {
   }
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
-
-  if (process.env.NODE_ENV !== 'production') {
-    require('vue-devtools').install()
-  }
 }
 
 

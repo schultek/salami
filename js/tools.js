@@ -21,8 +21,18 @@ data.Tool = Tool;
 
 function spanObject(event) {
   var p = localPos(event.x, event.y);
-  app.selectedLayer.$.w = Math.round((p.x-this.data.x<=0?0:p.x-this.data.x)*10)/10;
-  app.selectedLayer.$.h = Math.round((p.y-this.data.y<=0?0:p.y-this.data.y)*10)/10;
+  if (p.x-this.data.x > 0) {
+    app.selectedLayer.$.w = Math.round((p.x-this.data.x)*10)/10;
+  } else {
+    app.selectedLayer.$.w = Math.round((this.data.x-p.x)*10)/10;
+    app.selectedLayer.$.x = p.x;
+  }
+  if (p.y-this.data.y > 0) {
+    app.selectedLayer.$.h = Math.round((p.y-this.data.y)*10)/10;
+  } else {
+    app.selectedLayer.$.h = Math.round((this.data.y-p.y)*10)/10;
+    app.selectedLayer.$.y = p.y;
+  }
 }
 
 function resetData(event) {
@@ -52,6 +62,8 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
       if (app.selectedLayer == app.machine) {
         app.project.autoAdjustMachine = false;
       }
+    } else if ($(target).attr("type")=="rotate") {
+      this.data.type = "rotate";
     } else {
       if (!quickMode) {
         app.selectedLayer = null;
@@ -70,7 +82,7 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
               if (app.images[i].svgEquals(target)) {
                 app.selectedLayer = app.images[i];
                 if (app.selectedLayer.$.url == app.bufferURL) {
-                  app.loadImage();
+                  app.loadImage(app.selectedLayer);
                 }
                 break;
               }
@@ -114,6 +126,14 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
     if (app.project.zoom > 20) app.project.zoom = 20;
     app.project.xPos = this.data.ex-(this.data.x*app.project.zoom)-$("#svg").position().left;
     app.project.yPos = this.data.ey-(this.data.y*app.project.zoom)-$("#svg").position().top;
+  } else if (this.data.type == "rotate") {
+    let p = localPos(event.x, event.y);
+    let m = {
+      x: app.selectedLayer.$.x+app.selectedLayer.$.w/2,
+      y: app.selectedLayer.$.y+app.selectedLayer.$.h/2
+    };
+    app.selectedLayer.$.rot = Math.atan2(m.y-p.y, m.x-p.x)*360/Math.PI/2-90;
+    app.mapRotation('rot', app.selectedLayer.$);
   } else if (this.data.mode == "select") {
     var p = localPos(event.x, event.y);
     p.x = Math.round(p.x*10)/10;
@@ -125,17 +145,17 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
     if (!(app.selectedLayer instanceof Curve)) {
       if (this.data.resize == "1" || this.data.resize == "2" || this.data.resize == "3") {
         var bottom = app.selectedLayer.$.y+app.selectedLayer.$.h;
-        app.selectedLayer.$.h = app.selectedLayer.$.h-p.y+app.selectedLayer.$.y<=0?0:app.selectedLayer.$.h-p.y+app.selectedLayer.$.y;
+        app.selectedLayer.$.h = app.selectedLayer.$.h-p.y+app.selectedLayer.$.y;
         app.selectedLayer.$.y = p.y;
       }
       if (this.data.resize == "3" || this.data.resize == "4" || this.data.resize == "5") {
-        app.selectedLayer.$.w = p.x-app.selectedLayer.$.x<=0?0:p.x-app.selectedLayer.$.x;
+        app.selectedLayer.$.w = p.x-app.selectedLayer.$.x;
       }
       if (this.data.resize == "5" || this.data.resize == "6" || this.data.resize == "7") {
-        app.selectedLayer.$.h = p.y-app.selectedLayer.$.y<=0?0:p.y-app.selectedLayer.$.y;
+        app.selectedLayer.$.h = p.y-app.selectedLayer.$.y;
       }
       if (this.data.resize == "7" || this.data.resize == "8" || this.data.resize == "1") {
-        app.selectedLayer.$.w = app.selectedLayer.$.w-p.x+app.selectedLayer.$.x<=0?0:app.selectedLayer.$.w-p.x+app.selectedLayer.$.x;
+        app.selectedLayer.$.w = app.selectedLayer.$.w-p.x+app.selectedLayer.$.x;
         app.selectedLayer.$.x = p.x;
       }
       if (event.shiftKey && (this.data.resize == "1" || this.data.resize == "3" || this.data.resize == "5" || this.data.resize == "7")) {
@@ -143,6 +163,24 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
         if (this.data.resize == "1" || this.data.resize == "3") {
           app.selectedLayer.$.y = bottom - app.selectedLayer.$.w/this.data.pro;
         }
+      }
+      let change = (a, b) => {
+          if (this.data.resize == a) this.data.resize = b;
+          else if (this.data.resize == b) this.data.resize = a;
+      }
+      if (app.selectedLayer.$.w < 0) {
+        app.selectedLayer.$.x += app.selectedLayer.$.w;
+        app.selectedLayer.$.w *= -1;
+        change(3, 1);
+        change(4, 8);
+        change(5, 7);
+      }
+      if (app.selectedLayer.$.h < 0) {
+        app.selectedLayer.$.y += app.selectedLayer.$.h;
+        app.selectedLayer.$.h *= -1;
+        change(1, 7);
+        change(2, 6);
+        change(3, 5);
       }
     }
   } else if (this.data.mode == "move") {
@@ -222,14 +260,14 @@ data.tools.curve = new Tool("leaf", {}, function(event, target) {
   app.selectedLayer.$.x = p.x;
   app.selectedLayer.$.y = p.y;
 }, resetData);
-
+/*
 data.tools.text = new Tool("font", {}, function(event, target) {
   app.sublayers_open = false;
   var p = localPos(event.x, event.y);
   app.selectedLayer = new Text(p.x, p.y, 0, 0, "Text");
   app.selectedTool = this.tools.select;
 }, (event) => {}, (event) => {});
-
+*/
 
 let liftTool = new Tool("", {}, function(event, target) {
   let elem = target.elem;

@@ -406,7 +406,7 @@ input[type="text"]:focus, input[type="number"]:focus {
 }
 
 .dimen-row-2 .dimen {
-  width: 140px;
+  width: 120px;
 }
 
 .dimen-row-4 .dimen {
@@ -521,6 +521,10 @@ input[type="text"]:focus, input[type="number"]:focus {
 
 .resize-vert:hover {
   cursor: ns-resize;
+}
+
+.rotate {
+  cursor: url(../img/cursor-rotate.cur), auto;
 }
 
 .move-tool:hover {

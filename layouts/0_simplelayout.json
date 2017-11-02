@@ -14,8 +14,16 @@
         "w": 300,
         "h": 200,
         "x": 0,
-        "y": 0
+        "y": 0,
+        "render": {
+          "smooth": 0
+        }
       }
-    ]
+    ],
+    "images": [{
+      "title": "Bild",
+      "url": "/Users/kilian/Desktop/549959.jpg",
+      "rot": 5
+    }]
   }
 }

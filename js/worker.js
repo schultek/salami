@@ -86,7 +86,7 @@ function runWorker(finishWorkers, layer, forms, image, curve) {
 
 function workerFunc(filterFunc) {
   startWorkers(function() {
-    var layers = app.layers.filter((el, i) => el instanceof CPart && filterFunc(el, i));
+    var layers = app.layers.filter((el, i) => (el instanceof CPart || (el instanceof Form && el.$.ownRenderer)) && filterFunc(el, i));
     console.log("Start workers for "+layers.length+" Layers");
     for (var l of layers) {
       createWorker(l);

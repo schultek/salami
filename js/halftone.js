@@ -1,6 +1,6 @@
 var layer, image, curve, machine, forms, gcode;
 
-var toPix, f, globals;
+var getDataPoint, f, globals;
 
 self.addEventListener("message", function(e) {
 
@@ -12,40 +12,6 @@ self.addEventListener("message", function(e) {
   forms = e.data.forms;
   gcode = e.data.gcode;
 
-  curve.direction = curve.direction/360*Math.PI*2;
-  curve.dcos = Math.cos(curve.direction);
-  curve.dsin = Math.sin(curve.direction);
-  curve.xgap = curve.dcos*curve.gap;
-  curve.ygap = curve.dsin*curve.gap;
-  curve.rad = curve.gap/2;
-
-  machine.bit.tiprad = machine.bit.tip/2;
-
-  var makeAreaFunc = function(layer) {
-    if (layer.type=="rect") {
-      layer.inArea = function(p) {
-        return inArea(p, this, null);
-      }
-    } else if (layer.type=="ellipse") {
-      layer.cx = layer.x+layer.w/2;
-      layer.cy = layer.y+layer.h/2;
-      layer.r2x = (layer.w/2)*(layer.w/2);
-      layer.r2y = (layer.h/2)*(layer.h/2);
-      layer.inArea = function(p) {
-        return (((p.x-this.cx)*(p.x-this.cx))/this.r2x)+(((p.y-this.cy)*(p.y-this.cy))/this.r2y)<=1;
-      }
-    } else {
-      layer.inArea = function(p) {
-        return inArea(p, this, this.border);
-      }
-    }
-  }
-
-  makeAreaFunc(layer);
-
-  for (var fo in forms) {
-    makeAreaFunc(forms[fo]);
-  }
 
   if (!image.pixels) {
     console.log("No Pixels");
@@ -58,12 +24,47 @@ self.addEventListener("message", function(e) {
     }
   }
 
-  toPix = function(pos) { //convert mm to pixel
-    var p = {x: pos.x-image.x, y: pos.y-image.y};
-    return {x: Math.round(p.x*image.pixels.shape[0]/image.w), y: Math.round(p.y*image.pixels.shape[1]/image.h)};
+  def(curve, "direction", "gap", "stretch", "steps");
+
+  curve.direction = curve.direction/360*Math.PI*2;
+  curve.dcos = Math.cos(curve.direction);
+  curve.dsin = Math.sin(curve.direction);
+  curve.xgap = curve.dcos*curve.gap;
+  curve.ygap = curve.dsin*curve.gap;
+  curve.rad = curve.gap/2;
+
+  machine.bit.tiprad = machine.bit.tip||0/2;
+
+  def(layer.border, "left", "right", "top", "bottom");
+
+  for (let f of forms.concat([layer])) {
+
+    def(f, "x", "y", "w", "h", "rot");
+    def(f.render, "refinedEdges", "smooth");
+    def(f.render.lines, "l", "r");
+
+    f.rotate = makeRotateFunc(f);
+    if (f.type=="ellipse") {
+      f.cx = f.x+f.w/2;
+      f.cy = f.y+f.h/2;
+      f.r2x = (f.w/2)*(f.w/2);
+      f.r2y = (f.h/2)*(f.h/2);
+      f.inArea = function(p) {
+        p = this.rotate(p);
+        return (((p.x-this.cx)*(p.x-this.cx))/this.r2x)+(((p.y-this.cy)*(p.y-this.cy))/this.r2y)<=1;
+      }
+    } else {
+      f.inArea = makeAreaFunc(f);
+    }
   }
 
+
+  image.inArea = makeAreaFunc({x:0,y:0,w:image.pixels.shape[0],h:image.pixels.shape[1]});
+  image.rotate = makeRotateFunc(image);
+
   globals = getGlobalConstants();
+
+  getDataPoint = makeDataPointFunc();
 
 
   var apprLineCount = Math.max(layer.w, layer.h)/curve.gap;
@@ -449,61 +450,105 @@ function getCurvePoint(step, cdata) {
   }
 }
 
-function gray(ix, iy) {
-  return 0.2126*image.pixels.get(ix, iy, 0)+0.7152*image.pixels.get(ix, iy, 1)+0.0722*image.pixels.get(ix, iy, 2);
+function def(obj, ...props) {
+  for (let prop of props) {
+    obj[prop] = obj[prop] || 0;
+  }
 }
 
-function inImage(pos) {
-  return inArea(pos, {x:0,y:0,w:image.pixels.shape[0],h:image.pixels.shape[1]}, null);
+function gray(i) {
+  return 0.2126*image.pixels.get(i.x, i.y, 0)+0.7152*image.pixels.get(i.x, i.y, 1)+0.0722*image.pixels.get(i.x, i.y, 2);
 }
 
 
-function getDataPoint(pos, widthdata) {
-  var sum = 0;
-  var count = 0;
+function makeRotateFunc(dim) {
+  if (!dim.rot) return (p) => p;
+  let m = {
+    x: dim.x+dim.w/2,
+    y: dim.y+dim.h/2
+  }
+  let rad = -dim.rot*Math.PI*2/360;
+  let cos = Math.cos(rad);
+  let sin = Math.sin(rad);
+  return function(p) {
+    let d = {x: p.x-m.x, y: p.y-m.y}
+    return {
+      x: m.x + d.x * cos - d.y * sin,
+      y: m.y + d.y * cos + d.x * sin
+    }
+  }
+}
 
-  if (!layer.render.smooth) {
-    var pixpos = toPix(pos);
-    if (!inImage(pixpos)) {
-      return null;
+function toPix(pos) { //convert mm to pixel
+  let p = image.rotate(pos);
+  p = {x: p.x-image.x, y: p.y-image.y};
+  return {x: Math.round(p.x*image.pixels.shape[0]/image.w), y: Math.round(p.y*image.pixels.shape[1]/image.h)};
+}
+
+function makeDataPointFunc() {
+
+  let pixRad = Math.round(curve.rad*image.pixels.shape[0]/image.w*layer.render.smooth/100);
+
+  return (pos, widthdata) => {
+    var sum = 0;
+    var count = 0;
+    var pix = toPix(pos);
+
+    if (!layer.render.smooth) {
+      if (!image.inArea(pix)) {
+        return null;
+      } else {
+        return {x: pos.x, y: pos.y, data: gray(pix)/255}
+      }
     } else {
-      return {x: pos.x, y: pos.y, data: gray(pixpos.x, pixpos.y)}
-    }
-  } else {
-    //top left corner of point area
-    var start = toPix({x: pos.x-(curve.rad*layer.render.smooth/100), y: pos.y-(curve.rad*layer.render.smooth/100)});
-    //bottom right corner of point area
-    var end = toPix({x: pos.x+(curve.rad*layer.render.smooth/100), y: pos.y+(curve.rad*layer.render.smooth/100)});
+      //top left corner of point area
+      var start = {x: pix.x-pixRad, y: pix.y-pixRad};
+      //bottom right corner of point area
+      var end = {x: pix.x+pixRad, y: pix.y+pixRad};
 
-    if (!(inImage(start) || inImage(end) || inImage({x: start.x, y: end.y}) || inImage({x: end.x, y: start.y}))) {
-      return null;
-    }
+      if (!(image.inArea(start) || image.inArea(end) || image.inArea({x: start.x, y: end.y}) || image.inArea({x: end.x, y: start.y}))) {
+        return null;
+      }
 
-    var dx = start.x<end.x?1:-1;
-    var dy = start.y<end.y?1:-1;
-    var xrange = start.x<end.x?function(ix) { return ix<end.x; }:function(ix) { return ix>=end.x; };
-    var yrange = start.y<end.y?function(iy) { return iy<end.y; }:function(iy) { return iy>=end.y; };
-    for (var ix = start.x; xrange(ix); ix+=dx) {
-      for (var iy = start.y; yrange(iy); iy+=dy) {
-        //point in image
-        if (inImage({x: ix, y: iy})) {
-          //calculate grayscale value from rgb
-          sum += gray(ix, iy);
-          count++;
+      var dx = start.x<end.x?1:-1;
+      var dy = start.y<end.y?1:-1;
+      var xrange = start.x<end.x?function(ix) { return ix<end.x; }:function(ix) { return ix>=end.x; };
+      var yrange = start.y<end.y?function(iy) { return iy<end.y; }:function(iy) { return iy>=end.y; };
+      let i = {x: start.x, y: start.y};
+      for (; xrange(i.x); i.x+=dx) {
+        for (; yrange(i.y); i.y+=dy) {
+          //point in image
+          if (image.inArea(i)) {
+            //calculate grayscale value from rgb
+            sum += gray(i);
+            count++;
+          }
         }
       }
+      return count>0?{x: pos.x, y: pos.y, data: sum/count/255}:null;
     }
-    return count>0?{x: pos.x, y: pos.y, data: sum/count/255}:null;
   }
 }
 
-function inArea(pos, dimens, border) {
-  if (border != null) {
-    return pos.x>=dimens.x+border.left && pos.x<=dimens.x+dimens.w-border.right && pos.y>=dimens.y+border.top && pos.y<=dimens.y+dimens.h-border.bottom;
-  } else {
-    return pos.x>=dimens.x && pos.x<=dimens.x+dimens.w && pos.y>=dimens.y && pos.y<=dimens.y+dimens.h;
+function makeAreaFunc(layer) {
+  if (!layer.border) {
+    layer.border = {left: 0, right: 0, top: 0, bottom: 0};
   }
+  return function(pos) {
+    if (layer.rotate) {
+      pos = layer.rotate(pos);
+    }
+    let b = pos.x>=layer.x+layer.border.left &&
+      pos.x<=layer.x+layer.w-layer.border.right &&
+      pos.y>=layer.y+layer.border.top &&
+      pos.y<=layer.y+layer.h-layer.border.bottom;
+    if (!b) {
+      //console.log(pos, layer);
+    }
+    return b;
+  };
 }
+
 
 function dist(x1, y1, x2, y2) {
   return Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
@@ -680,7 +725,7 @@ function generateGCode(lines) {
   var sOut = machine.speed.seekrate;
   var sIn = machine.speed.feedrate;
   var sInD = machine.speed.feedrateDot;
-  output.push(gcode.pre.replace(/\$W/g, machine.w).replace(/\$H/g, machine.h));
+  output.push(gcode.pre.replace(/\$W/g, layer.w).replace(/\$H/g, layer.h));
 
   for (let i in lines) {
     for (let line of lines[i]) {
@@ -717,6 +762,6 @@ function generateGCode(lines) {
       }
     }
   }
-  output.push(gcode.post.replace(/\$W/g, machine.w).replace(/\$H/g, machine.h));
+  output.push(gcode.post.replace(/\$W/g, layer.w).replace(/\$H/g, layer.h));
   return {time: time, gcode: output};
 }

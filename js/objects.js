@@ -118,8 +118,8 @@ class Layer extends SVG {
 data.Layer = Layer;
 
 class CPart extends Layer {
-  constructor(x, y, w, h, rot, title, render, border, inverted, fill) {
-    super(x, y, w, h, rot, title, render, fill);
+  constructor(x, y, w, h, title, render, border, inverted, fill) {
+    super(x, y, w, h, 0, title, render, fill);
     if (!border) border = {};
     this.$.border = {
       left: border.left || 5,
@@ -149,12 +149,12 @@ class CPart extends Layer {
   }
   toObj() {
     return {
-      x: this.$.x, y: this.$.y, w: this.$.w, h: this.$.h, rot: this.$.rot,
+      x: this.$.x, y: this.$.y, w: this.$.w, h: this.$.h,
       title: this.$.title, render: this.$.render, border: this.$.border, inverted: this.$.inverted, fill: this.fill
     }
   }
   static fromObj(obj) {
-    new CPart(obj.x, obj.y, obj.w, obj.h, obj.rot, obj.title, obj.render, obj.border, obj.inverted, obj.fill);
+    new CPart(obj.x, obj.y, obj.w, obj.h, obj.title, obj.render, obj.border, obj.inverted, obj.fill);
   }
 }
 
@@ -214,7 +214,8 @@ class Rect extends Form {
         x: layer.$.x,
         y: layer.$.y,
         width: layer.$.w,
-        height: layer.$.h
+        height: layer.$.h,
+        transform: "rotate("+layer.$.rot+" "+(layer.$.x+layer.$.w/2)+" "+(layer.$.y+layer.$.h/2)+")"
       });
       layer.workerFunc();
     });
@@ -238,7 +239,8 @@ class Ellipse extends Form {
         cx: layer.$.x+layer.$.w/2,
         cy: layer.$.y+layer.$.h/2,
         rx: layer.$.w/2,
-        ry: layer.$.h/2
+        ry: layer.$.h/2,
+        transform: "rotate("+layer.$.rot+" "+(layer.$.x+layer.$.w/2)+" "+(layer.$.y+layer.$.h/2)+")"
       });
       layer.workerFunc();
     });
@@ -313,7 +315,7 @@ class Curve extends SVG {
     super.createSVGWatcher((curve) => {
       curve.svgObject[1].attr({cx: curve.$.x, cy: curve.$.y});
       curve.svgObject[0].remove();
-      curve.svgObject.prepend(makeCurves(s, this.toObj(), app.machine.toObj()));
+      curve.svgObject.prepend(makeCurves(s, curve.toObj(), app.machine.toObj()));
       workerFunc(el => el.$.render.curve == curve.$.id);
     });
   }
@@ -358,6 +360,10 @@ class Machine extends SVG {
     super.createSVGWatcher(function(m) {
       m.svgObject.attr({width: m.$.w, height: m.$.h,
         transform: "translate("+m.$.x+" "+m.$.y+")"});
+      app.curves.forEach(curve => {
+        curve.svgObject[0].remove();
+        curve.svgObject.prepend(makeCurves(s, curve.toObj(), m.toObj()));
+      });
       workerFunc(el => true);
     });
   }
