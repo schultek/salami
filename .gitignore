@@ -1,3 +1,6 @@
 WebCarve-darwin-x64/
+WebCarve-darwin-x64/*
 WebCarve-win32-x64/
+WebCarve-win32-x64/*
 node_modules/
+._.DS_Store
