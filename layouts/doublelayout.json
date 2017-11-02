@@ -1,5 +1,5 @@
 {
-  "title": "DoubleLayout",
+  "title": "Doppel Bild",
   "template": {
     "machine": {
       "w": 300,
@@ -9,25 +9,15 @@
     },
     "layers": [
       {
-        "title": "LeftLayer",
-        "w": 150,
-        "h": 200,
-        "x": 0,
-        "y": 0
-      },
-      {
-        "title": "RightLayer",
+        "title": "Rechte Ebene",
         "w": 150,
         "h": 200,
         "x": 150,
         "y": 0
-      }
-    ],
-    "images": [
+      },
       {
-        "title": "Heißluftballons",
-        "url": "/Users/kilian/Desktop/549959.jpg",
-        "w": 300,
+        "title": "Linke Ebene",
+        "w": 150,
         "h": 200,
         "x": 0,
         "y": 0

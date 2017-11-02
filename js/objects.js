@@ -67,11 +67,11 @@ data.SVG = SVG;
 class Layer extends SVG {
   constructor(x, y, w, h, rot, title, render, fill) {
     super(x || 0, y || 0, w || 300, h || 200, rot || 0, app.layers, "#svgLayers");
-    this.$.title = title || "Layer";
+    this.$.title = title || "Ebene";
     if (!render) render = {};
     this.$.render = {
-      curve: this.idOf(render.curve, app.curves),
-      image: this.idOf(render.image, app.images),
+      curve: this.idOf(render.curve || 0, app.curves),
+      image: this.idOf(render.image || 0, app.images),
       lines: {
         l: render.lines ? render.lines.l || 100 : 100,
         r: render.lines ? render.lines.r || 100 : 100
@@ -85,12 +85,14 @@ class Layer extends SVG {
 
   }
   idOf(e, arr) {
-    if (arr.find(el => el.id == e)) {
+    if (arr.find(el => el.$.id == e)) {
       return e;
-    } else if (arr.find(el => el.title == e)) {
-      return arr.find(el => el.title == e).id;
+    } else if (arr.find(el => el.$.title == e)) {
+      return arr.find(el => el.$.title == e).$.id;
     } else if (arr.indexOf(e) >= 0) {
-      return e.id;
+      return e.$.id;
+    } else if (arr.length > e){
+      return arr[e].$.id;
     } else {
       return null;
     }
@@ -167,21 +169,25 @@ class Form extends Layer {
     this.$.ownRenderer = ownRenderer || false
 
     let i = app.layers.indexOf(this);
-    this.workerFunc = () => workerFunc(el => app.layers.indexOf(el) > i);
-
-    this.svgAttr = {
-      id: this.$.id,
-      fill: "transparent",
-      style: "stroke: #bbb; stroke-dasharray: 10px 20px",
-      strokeWidth: 1,
-      type: "layer"
-      /*, filter: app.svg.shadow*/
+    this.workerFunc = () => {
+      if (!this.$.ownRenderer) {
+        this.gcode = null;
+        this.svgObject[1].clear();
+      }
+      workerFunc(el => app.layers.indexOf(el) > i)
     };
+
+    let s = Snap("#svg");
+
+    super.createSVG(s.g(
+      (this instanceof Ellipse ? s.ellipse(0,0,0,0) : s.rect(0,0,0,0))
+        .attr({fill: "transparent", style: "stroke: #bbb; stroke-dasharray: 10px 20px", strokeWidth: 1}),
+      s.g()).attr({id: this.$.id, type: "layer" /*, filter: app.svg.shadow*/ }));
+
   }
   remove() {
-    let index = this.objGroup.indexOf(this);
-    workerFunc((e, i) => i < index);
     super.remove();
+    workerFunc(true);
   }
   toObj() {
     return {
@@ -204,13 +210,8 @@ class Rect extends Form {
     super(x, y, w, h, rot, title, render, mask, ownRenderer, fill);
     this.icon = "square-o";
 
-    let s = Snap("#svg");
-
-    super.createSVG(s.rect(0,0,0,0)
-      .attr(this.svgAttr));
-
     super.createSVGWatcher((layer) => {
-      layer.svgObject.attr({
+      layer.svgObject[0].attr({
         x: layer.$.x,
         y: layer.$.y,
         width: layer.$.w,
@@ -229,13 +230,8 @@ class Ellipse extends Form {
     super(x, y, w, h, rot, title, render, mask, ownRenderer, fill);
     this.icon = "circle-o";
 
-    let s = Snap("#svg");
-
-    super.createSVG(s.ellipse(0,0,0,0)
-      .attr(this.svgAttr));
-
     super.createSVGWatcher((layer) => {
-      layer.svgObject.attr({
+      layer.svgObject[0].attr({
         cx: layer.$.x+layer.$.w/2,
         cy: layer.$.y+layer.$.h/2,
         rx: layer.$.w/2,
@@ -251,7 +247,7 @@ data.Ellipse = Ellipse;
 
 class Image extends SVG {
   constructor(x, y, w, h, rot, title, url, data) {
-    super(x || 0, y || 0, w || 300, h || 200, rot, app.images, "#svgImages");
+    super(x || 0, y || 0, w || 300, h || 200, rot || 0, app.images, "#svgImages");
     this.$.title = title || "Bild";
     this.$.url = url || app.bufferURL;
     this.$.data = data || app.bufferData;
@@ -299,7 +295,7 @@ class Curve extends SVG {
   constructor(x, y, title, type, direction, stretch, gap, steps) {
     super(x || 150, y || 100, 0, 0, 0, app.curves, "#svgCurves");
     this.$.title = title || "Linie";
-    this.$.type = type || "Bogen";
+    this.$.type = type || "Linie";
     this.$.direction = direction || 45;
     this.$.stretch = stretch || 80;
     this.$.gap = gap || 2;
@@ -353,7 +349,7 @@ class Machine extends SVG {
 
     let s = Snap("#svg");
 
-    this.svgObject = s.rect(0,0,w,h).attr({id: "svgMachine", fill: "#ccc", type: "machine"});
+    this.svgObject = s.rect(0,0,this.$.w,this.$.h).attr({id: "svgMachine", fill: "#ccc", type: "machine"});
     app.svg.project.prepend(this.svgObject);
 
     console.log("create watcher");
@@ -459,20 +455,26 @@ class Layout {
     app.selectedLayer = null;
     if (app.machine instanceof Machine)
       app.machine.remove();
-    app.machine = Machine.fromObj(this.template.machine);
-    app.layers.forEach(l => l.remove());
+    app.machine = Machine.fromObj(this.template.machine || {});
+    app.layers.slice().forEach((l) => {
+      l.remove();
+    });
     app.layers = [];
     if (this.template.layers) {
       this.template.layers.forEach((l) => Layer.fromObj(l));
     }
-    app.images.forEach(i => i.remove());
+    let url;
+    if (app.images.length == 1) {
+      url = app.images[0].$.url;
+    }
+    app.images.slice().forEach(i => i.remove());
     app.images = [];
     if (this.template.images) {
       this.template.images.forEach((i) => Image.fromObj(i));
     } else {
-      Image.fromObj({title: "Bild"});
+      Image.fromObj({title: "Bild", url});
     }
-    app.curves.forEach(c => c.remove());
+    app.curves.slice().forEach(c => c.remove());
     app.curves = [];
     if (this.template.curves) {
       this.template.curves.forEach((c) => Curve.fromObj(c));

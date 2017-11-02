@@ -39,7 +39,8 @@ self.addEventListener("message", function(e) {
 
   machine.bit.tiprad = machine.bit.tip||0/2;
 
-  def(layer.border, "left", "right", "top", "bottom");
+  if (layer.border)
+    def(layer.border, "left", "right", "top", "bottom");
 
   for (let f of forms.concat([layer])) {
 
@@ -439,8 +440,6 @@ function makeBorderPoints(c) {
     end.x = end.x>machine.x+machine.w?machine.x+machine.w:machine.x;
     end.y = c.y+curve.dcos*((c.x-end.x)/curve.dsin);
   }
-
-  console.log(start, end);
 
   return {start: start, end: end, err: start.x==end.x&&start.y==end.y};
 }

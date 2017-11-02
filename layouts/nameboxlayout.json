@@ -1,25 +1,27 @@
 {
-  "title": "SimpleLayout2",
+  "title": "Eck Box",
   "template": {
     "machine": {
-      "w": 500,
+      "w": 300,
       "h": 200,
       "x": 0,
       "y": 0
     },
     "layers": [
       {
-        "title": "SimpleLayer",
+        "title": "Ebene",
         "w": 300,
         "h": 200,
         "x": 0,
         "y": 0
       },
       {
-        "title": "Form",
-        "type": "ellipse",
-        "w": 100,
-        "h": 100
+        "title": "Box",
+        "type": "rect",
+        "x": 240,
+        "y": 170,
+        "w": 50,
+        "h": 20
       }
     ]
   }

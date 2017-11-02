@@ -281,7 +281,7 @@ let liftTool = new Tool("", {}, function(event, target) {
   let layer = target.layer;
   elem.css("top", elem.position().top).css("left", elem.position().left).css("width", elem.width()).addClass("moving");
   this.data = {y: elem.position().top-event.y, elem, layer, lines: []};
-  $("body").append("<div id='move-line'>");
+  $("#layers").append("<div id='move-line'>");
   $("#move-line").css("left", elem.position().left);
   var pos = $(".layer-item:first-child").position().top;
   var h = 25;

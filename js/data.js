@@ -38,7 +38,7 @@ var data = {
 
 function getId() {
   var idform = [4, 4];
-  var id = String.fromCharCode(65+Math.round(Math.random()*26));
+  var id = String.fromCharCode(65+Math.round(Math.random()*25.9));
   for (let i=0; i<idform[0]; i++) {
     if (i>0) id += "-";
     for (let j=0; j<idform[1]; j++) {

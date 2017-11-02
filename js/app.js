@@ -63,7 +63,6 @@ new Vue({
       }
     },
     "quickSettings.w": function(w, ow) {
-      console.log(w);
       if (!w || !ow) return;
       if (w != this.machine.$.w) {
         let c = this.machine.$.x + this.machine.$.w/2;
@@ -80,7 +79,6 @@ new Vue({
       }
     },
     "quickSettings.h": function(h, oh) {
-      console.log(h);
       if (!h || !oh) return;
       if (h != this.machine.$.h) {
         let c = this.machine.$.y + this.machine.$.h/2;
@@ -219,7 +217,7 @@ new Vue({
       }
     },
     mouseMove: function(event) {
-      if (this.selectedTool && (this.selectedLayer || (this.selectedTool == this.tools.select && this.selectedTool.mode != "select"))) {
+      if (this.selectedTool && (this.selectedLayer || this.selectedTool == liftTool || (this.selectedTool == this.tools.select && this.selectedTool.mode != "select"))) {
           this.selectedTool.mouseMove(event);
       }
     },
@@ -237,8 +235,9 @@ new Vue({
         handleToolKey(event);
       } else if (this.quickMode) {
         this.tools.select.mouseUp(event);
+        if (this.selectedLayer)
+          this.sublayers_open = true;
         this.selectedLayer = null;
-        this.sublayers_open = true;
         handleToolKey(event);
       }
     },

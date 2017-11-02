@@ -1,0 +1,11 @@
+{
+  "init": true,
+  "title": "Standard",
+  "template": {
+    "layers": [
+      {
+        "title": "Ebene"
+      }
+    ]
+  }
+}

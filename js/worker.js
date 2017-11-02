@@ -1,7 +1,7 @@
 
 var startWorkers = _.debounce(function(start) {
   start();
-}, 1500);
+}, 500);
 
 function createWorker(layer) {
 

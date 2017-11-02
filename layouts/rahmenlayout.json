@@ -1,0 +1,76 @@
+{
+  "title": "Rahmenlayout",
+  "template": {
+    "layers": [{
+      "x": 0,
+      "y": 0,
+      "w": 300,
+      "h": 200,
+      "title": "Ebene",
+      "render": {
+        "curve": "Linie"
+      },
+      "fill": true
+    }, {
+      "x": -10,
+      "y": -10,
+      "w": 320,
+      "h": 220,
+      "title": "Form 1",
+      "mask": false,
+      "type": "ellipse"
+    }, {
+      "x": -5,
+      "y": -5,
+      "w": 310,
+      "h": 210,
+      "title": "Form 2",
+      "mask": true,
+      "type": "ellipse"
+    }, {
+      "x": 0,
+      "y": 0,
+      "w": 300,
+      "h": 200,
+      "title": "Form 3",
+      "mask": false,
+      "type": "ellipse"
+    }, {
+      "x": 10,
+      "y": 10,
+      "w": 280,
+      "h": 180,
+      "title": "Form 4",
+      "mask": false,
+      "type": "rect"
+    }, {
+      "x": 15,
+      "y": 15,
+      "w": 270,
+      "h": 170,
+      "title": "Form 5",
+      "mask": true,
+      "type": "rect"
+    }, {
+      "x": 20,
+      "y": 20,
+      "w": 260,
+      "h": 160,
+      "title": "Form 6",
+      "mask": false,
+      "type": "rect"
+    }, {
+      "x": 5,
+      "y": 5,
+      "w": 290,
+      "h": 190,
+      "title": "Form 7",
+      "mask": true,
+      "type": "ellipse"
+    }],
+    "curves": [{
+      "title": "Linie",
+      "type": "Kreis"
+    }]
+  }
+}
