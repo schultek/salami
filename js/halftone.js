@@ -25,6 +25,10 @@ self.addEventListener("message", function(e) {
   }
 
   def(curve, "direction", "gap", "stretch", "steps");
+  def(image, "x", "y", "w", "h", "rot")
+  def(machine, "x", "y", "w", "h", "outHeight");
+  def(machine.bit, "with", "height", "tip", "inDepth");
+  def(machine.speed, "feedrate", "feedrateDot", "seekrate")
 
   curve.direction = curve.direction/360*Math.PI*2;
   curve.dcos = Math.cos(curve.direction);
@@ -57,6 +61,8 @@ self.addEventListener("message", function(e) {
       f.inArea = makeAreaFunc(f);
     }
   }
+
+  machine.inArea = makeAreaFunc(machine);
 
 
   image.inArea = makeAreaFunc({x:0,y:0,w:image.pixels.shape[0],h:image.pixels.shape[1]});
@@ -237,7 +243,7 @@ function findEdgePoint(pnt, ilow, ihigh, cdata, n) {
 function getPoint(step, cdata, widthdata) {
   var cp = getCurvePoint(step, cdata);
   //console.log("Curve Point for "+step+":", cp);
-  if (layer.inArea(cp)) {
+  if (machine.inArea(cp) && layer.inArea(cp)) {
     //console.log("-> in Area");
 
     var valid = forms.length>0?forms[0].mask?-1:1:-1;
@@ -269,9 +275,10 @@ function getGlobalConstants() {
   } else if (curve.type == "Bogen") {
     var {start, end, err} = makeBorderPoints(curve);
     if (err) return null;
-    var mid = {x: (start.x+end.x)/2+curve.dcos*curve.stretch, y: (start.y+end.y)/2+curve.dsin*curve.stretch};
-    return {start: start, end: end, mid: mid,
-      maxlength: dist(machine.x, machine.y, machine.w, machine.h),
+    var mlength = dist(machine.x, machine.y, machine.w, machine.h);
+    var l = dist(start.x, start.y, end.x, end.y);
+    var mid = {x: (start.x+end.x)/2+curve.dcos*curve.stretch*l/mlength, y: (start.y+end.y)/2+curve.dsin*curve.stretch*l/mlength};
+    return {start: start, end: end, mid: mid, maxlength: mlength,
       startlength: dist(start.x, start.y, mid.x, mid.y)+dist(mid.x, mid.y, end.x, end.y)
     };
   } else if (curve.type == "Kreis") {
@@ -331,6 +338,7 @@ function getGlobalConstants() {
 }
 
 function getCurveConstants(num) {
+  if (!globals) return null;
   if (curve.type == "Linie") {
     //center pos of current line
     var c = {x: curve.x+curve.xgap*num, y: curve.y+curve.ygap*num};
@@ -366,9 +374,9 @@ function getCurveConstants(num) {
         }
       }
     }
-    var f1 = closestTo(-1, farr);
+    var f1 = closestTo(-10, farr);
     farr.splice(farr.indexOf(f1), 1);
-    var f2 = closestTo(2, farr);
+    var f2 = closestTo(20, farr);
     if (f2 < f1) {
       var ftemp = f1;
       f1 = f2;
@@ -431,6 +439,8 @@ function makeBorderPoints(c) {
     end.x = end.x>machine.x+machine.w?machine.x+machine.w:machine.x;
     end.y = c.y+curve.dcos*((c.x-end.x)/curve.dsin);
   }
+
+  console.log(start, end);
 
   return {start: start, end: end, err: start.x==end.x&&start.y==end.y};
 }

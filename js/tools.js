@@ -58,7 +58,7 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
     this.data = {x: p.x, y: p.y, ex: event.x, ey: event.y, zoom: app.project.zoom*100-event.y, mode: "zoom"};
   } else if (this.data.mode == "select") {
     if ($(target).attr("type")=="resize") {
-      this.data.resize = $(target).attr("num");
+      this.data.resize = $(target).attr("rzmode");
       if (app.selectedLayer == app.machine) {
         app.project.autoAdjustMachine = false;
       }
@@ -143,27 +143,34 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
       app.selectedLayer.$.y = this.data.y+p.y;
     }
     if (!(app.selectedLayer instanceof Curve)) {
-      if (this.data.resize == "1" || this.data.resize == "2" || this.data.resize == "3") {
-        var bottom = app.selectedLayer.$.y+app.selectedLayer.$.h;
-        app.selectedLayer.$.h = app.selectedLayer.$.h-p.y+app.selectedLayer.$.y;
-        app.selectedLayer.$.y = p.y;
-      }
-      if (this.data.resize == "3" || this.data.resize == "4" || this.data.resize == "5") {
-        app.selectedLayer.$.w = p.x-app.selectedLayer.$.x;
-      }
-      if (this.data.resize == "5" || this.data.resize == "6" || this.data.resize == "7") {
-        app.selectedLayer.$.h = p.y-app.selectedLayer.$.y;
-      }
-      if (this.data.resize == "7" || this.data.resize == "8" || this.data.resize == "1") {
-        app.selectedLayer.$.w = app.selectedLayer.$.w-p.x+app.selectedLayer.$.x;
-        app.selectedLayer.$.x = p.x;
-      }
-      if (event.shiftKey && (this.data.resize == "1" || this.data.resize == "3" || this.data.resize == "5" || this.data.resize == "7")) {
-        app.selectedLayer.$.h = app.selectedLayer.$.w/this.data.pro;
-        if (this.data.resize == "1" || this.data.resize == "3") {
-          app.selectedLayer.$.y = bottom - app.selectedLayer.$.w/this.data.pro;
+      p = rotate(p, app.selectedLayer.$, false);
+      let start = {x: app.selectedLayer.$.x, y: app.selectedLayer.$.y};
+      let end = {x: app.selectedLayer.$.x+app.selectedLayer.$.w, y: app.selectedLayer.$.y+app.selectedLayer.$.h};
+
+      if (this.data.resize.includes("sy")) start.y = p.y;
+      if (this.data.resize.includes("ex")) end.x = p.x;
+      if (this.data.resize.includes("ey")) end.y = p.y;
+      if (this.data.resize.includes("sx")) start.x = p.x;
+
+      if (event.shiftKey && (this.data.resize.length == 4)) {
+        let h = (end.x-start.x)/this.data.pro;
+        if (this.data.resize.includes("sy")) {
+          start.y = end.y - h;
+        } else {
+          end.y = start.y + h
         }
       }
+
+      start = rotate(start, app.selectedLayer.$, true);
+      end = rotate(end, app.selectedLayer.$, true);
+      let mid = {x: (start.x+end.x)/2, y: (start.y+end.y)/2};
+      start = rotate(start, app.selectedLayer.$, false, mid);
+      end = rotate(end, app.selectedLayer.$, false, mid);
+      app.selectedLayer.$.x = start.x;
+      app.selectedLayer.$.y = start.y;
+      app.selectedLayer.$.w = end.x-start.x;
+      app.selectedLayer.$.h = end.y-start.y;
+
       let change = (a, b) => {
           if (this.data.resize == a) this.data.resize = b;
           else if (this.data.resize == b) this.data.resize = a;
@@ -306,4 +313,21 @@ function moveLine(y, lines) {
   }
   $("#move-line").css("top", lines[minI]);
   return parseInt(minI);
+}
+
+function rotate(p, dim, inv, m) {
+  if (!dim.rot) return p;
+  m = m || {
+    x: dim.x+dim.w/2,
+    y: dim.y+dim.h/2
+  }
+  let rad = (inv?1:-1)*dim.rot*Math.PI*2/360;
+  let cos = Math.cos(rad);
+  let sin = Math.sin(rad);
+
+  let d = {x: p.x-m.x, y: p.y-m.y}
+  return {
+    x: m.x + d.x * cos - d.y * sin,
+    y: m.y + d.y * cos + d.x * sin
+  }
 }

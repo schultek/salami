@@ -21,14 +21,14 @@ function initSVG(a) {
   var r = 3/app.project.zoom;
 
   app.svg.project.add(s.group(s.line(0,0,w,0), s.line(w,0,w,h), s.line(w,h,0,h), s.line(0,h,0,0),
-    s.circle(0,0,r).attr({class: "resize-diag-1", type: "resize", num: 1}),
-    s.circle(w/2,0,r).attr({class: "resize-vert", type: "resize", num: 2}),
-    s.circle(w,0,r).attr({class: "resize-diag-2", type: "resize", num: 3}),
-    s.circle(w,h/2,r).attr({class: "resize-hori", type: "resize", num: 4}),
-    s.circle(w,h,r).attr({class: "resize-diag-1", type: "resize", num: 5}),
-    s.circle(w/2,h,r).attr({class: "resize-vert", type: "resize", num: 6}),
-    s.circle(0,h,r).attr({class: "resize-diag-2", type: "resize", num: 7}),
-    s.circle(0,h/2,r).attr({class: "resize-hori", type: "resize", num: 8}),
+    s.circle(0,0,r).attr({class: "resize-diag-1", type: "resize", rzmode: "sxsy"}),
+    s.circle(w/2,0,r).attr({class: "resize-vert", type: "resize", rzmode: "sy"}),
+    s.circle(w,0,r).attr({class: "resize-diag-2", type: "resize", rzmode: "syex"}),
+    s.circle(w,h/2,r).attr({class: "resize-hori", type: "resize", rzmode: "ex"}),
+    s.circle(w,h,r).attr({class: "resize-diag-1", type: "resize", rzmode: "exey"}),
+    s.circle(w/2,h,r).attr({class: "resize-vert", type: "resize", rzmode: "ey"}),
+    s.circle(0,h,r).attr({class: "resize-diag-2", type: "resize", rzmode: "eysx"}),
+    s.circle(0,h/2,r).attr({class: "resize-hori", type: "resize", rzmode: "sx"}),
     s.line(w/2, 0, w/2, -15), s.circle(w/2, -15, r).attr({class: "rotate", type: "rotate"})
   ).attr({
     id: "svgBox",
@@ -178,7 +178,8 @@ function getGlobalConstants(curve, machine) {
     var mlength = dist(machine.x, machine.y, machine.w, machine.h);
     var l = dist(start.x, start.y, end.x, end.y);
     var mid = {x: (start.x+end.x)/2+curve.dcos*(curve.stretch*l/mlength), y: (start.y+end.y)/2+curve.dsin*(curve.stretch*l/mlength)};
-    return {start: start, end: end, mid: mid, maxlength: mlength};
+    return {start: start, end: end, mid: mid, maxlength: mlength,
+    startlength: dist(start.x, start.y, mid.x, mid.y)+dist(mid.x, mid.y, end.x, end.y)};
   } else if (curve.type == "Kreis") {
     var r = Math.min(machine.w, machine.h)/4;
     return {x: curve.x, y: curve.y, r: r, maxlength: 2*Math.PI*r, twoPi: Math.PI*2};
@@ -236,6 +237,7 @@ function getGlobalConstants(curve, machine) {
 }
 
 function getCurveConstants(globals, curve, num, machine) {
+  if (!globals) return null;
   if (curve.type == "Linie") {
     var c = {x: curve.x+curve.xgap*num, y: curve.y+curve.ygap*num};
     var {start, end, err} = makeBorderPoints(c, curve, machine);
@@ -270,15 +272,15 @@ function getCurveConstants(globals, curve, num, machine) {
         }
       }
     }
-    var f1 = closestTo(-1, farr);
+    var f1 = closestTo(-10, farr);
     farr.splice(farr.indexOf(f1), 1);
-    var f2 = closestTo(2, farr);
+    var f2 = closestTo(20, farr);
     if (f2 < f1) {
       var ftemp = f1;
       f1 = f2;
       f2 = ftemp;
     }
-    var l = dist(start.x, start.y, mid.x, mid.y)+dist(mid.x, mid.y, end.x, end.y);
+    var l = globals.startlength*(f2-f1);
     var g = {c0: c0, c1: c1, c2: c2, f1: f1, f2: f2-f1, length: l};
     return g;
   } else if (curve.type == "Kreis") {

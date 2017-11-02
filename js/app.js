@@ -238,6 +238,7 @@ new Vue({
       } else if (this.quickMode) {
         this.tools.select.mouseUp(event);
         this.selectedLayer = null;
+        this.sublayers_open = true;
         handleToolKey(event);
       }
     },
