@@ -120,7 +120,7 @@ new Vue({
       setTimeout(() => $this.centerProject(), 10);
     },
     loadProject: function() {
-      dialog.showOpenDialog({filters: [{name: "Carve", extensions: ['crv']}, {name: "Image", extensions: ['jpg', 'png', 'gif']}, {name: "Layout", extensions: ['json']}]}, files => {
+      dialog.showOpenDialog({filters: [{name: "Carve", extensions: ['crv']}, {name: "Image", extensions: ['jpg', 'png', 'gif', 'jpeg']}, {name: "Layout", extensions: ['json']}]}, files => {
         if (files && files[0])
           loadProject(files[0], err => {
             if (err) throw err;
@@ -130,6 +130,16 @@ new Vue({
             app.project.file = files[0];
           });
         else console.log("No File selected");
+      })
+    },
+    loadFont: function() {
+      dialog.showOpenDialog({filters: [{name: "Fonts", extensions: ['ttf', 'woff', 'woff2']}]}, files => {
+        if (files && files[0]) {
+          let id = new Font(files[0]).$.id;
+          if (app.selectedLayer && app.selectedLayer instanceof Text) {
+            app.selectedLayer.$.font = id;
+          }
+        }
       })
     },
     saveProject: function() {
@@ -167,7 +177,8 @@ new Vue({
       while (this.layouts.find(l => l.url == p(i))) {
         i = i === "" ? 0 : i + 1;
       }
-      saveLayout(p(i), this.project.name, (err) => {
+      p = p(i);
+      saveLayout(p, this.project.name, (err) => {
         if (err) throw err;
         console.log("Layout saved to "+p);
       });
@@ -250,7 +261,7 @@ new Vue({
     loadImage: function(layer) {
       if (this.dialogOpen) return;
       let $this = this;
-      dialog.showOpenDialog({filters: [{name: 'Images', extensions: ['jpg', 'png', 'gif']}]}, (files) => {
+      dialog.showOpenDialog({filters: [{name: 'Images', extensions: ['jpg', 'png', 'gif', 'jpeg']}]}, (files) => {
         $this.dialogOpen = false;
         if (files && files[0]) {
           layer.$.url = files[0];
@@ -344,21 +355,19 @@ new Vue({
     moveImage: function(image) {
       this.selectedLayer = image;
       this.sublayers_open = false;
+    },
+    alert(msg) {
+      $("#alert").html(msg).fadeIn();
+      setTimeout(() => {
+        $("#alert").fadeOut(2000);
+      }, 3000)
     }
   }
 });
 
-function editGcodeSnippet(id) {
-  $("body").append("<div id='gcode-config'><p>Verwende '$W' für die Breite und '$H' für die Höhe der Arbeitsfläche.</p><textarea id='gcode-snippet'>"+store.get(id)+"</textarea><input type='button' value='Speichern' onclick='saveGcodeSnippet(\""+id+"\")'/></div>");
-}
-
-function saveGcodeSnippet(id) {
-  store.set(id, document.getElementById("gcode-snippet").value);
-  document.getElementById("gcode-config").remove();
-  workerFunc(() => true);
-}
 
 function handleShortcuts(event) {
+  if (!app) return;
   if (event.ctrlKey) {
     switch (event.key) {
       case "1": case "s": app.selectedTool = app.tools.select; break;
@@ -378,9 +387,18 @@ function handleShortcuts(event) {
 }
 
 function handleToolKey(event) {
+  if (!app) return;
   if (event.ctrlKey || event.altKey) {
     app.tools.select.data.mode = app.tools.select.data.mode == "select" ? event.ctrlKey ? "zoom" : event.altKey ? "move" : "select" : app.tools.select.data.mode;
   } else {
     app.tools.select.data.mode = "select";
+  }
+  if (event.ctrlKey || event.metaKey) {
+    if (event.key == "c") {
+      app.copied = app.selectedLayer instanceof Form ? app.selectedLayer.toObj() : null;
+    } else if (event.key == "v" && app.copied) {
+      app.selectedLayer = Layer.fromObj(app.copied);
+      app.sublayers_open = true;
+    }
   }
 }

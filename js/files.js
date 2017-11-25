@@ -12,6 +12,7 @@ ipcRenderer.on('file', (event, arg) => {
   else if (arg == 'tour') startTour();
   else if (arg == 'pregcode') editGcodeSnippet('gcode.pre');
   else if (arg == 'postgcode') editGcodeSnippet('gcode.post');
+  else if (arg == 'autoleveling') showAutoLevelingDialog();
 });
 
 console.log();
@@ -64,7 +65,7 @@ function loadProject(file, callback) {
     });
   } else if (file.endsWith(".json")) {
     loadLayout(file, true, true, callback);
-  } else if (file.endsWith(".jpg") || file.endsWith(".png") || file.endsWith(".gif")) {
+  } else if (file.endsWith(".jpg") || file.endsWith(".png") || file.endsWith(".gif") || file.endsWith(".jpeg")) {
     if (app.images.length > 0) {
       let img = app.images[app.images.length - 1];
       img.$.url = file;
@@ -133,28 +134,4 @@ function loadLayout(file, custom, build, callback) {
       callback();
     }
   });
-}
-
-function saveGCode(file, callback) {
-
-  for (var layer of app.layers) {
-    if (layer.gcode) {
-      console.log(layer.gcode);
-      fs.writeFile(file + "/" + layer.$.title+".gcode", layer.gcode.gcode.join('\n'), (err) => {
-        if (err) throw err;
-      });
-    }
-  }
-  var svg = $("#svg").clone()[0];
-  svg.setAttribute("viewBox", "0 0 " + app.machine.$.w + " " + app.machine.$.h);
-  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  svg.childNodes[1].attributes.removeNamedItem("transform");
-  if (svg.childNodes[1].childNodes.length>2) svg.childNodes[1].removeChild(svg.childNodes[1].childNodes[2]);
-  if (svg.childNodes[1].childNodes.length>3) svg.childNodes[1].removeChild(svg.childNodes[1].childNodes[3]);
-  if (svg.childNodes[1].childNodes.length>4) svg.childNodes[1].removeChild(svg.childNodes[1].childNodes[4]);
-  if (svg.childNodes[1].childNodes.length>5) svg.childNodes[1].removeChild(svg.childNodes[1].childNodes[5]);
-  fs.writeFile(file + "/screenshot.svg", svg.outerHTML, (err) => {
-    if (err) throw err;
-  });
-
 }

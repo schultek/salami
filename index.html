@@ -3,6 +3,7 @@
 <html>
     <head>
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+
         <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
         <link rel="stylesheet" href="css/mfglabs_iconset.css">
 
@@ -538,6 +539,20 @@
                   <div class="dimen">
                     <span>Size</span><input type="number" v-model.number="selectedLayer.$.size" v-on:keyup.enter="$event.srcElement.blur()"/>
                   </div>
+                  <div class="dimen">
+                    <span>Stroke</span><input type="number" v-model.number="selectedLayer.$.stroke" step=".1" v-on:keyup.enter="$event.srcElement.blur()"/>
+                  </div>
+                </div>
+                <div class="settings-dimensions dimen-row">
+                  <div class="dimen">
+                    <span>Font</span>
+                    <select v-model="selectedLayer.$.font">
+                      <option v-for="font in fonts" v-bind:value="font.$.id">{{font.$.title}}</option>
+                    </select>
+                  </div>
+                  <div class="dimen">
+                    <input type="button" v-on:click="loadFont" value="Load"/>
+                  </div>
                 </div>
               </template>
             </div>
@@ -664,14 +679,17 @@
             </div>
           </div>
         </div>
+        <div id="alert"></div>
         <div id="overlay">
           <span>Laden</span>
         </div>
+
         <script src="js/data.js"></script>
         <script src="js/objects.js"></script>
         <script src="js/tools.js"></script>
         <script src="js/svg.js"></script>
         <script src="js/worker.js"></script>
+        <script src="js/gcode.js"></script>
         <script src="js/files.js"></script>
         <script src="js/connection.js"></script>
         <script src="js/tour.js"></script>

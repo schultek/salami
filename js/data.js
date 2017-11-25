@@ -32,7 +32,8 @@ var data = {
   linkingRender: false,
   quickMode: false,
   quickSettings: {w:0, h:0, depth:0},
-  dialogOpen: false
+  dialogOpen: false,
+  copied: null
 };
 
 

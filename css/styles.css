@@ -661,7 +661,7 @@ input[type="text"]:focus, input[type="number"]:focus {
   color: #555;
 }
 
-#gcode-config {
+.popup {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -670,6 +670,9 @@ input[type="text"]:focus, input[type="number"]:focus {
   padding: 20px;
   box-shadow: 0 0 20px 0 #9f9f9f;
   border-radius: 5px;
+}
+
+#gcode-config {
   display: flex;
   flex-flow: column nowrap;
   min-width: 300px;
@@ -715,4 +718,19 @@ input[type="text"]:focus, input[type="number"]:focus {
 .switch.active > div > div {
   left: 50%;
   background: #008dea;
+}
+
+#alert {
+  display: none;
+  position: absolute;
+  bottom: 20px;
+  background: rgba(0, 141, 234, .2);
+  border-radius: 5px;
+  border: 1px solid rgba(0, 141, 234, .5);
+  color: #008dea;
+  padding: 10px 20px;
+  min-width: 200px;
+  text-align: center;
+  left: 50%;
+  transform: translateX(-50%);
 }

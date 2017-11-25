@@ -44,7 +44,8 @@ function createWindow () {
       submenu: [
         {label: 'Tour ansehen', click: () => mainWindow.webContents.send('file', 'tour')},
         {label: 'Pre-Gcode', click: () => mainWindow.webContents.send('file', 'pregcode')},
-        {label: 'Post-Gcode', click: () => mainWindow.webContents.send('file', 'postgcode')}
+        {label: 'Post-Gcode', click: () => mainWindow.webContents.send('file', 'postgcode')},
+        {label: 'Auto-Leveling', click: () => mainWindow.webContents.send('file', 'autoleveling')}
       ]
     },
     {

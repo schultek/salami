@@ -26,7 +26,7 @@ class SVG extends Dimension {
     this.watcherFunc = func;
     let $this = this;
     this.unwatch();
-    this.unwatchFunc = app.$watch(() => $this.$, ($) => func($this), {deep: true, immediate: true});
+    this.unwatchFunc = app.$watch(() => $this.$, ($, old) => func($this, old), {deep: true, immediate: true});
   }
   unwatch() {
     if (this.unwatchFunc) {
@@ -57,6 +57,19 @@ class SVG extends Dimension {
       app.selectedLayer = null;
     }
   }
+  idOf(e, arr) {
+    if (arr.find(el => el.$.id == e)) {
+      return e;
+    } else if (arr.find(el => el.$.title == e)) {
+      return arr.find(el => el.$.title == e).$.id;
+    } else if (arr.indexOf(e) >= 0) {
+      return e.$.id;
+    } else if (arr.length > e){
+      return arr[e].$.id;
+    } else {
+      return null;
+    }
+  }
   svgEquals(e) {
     return this.svgObject.node == e;
   }
@@ -70,8 +83,8 @@ class Layer extends SVG {
     this.$.title = title || "Ebene";
     if (!render) render = {};
     this.$.render = {
-      curve: this.idOf(render.curve || 0, app.curves),
-      image: this.idOf(render.image || 0, app.images),
+      curve: super.idOf(render.curve || 0, app.curves),
+      image: super.idOf(render.image || 0, app.images),
       lines: {
         l: render.lines ? render.lines.l || 100 : 100,
         r: render.lines ? render.lines.r || 100 : 100
@@ -84,18 +97,13 @@ class Layer extends SVG {
     this.fill = fill || false;
 
   }
-  idOf(e, arr) {
-    if (arr.find(el => el.$.id == e)) {
-      return e;
-    } else if (arr.find(el => el.$.title == e)) {
-      return arr.find(el => el.$.title == e).$.id;
-    } else if (arr.indexOf(e) >= 0) {
-      return e.$.id;
-    } else if (arr.length > e){
-      return arr[e].$.id;
-    } else {
-      return null;
-    }
+  fixIdReference(render) {
+    let r = JSON.parse(JSON.stringify(render));
+    let c = app.curves.find(el => el.$.id == render.curve);
+    let i = app.images.find(el => el.$.id == render.image);
+    r.curve = c ? c.$.title : null;
+    r.image = i ? i.$.title : null;
+    return r;
   }
   linkTo(layer, prop) {
     this.$.links[prop] = layer;
@@ -152,7 +160,7 @@ class CPart extends Layer {
   toObj() {
     return {
       x: this.$.x, y: this.$.y, w: this.$.w, h: this.$.h,
-      title: this.$.title, render: this.$.render, border: this.$.border, inverted: this.$.inverted, fill: this.fill
+      title: this.$.title, render: super.fixIdReference(this.$.render), border: this.$.border, inverted: this.$.inverted, fill: this.fill
     }
   }
   static fromObj(obj) {
@@ -187,12 +195,12 @@ class Form extends Layer {
   }
   remove() {
     super.remove();
-    workerFunc(true);
+    workerFunc(() => true);
   }
   toObj() {
     return {
       x: this.$.x, y: this.$.y, w: this.$.w, h: this.$.h, rot: this.$.rot,
-      title: this.$.title, render: this.$.render, mask: this.$.mask, ownRenderer: this.$.ownRenderer, fill: this.fill,
+      title: this.$.title, render: super.fixIdReference(this.$.render), mask: this.$.mask, ownRenderer: this.$.ownRenderer, fill: this.fill,
       type: this instanceof Rect ? "rect" : "ellipse"
     }
   }
@@ -303,10 +311,10 @@ class Curve extends SVG {
 
     let s = Snap("#svg");
 
-    super.createSVG(s.g()
-      .add(makeCurves(s, this.toObj(), app.machine.toObj()))
-      .add(s.circle(this.$.x, this.$.y, 4/app.project.zoom, 4/app.project.zoom).attr({type: "curve"}))
-      .attr({id: this.$.id, stroke: "#008dea", fill: "#008dea", style: "display: none"}));
+    super.createSVG(s.g(
+        makeCurves(s, this.toObj(), app.machine.toObj()),
+        s.circle(this.$.x, this.$.y, 4/app.project.zoom, 4/app.project.zoom).attr({type: "curve"})
+      ).attr({id: this.$.id, stroke: "#008dea", fill: "#008dea", style: "display: none"}));
 
     super.createSVGWatcher((curve) => {
       curve.svgObject[1].attr({cx: curve.$.x, cy: curve.$.y});
@@ -352,7 +360,6 @@ class Machine extends SVG {
     this.svgObject = s.rect(0,0,this.$.w,this.$.h).attr({id: "svgMachine", fill: "#ccc", type: "machine"});
     app.svg.project.prepend(this.svgObject);
 
-    console.log("create watcher");
     super.createSVGWatcher(function(m) {
       m.svgObject.attr({width: m.$.w, height: m.$.h,
         transform: "translate("+m.$.x+" "+m.$.y+")"});
@@ -384,36 +391,94 @@ class Machine extends SVG {
 data.Machine = Machine;
 
 class Text extends SVG {
-  constructor(x, y, w, h, rot, text, size, font) {
-    super(x, y, w, h, rot, app.texts, "#svgTexts");
-    this.$.text = text;
+  constructor(x, y, text, size, stroke, font) {
+    super(x, y, 0, 0, 0, app.texts, "#svgTexts");
+    this.$.text = text || "Text";
     this.$.size = size || 12;
-    this.$.font = font || "BalooBhaijaan-Regular.ttf";
+    this.$.font = super.idOf(font || "BalooBhaijaan-Regular", app.fonts) || new Font(font || "fonts/BalooBhaijaan-Regular.ttf").$.id;
 
-    super.createSVG(s.text(x, y, text).attr({id: this.$.id, fill: "#505050", type: "text"}));
+    this.$.stroke = stroke || 0.5
+
+    let s = Snap("#svg");
+
+    super.createSVG(s.g(
+      s.path("").attr({strokeWidth: this.$.stroke, stroke: "#505050", fill: "transparent"}),
+      s.circle(0, 0, 4/app.project.zoom, 4/app.project.zoom).attr({fill: "#008dea", type: "text"})
+    ).attr({id: this.$.id}));
 
     super.createSVGWatcher((text) => {
-      text.svgObject.attr({
-        x: text.$.x,
-        y: text.$.y+text.$.h,
-        style: "font-size: "+text.$.size+"px",
-        text: text.$.text
-      });
-      text.$.w = $(text.svgObject.node).width();
-      text.$.h = $(text.svgObject.node).height();
-      if (app.fonts[text.font]) {
-        text.$.path = app.fonts[text.$.font].getPath(text.$.text, text.$.x, text.$.y+text.$.h, text.$.size);
+      if (app.fonts.find(el => el.$.id == text.$.font)) {
+        app.fonts.find(el => el.$.id == text.$.font).getPath(text.$.text, 0, text.$.h, text.$.size)
+          .then(path => {
+            text.gcode = this.makeGCode(path);
+            text.$.path = path.toPathData(3);
+            text.svgObject[0].attr({
+              d: text.$.path || ""
+            });
+          })
       }
+      text.svgObject.attr({
+        transform: "translate("+text.$.x+","+text.$.y+")"
+      });
+      text.svgObject[0].attr({
+        strokeWidth: text.$.stroke
+      });
     })
+  }
+  makeGCode(path) {
+    let out = [];
+    let depth = (-Math.max(this.$.stroke, app.machine.$.bit.tip)/app.machine.$.bit.width*app.machine.$.bit.height).toFixed(2);
+    let pathBegin = null;
+    let last = null;
+    path.commands.forEach(c => {
+      let p = {x: this.$.x+c.x, y: app.machine.$.h - (this.$.y+c.y)}
+      if (c.x1) p.x1 = this.$.x+c.x1;
+      if (c.y1) p.y1 = app.machine.$.h - (this.$.y+c.y1);
+      if (c.type == "M") {
+        out.push("G1 Z1");
+        out.push("G1 X"+p.x.toFixed(2)+" Y"+p.y.toFixed(2));
+        out.push("G1 Z"+depth);
+        pathBegin = p;
+      } else if (c.type == "L") {
+        out.push("G1 X"+p.x.toFixed(2)+" Y"+p.y.toFixed(2)+" Z"+depth);
+      } else if (c.type == "Z") {
+        if (pathBegin) out.push("G1 X"+pathBegin.x.toFixed(2)+" Y"+pathBegin.y.toFixed(2)+" Z"+depth);
+      } else if (c.type == "Q") {
+        if (last) out.concat(this.makeQBezier(last, p).map(pt => "G1 X"+pt.x.toFixed(2)+" Y"+pt.y.toFixed(2)+" Z"+depth));
+      } else {
+        throw Error("Not implemented: "+c.type);
+      }
+      last = p;
+    });
+    return out;
+  }
+  makeQBezier(l, p) {
+    let sq = a => a*a;
+    let len = Math.sqrt(sq(p.x1-l.x)+sq(p.y1-l.y))+Math.sqrt(sq(p.x-p.x1)+sq(p.y-p.y1));
+    let steps = Math.max(Math.round(len / 2), 1);
+    let points = [];
+    for (let i=1; i<=steps; i++) {
+      let f = i/steps;
+      let dx1 = l.x + (p.x1 - l.x) * f;
+      let dx2 = p.x1 + (p.x - p.x1) * f;
+      let x = dx1 + (dx2 - dx1) * f;
+      let dy1 = l.y + (p.y1 - l.y) * f;
+      let dy2 = p.y1 + (p.y - p.y1) * f;
+      let y = dy1 + (dy2 - dy1) * f;
+      points.push({x, y});
+    }
+    return points;
   }
   toObj() {
     return {
-      x: this.$.x, y: this.$.y, w: this.$.w, h: this.$.h, rot: this.$.rot,
-      text: this.$.text, size: this.$.size, font: this.$.font
+      x: this.$.x, y: this.$.y, text: this.$.text, size: this.$.size, font: this.$.font
     };
   }
   static fromObj(obj) {
-    return new Text(obj.x, obj.y, obj.w, obj.h, obj.rot, obj.text, obj.size, obj.font);
+    return new Text(obj.x, obj.y, obj.text, obj.size, obj.font);
+  }
+  svgEquals(e) {
+    return this.svgObject[1].node == e;
   }
 }
 
@@ -421,7 +486,36 @@ data.Text = Text;
 
 class Font {
   constructor(file) {
-    this.file = file;
+    this.$ = {};
+    this.$.file = file;
+    this.$.id = getId();
+    this.$.title = file.substring(file.lastIndexOf("/")+1, file.lastIndexOf("."));
+
+    app.fonts.push(this);
+  }
+  async getPath(text, x, y, size) {
+    let $this = this;
+    return new Promise((res, rej) => {
+      if (this.font) {
+        res($this.font.getPath(text, x, y, size));
+      } else {
+        opentype.load($this.$.file, (err, font) => {
+          if (err) {
+            app.fonts.splice(app.fonts.indexOf($this), 1);
+            let id = app.fonts.length > 0 ? app.fonts[0].$.id : "";
+            for (let t of app.texts) {
+              if (t.$.font == $this.$.id) {
+                t.$.font = id;
+              }
+            }
+            app.alert("This Font cannot be used!");
+          } else {
+            $this.font = font;
+            res($this.font.getPath(text, x, y, size));
+          }
+        });
+      }
+    })
   }
   toObj() {
     return {file};
@@ -459,10 +553,6 @@ class Layout {
     app.layers.slice().forEach((l) => {
       l.remove();
     });
-    app.layers = [];
-    if (this.template.layers) {
-      this.template.layers.forEach((l) => Layer.fromObj(l));
-    }
     let url;
     if (app.images.length == 1) {
       url = app.images[0].$.url;
@@ -481,10 +571,10 @@ class Layout {
     } else {
       Curve.fromObj({title: "Linie"});
     }
-    app.layers.forEach((l) => {
-      if (!l.$.render.curve && app.curves.length>0) l.$.render.curve = app.curves[0].$.id;
-      if (!l.$.render.image && app.images.length>0) l.$.render.image = app.images[0].$.id;
-    });
+    app.layers = [];
+    if (this.template.layers) {
+      this.template.layers.forEach((l) => Layer.fromObj(l));
+    }
   }
   remove() {
     app.layouts.splice(app.layouts.indexOf(this), 1);

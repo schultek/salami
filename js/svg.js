@@ -54,6 +54,11 @@ function initSVG(a) {
         r: 4/p.zoom
       })
     }
+    for (var t of this.texts) {
+      t.svgObject[1].attr({
+        r: 4/p.zoom
+      })
+    }
   }, {deep: true, immediate: true});
 
   app.$watch('selectedLayer', function(l) {
@@ -65,14 +70,20 @@ function initSVG(a) {
     var r = l ? l.$.rot : 0;
 
     var b = Snap("#svg").select("#svgBox").attr({
-      style: "display: " + ( (!l || l instanceof Curve) ? "none" : "inherit"),
+      style: "display: " + ( (!l || l instanceof Curve || l instanceof Text) ? "none" : "inherit"),
       strokeWidth: 1/this.project.zoom,
       transform: "translate("+x+", "+y+") "+( l instanceof Layer || l instanceof Image ?("rotate("+r+" "+(w/2)+" "+(h/2)+")"):"")
     }).children();
 
-    for (var curve of this.curves) {
+    for (let curve of this.curves) {
       curve.svgObject.attr({
         style: "display:" + ( l == curve ? "inherit" : "none")
+      });
+    }
+
+    for (let text of this.texts) {
+      text.svgObject[1].attr({
+        style: "display:" + ( l == text ? "inherit" : "none")
       });
     }
 
@@ -87,8 +98,8 @@ function initSVG(a) {
 
     let style = "display: " + (l instanceof Image || l instanceof Form ? "inherit" : "none");
 
-    b[12].attr({style: style, x1: w/2, x2: w/2, y2: -15});
-    b[13].attr({style: style, cx: w/2, cy: -15});
+    b[12].attr({style, x1: w/2, x2: w/2, y2: -15});
+    b[13].attr({style, cx: w/2, cy: -15});
 
   }, {deep: true, immediate: true});
 

@@ -142,7 +142,7 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
       app.selectedLayer.$.x = this.data.x+p.x;
       app.selectedLayer.$.y = this.data.y+p.y;
     }
-    if (!(app.selectedLayer instanceof Curve)) {
+    if (!(app.selectedLayer instanceof Curve || app.selectedLayer instanceof Text)) {
       p = rotate(p, app.selectedLayer.$, false);
       let start = {x: app.selectedLayer.$.x, y: app.selectedLayer.$.y};
       let end = {x: app.selectedLayer.$.x+app.selectedLayer.$.w, y: app.selectedLayer.$.y+app.selectedLayer.$.h};
@@ -171,23 +171,17 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
       app.selectedLayer.$.w = end.x-start.x;
       app.selectedLayer.$.h = end.y-start.y;
 
-      let change = (a, b) => {
-          if (this.data.resize == a) this.data.resize = b;
-          else if (this.data.resize == b) this.data.resize = a;
-      }
       if (app.selectedLayer.$.w < 0) {
         app.selectedLayer.$.x += app.selectedLayer.$.w;
         app.selectedLayer.$.w *= -1;
-        change(3, 1);
-        change(4, 8);
-        change(5, 7);
+        console.log(this.data.resize);
+        this.data.resize = this.data.resize.replace(/sx/g, "tx").replace(/ex/g, "sx").replace(/tx/g, "ex");
+        console.log(this.data.resize);
       }
       if (app.selectedLayer.$.h < 0) {
         app.selectedLayer.$.y += app.selectedLayer.$.h;
         app.selectedLayer.$.h *= -1;
-        change(1, 7);
-        change(2, 6);
-        change(3, 5);
+        this.data.resize = this.data.resize.replace(/sy/g, "ty").replace(/ey/g, "sy").replace(/ty/g, "ey");
       }
     }
   } else if (this.data.mode == "move") {
@@ -267,14 +261,14 @@ data.tools.curve = new Tool("leaf", {}, function(event, target) {
   app.selectedLayer.$.x = p.x;
   app.selectedLayer.$.y = p.y;
 }, resetData);
-/*
+
 data.tools.text = new Tool("font", {}, function(event, target) {
   app.sublayers_open = false;
   var p = localPos(event.x, event.y);
-  app.selectedLayer = new Text(p.x, p.y, 0, 0, "Text");
-  app.selectedTool = this.tools.select;
+  app.selectedLayer = new Text(p.x, p.y, "Text "+(app.texts.length+1));
+  app.selectedTool = app.tools.select;
 }, (event) => {}, (event) => {});
-*/
+
 
 let liftTool = new Tool("", {}, function(event, target) {
   let elem = target.elem;

@@ -150,11 +150,11 @@ self.addEventListener("message", function(e) {
   f = {
     deg: function(r) { return (r/Math.PI/2)*360; },
     r: function(d) { return Math.round(d*100)/100; },
-    intersect: funcIntersect(),
+    //intersect: funcIntersect(),
     str: {
       l: function(p) { return "L"+f.r(p.x)+","+f.r(p.y)+" "; },
       m: function(p) { return "M"+f.r(p.x)+","+f.r(p.y)+" "; },
-      a: function(r, a, p) { return "A"+f.r(r)+","+f.r(r)+" "+f.r(f.deg(a.val))+" 0,1 "+f.r(p.x)+","+f.r(p.y)+" "; },
+      a: function(r, s, p) { return "A"+f.r(r)+","+f.r(r)+" 0 0 "+s+" "+f.r(p.x)+","+f.r(p.y)+" "; },
       c: function(p, r) { return "M "+f.r(p.x-f.r(r))+" "+f.r(p.y)+" A"+f.r(r)+" "+f.r(r)+" 0 0 0"+f.r(p.x+f.r(r))+" "+f.r(p.y)
                                   +" A"+f.r(r)+" "+f.r(r)+" 0 0 0"+f.r(p.x-f.r(r))+" "+f.r(p.y)+" " }
     }
@@ -469,7 +469,6 @@ function gray(i) {
   return 0.2126*image.pixels.get(i.x, i.y, 0)+0.7152*image.pixels.get(i.x, i.y, 1)+0.0722*image.pixels.get(i.x, i.y, 2);
 }
 
-
 function makeRotateFunc(dim) {
   if (!dim.rot) return (p) => p;
   let m = {
@@ -558,7 +557,6 @@ function makeAreaFunc(layer) {
   };
 }
 
-
 function dist(x1, y1, x2, y2) {
   return Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
 }
@@ -585,25 +583,27 @@ function getPathFromLine(line) {
 
   var a0 = f.angle(0), r0 = f.rad(0);
   var p = {
-    "0": {x: line[0].x+a0[0].cos*r0, y: line[0].y+a0[0].cos*r0},
-    "1": {x: line[0].x+a0[1].cos*r0, y: line[0].y+a0[1].cos*r0},
-    i: 0, a: a0, r: r0
+    "0": {x: line[0].x+a0[0].cos*r0, y: line[0].y+a0[0].sin*r0},
+    "1": {x: line[0].x+a0[1].cos*r0, y: line[0].y+a0[1].sin*r0},
+    a: a0, r: r0
   }
   var path1 = f.str.m(p[0]);
-  var path2 = f.str.l(p[1])+f.str.a(p.r, p.a[0], p[0])+"Z";
+  var path2 = f.str.l(p[1])+f.str.a(p.r, 0, p[0])+"Z";
 
   for (var i=0; i<line.length-2; i++) {
     //console.log(p);
     p = nextPoint(p, i);
-    path1 += f.str.l(p[p.i]);
-    path2 = f.str.l(p[1-p.i])+path2;
+    path1 += f.str.l(p[0]);
+    path2 = f.str.l(p[1])+path2;
   }
   //console.log(p);
   p = nextPoint(p, line.length-2);
-  path1 += f.str.l(p[p.i]);
+  path1 += f.str.l(p[0]);
   //console.log(p);
 
-  return path1 + f.str.a(p.r, p.a[p.i], p[1-p.i]) + path2;
+  //console.log(p[0], p[1], p.a[0].val*180/Math.PI, p.a[1].val*180/Math.PI);
+
+  return path1 + f.str.a(p.r, 0, p[1]) + path2;
 
 }
 
@@ -622,14 +622,10 @@ function funcNextPoint(line) {
     var rq = f.rad(i+1);
     var q1 = {x: line[i+1].x+a[0].cos*rq, y: line[i+1].y+a[0].sin*rq};
     var q2 = {x: line[i+1].x+a[1].cos*rq, y: line[i+1].y+a[1].sin*rq};
-    if (!f.intersect(p[p.i], q1, p[1-p.i], q2)) {
-      return {"0": q1, "1": q2, i: 0, a: a, r: rq};
-    } else {
-      return {"0": q1, "1": q2, i: 1, a: a, r: rq};
-    }
+    return {"0": q1, "1": q2, a: a, r: rq};
   }
 }
-
+/*
 function funcIntersect() {
   var cross = function(v, w) {
     return v.x*w.y-v.y*w.x;
@@ -648,44 +644,39 @@ function funcIntersect() {
     }
   }
 }
-
+*/
 function funcAngle(line) {
   var a = function(i1, i2) {
     return Math.atan2(line[i2].y-line[i1].y,line[i2].x-line[i1].x);
   }
   if (line.length<2) {
-    return function(i) {return [{val:0,sin:0,cos:0},{val:0,sin:0,cos:0}];};
+    return (i) => [{val:0,sin:0,cos:0}, {val:0,sin:0,cos:0}];
   } else {
+    let ret = (a_1) => {
+      if (a_1 > Math.PI) a_1 = a_1 - Math.PI*2
+      let a_2 = a_1 <= 0 ? a_1+Math.PI : a_1-Math.PI;
+      return [{val: a_1, sin: Math.sin(a_1), cos: Math.cos(a_1)}, {val: a_2, sin: Math.sin(a_2), cos: Math.cos(a_2)}];
+    };
     if (curve.type == "Linie") {
-      var an1 = (a(1,0)+a(0,1))/2;
-      var an2 = an1>0?an1-Math.PI:an1+Math.PI;
-      var a0 = [{
-        val: an1,
-        sin: Math.sin(an1),
-        cos: Math.cos(an1)
-      }, {
-        val: an2,
-        sin: Math.sin(an2),
-        cos: Math.cos(an2)
-      }];
-      return function(i) {
-        return a0;
-      }
+      let an = ret(a(0,1)+Math.PI/2);
+      return (i) => an;
     } else {
-      return function(i) {
-        var i2 = i==0?i+1:i;
-        var i1 = i==line.length-1?i-1:i;
-        var an1 = (a(i2,i2-1)+a(i1,i1+1))/2;
-        var an2 = an1>0?an1-Math.PI:an1+Math.PI;
-        return [{
-          val: an1,
-          sin: Math.sin(an1),
-          cos: Math.cos(an1)
-        }, {
-          val: an2,
-          sin: Math.sin(an2),
-          cos: Math.cos(an2)
-        }];
+      let a0 = ret(a(0,1)+Math.PI/2);
+      let al = ret(a(line.length-2, line.length-1)+Math.PI/2);
+      return (i) => {
+        if (i==0) {
+          return a0;
+        } else if (i == line.length-1) {
+          return al;
+        } else {
+          let a1 = a(i, i-1);
+          let a2 = a(i, i+1);
+          if (a1 >= a2)
+            return ret((a2+a1)/2);
+          else {
+            return ret((a2+a1)/2+Math.PI);
+          }
+        }
       }
     }
   }
@@ -702,7 +693,6 @@ function funcRad(line) {
 function round(data, r) {
   return Math.round(data*r)/r;
 }
-
 
 function generateGCode(lines) {
   console.log("Generating GCode for "+lines.length);
