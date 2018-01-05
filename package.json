@@ -1,5 +1,5 @@
 {
-  "name": "WebCarve",
+  "name": "Salami",
   "version": "1.0.0",
   "description": "Generate GCODE of an Halftone Image",
   "author": "Kilian Schulte",
@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "build": "electron-builder"
   },
   "devDependencies": {
     "electron": "~1.6.2",
@@ -19,7 +19,7 @@
     "get-pixels": "^3.3.0"
   },
   "build": {
-    "appId": "schulte.webcarve",
+    "appId": "schultek.salami",
     "mac": {
       "category": "public.app-category.graphics-design",
       "target": "dmg"
