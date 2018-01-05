@@ -1,13 +1,17 @@
 {
   "name": "Salami",
   "version": "1.0.0",
-  "description": "Generate GCODE of an Halftone Image",
-  "author": "Kilian Schulte",
+  "description": "Halftone Generator with GCode export",
+  "author": {
+    "name": "Kilian Schulte" ,
+    "email": "kilian@4xschulte.de"
+  },
+  "repository": "https://github.com/schultek/salami",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "build": "electron-builder"
+    "build": "electron-builder -ml"
   },
   "devDependencies": {
     "electron": "~1.6.2",
@@ -20,9 +24,19 @@
   },
   "build": {
     "appId": "schultek.salami",
+    "productName": "Salami",
+    "copyright": "Copyright © 2018 Kilian Schulte",
     "mac": {
       "category": "public.app-category.graphics-design",
       "target": "dmg"
+    },
+    "linux": {
+      "target": [
+        {
+        "target": "deb",
+        "arch": ["x64"]
+      }],
+      "category": "Graphics"
     }
   }
 }
