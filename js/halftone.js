@@ -727,9 +727,11 @@ function generateGCode(lines) {
   output.push(gcode.pre.replace(/\$W/g, layer.w).replace(/\$H/g, layer.h));
 
   for (let i in lines) {
-    for (let line of lines[i]) {
-      for (let j = i%2==0 ? 0 : line.length-1; i%2==0 ? j<line.length : j>=0; j+= i%2==0 ? 1:-1) {
-        var p = line[j];
+    let dir_alt = i%2==1;
+    for (let j in lines[i]) {
+      let line = dir_alt ? lines[i][lines[i].length-1-j] : lines[i][j];
+      for (let k in line) {
+        var p = dir_alt ? line[line.length-1-k] : line[k];
         p.y = machine.h-p.y;
         if (layer.render.dotted) {
           if (p.data > 0) {
