@@ -15,7 +15,6 @@ ipcRenderer.on('file', (event, arg) => {
   else if (arg == 'autoleveling') showAutoLevelingDialog();
 });
 
-console.log();
 function loadImage(image, url, callback) {
   getPixels(url, function(err, pixels) {
     if (err) {
@@ -97,9 +96,10 @@ function saveProject(file, callback) {
     machine: app.machine.toObj(),
     project: app.project,
     texts: app.texts.map(e => e.toObj()),
-    fonts: app.fonts,
+    fonts: app.fonts.map(e => e.toObj()),
     layouts: app.layouts.map(e => e.toObj())
   }
+  console.log(fileObj);
   fs.writeFile(file, JSON.stringify(fileObj), callback);
 }
 

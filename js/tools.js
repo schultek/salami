@@ -63,6 +63,12 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
         app.project.autoAdjustMachine = false;
       }
     } else if ($(target).attr("type")=="rotate") {
+      let p = localPos(event.x, event.y);
+      let m = {
+        x: app.selectedLayer.$.x+app.selectedLayer.$.w/2,
+        y: app.selectedLayer.$.y+app.selectedLayer.$.h/2
+      };
+      this.data.rot = Math.atan2(m.y-p.y, m.x-p.x)*360/Math.PI/2-app.selectedLayer.$.rot
       this.data.type = "rotate";
     } else {
       if (!quickMode) {
@@ -132,7 +138,7 @@ data.tools.select = new Tool("mouse-pointer", {mode: "select"}, function(event, 
       x: app.selectedLayer.$.x+app.selectedLayer.$.w/2,
       y: app.selectedLayer.$.y+app.selectedLayer.$.h/2
     };
-    app.selectedLayer.$.rot = Math.atan2(m.y-p.y, m.x-p.x)*360/Math.PI/2-90;
+    app.selectedLayer.$.rot = Math.atan2(m.y-p.y, m.x-p.x)*360/Math.PI/2-this.data.rot;
     app.mapRotation('rot', app.selectedLayer.$);
   } else if (this.data.mode == "select") {
     var p = localPos(event.x, event.y);
@@ -265,7 +271,7 @@ data.tools.curve = new Tool("leaf", {}, function(event, target) {
 data.tools.text = new Tool("font", {}, function(event, target) {
   app.sublayers_open = false;
   var p = localPos(event.x, event.y);
-  app.selectedLayer = new Text(p.x, p.y, "Text "+(app.texts.length+1));
+  app.selectedLayer = new Text(p.x, p.y, 0, "Text "+(app.texts.length+1));
   app.selectedTool = app.tools.select;
 }, (event) => {}, (event) => {});
 

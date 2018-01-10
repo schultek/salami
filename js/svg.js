@@ -56,7 +56,7 @@ function initSVG(a) {
     }
     for (var t of this.texts) {
       t.svgObject[1].attr({
-        r: 4/p.zoom
+        transform: "scale("+(1/p.zoom)+")"
       })
     }
   }, {deep: true, immediate: true});

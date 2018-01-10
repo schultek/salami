@@ -391,8 +391,8 @@ class Machine extends SVG {
 data.Machine = Machine;
 
 class Text extends SVG {
-  constructor(x, y, text, size, stroke, font) {
-    super(x, y, 0, 0, 0, app.texts, "#svgTexts");
+  constructor(x, y, r, text, size, stroke, font) {
+    super(x, y, 0, 0, r, app.texts, "#svgTexts");
     this.$.text = text || "Text";
     this.$.size = size || 12;
     this.$.font = super.idOf(font || "BalooBhaijaan-Regular", app.fonts) || new Font(font || "fonts/BalooBhaijaan-Regular.ttf").$.id;
@@ -403,12 +403,18 @@ class Text extends SVG {
 
     super.createSVG(s.g(
       s.path("").attr({strokeWidth: this.$.stroke, stroke: "#505050", fill: "transparent"}),
-      s.circle(0, 0, 4/app.project.zoom, 4/app.project.zoom).attr({fill: "#008dea", type: "text"})
-    ).attr({id: this.$.id}));
+      s.g(
+        s.circle(0, 0, 4, 4).attr({class: "move-tool"}),
+        s.g(
+          s.circle(-15, 15, 4, 4),
+          s.path("M-25 0A41 41 0 0 0 0 25").attr({stroke: "#008dea", fill: "transparent"})
+        ).attr({type: "rotate", class: "rotate"})
+      ).attr({fill: "#008dea", transform: "scale("+(1/app.project.zoom)+")", style: "display: none"})
+    ).attr({id: this.$.id, type: "text"}));
 
     super.createSVGWatcher((text) => {
       if (app.fonts.find(el => el.$.id == text.$.font)) {
-        app.fonts.find(el => el.$.id == text.$.font).getPath(text.$.text, 0, text.$.h, text.$.size)
+        app.fonts.find(el => el.$.id == text.$.font).getPath(text.$.text, 0, 0, text.$.size)
           .then(path => {
             text.gcode = this.makeGCode(path);
             text.$.path = path.toPathData(3);
@@ -418,7 +424,7 @@ class Text extends SVG {
           })
       }
       text.svgObject.attr({
-        transform: "translate("+text.$.x+","+text.$.y+")"
+        style: "transform: translate("+text.$.x+"px, "+text.$.y+"px) rotate("+text.$.rot+"deg)"
       });
       text.svgObject[0].attr({
         strokeWidth: text.$.stroke
@@ -430,8 +436,20 @@ class Text extends SVG {
     let depth = (-Math.max(this.$.stroke, app.machine.$.bit.tip)/app.machine.$.bit.width*app.machine.$.bit.height).toFixed(2);
     let pathBegin = null;
     let last = null;
+    let rad = this.$.rot*Math.PI*2/360;
+    let cos = Math.cos(rad);
+    let sin = Math.sin(rad);
+    let rotate = !this.$.rot ?
+      (p) => ({
+        x: this.$.x + p.x,
+        y: app.machine.$.h - (this.$.y + p.y)
+      }) :
+      (p) => ({
+        x: this.$.x + p.x * cos - p.y * sin,
+        y: app.machine.$.h - (this.$.y + p.y * cos + p.x * sin)
+      })
     path.commands.forEach(c => {
-      let p = {x: this.$.x+c.x, y: app.machine.$.h - (this.$.y+c.y)}
+      let p = rotate(c);
       if (c.x1) p.x1 = this.$.x+c.x1;
       if (c.y1) p.y1 = app.machine.$.h - (this.$.y+c.y1);
       if (c.type == "M") {
@@ -471,14 +489,14 @@ class Text extends SVG {
   }
   toObj() {
     return {
-      x: this.$.x, y: this.$.y, text: this.$.text, size: this.$.size, font: this.$.font
+      x: this.$.x, y: this.$.y, rot: this.$.rot, text: this.$.text, size: this.$.size, stroke: this.$.stroke, font: app.fonts.find(f => f.$.id == this.$.font).$.file
     };
   }
   static fromObj(obj) {
-    return new Text(obj.x, obj.y, obj.text, obj.size, obj.font);
+    return new Text(obj.x, obj.y, obj.rot, obj.text, obj.size, obj.stroke, obj.font);
   }
   svgEquals(e) {
-    return this.svgObject[1].node == e;
+    return this.svgObject.node == e || $(this.svgObject.node).find(e).length > 0;
   }
 }
 
@@ -518,7 +536,10 @@ class Font {
     })
   }
   toObj() {
-    return {file};
+    return {file: this.$.file};
+  }
+  static fromObj(obj) {
+    return new Font(obj.file)
   }
 }
 
