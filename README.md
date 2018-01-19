@@ -9,7 +9,7 @@ A Halftone-Image Generator for GCode-Export.
 
 ```bash
 npm install
-npm start
+npm run dev
 ```
 
 ### Production
