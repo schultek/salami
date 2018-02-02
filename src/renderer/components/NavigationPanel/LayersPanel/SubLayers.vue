@@ -1,12 +1,12 @@
 <template>
-  <draggable v-model="layers" :options="{handle: '.layer-move-bars', class: '.layer-item'}">
+  <draggable v-model="layers" :options="{class: '.layer-item'}">
     <transition-group>
       <div class="layer-item" :key="layer.id" :class="[selectedObject==layer.id?'selected':'']" v-for="(layer, index) in layers" @click="selectLayer(layer.id)">
-        <icon :name="icon(layer)"></icon>
+        <i class="fa fa-fw" :class="'fa-'+icon(layer)"></i>
         {{layer.title}}
         <span>
-          <icon name="trash-o" @click.stop="removeLayer(layer.id)"></icon>
-          <icon name="bars" class="layer-move-bars"></icon>
+          <i class="fa fa-trash-alt" @click.stop="removeLayer(layer.id)"></i>
+          <i class="fa fa-fw fa-bars"></i>
         </span>
       </div>
     </transition-group>
@@ -25,10 +25,10 @@
       },
       layers: {
         get() {
-          return this.$store.getters.getObjectsByType.layers
+          return this.reverse(this.$store.getters.getObjectsByType.layers)
         },
         set(l) {
-          this.$store.commit("updateLayerOrder", l)
+          this.$store.commit("updateLayerOrder", this.reverse(l))
         }
       }
     },
@@ -40,7 +40,10 @@
         this.$store.dispatch("removeObject", id)
       },
       icon(layer) {
-        return layer.is == "cpart" ? "th-large" : layer.type == "rect" ? "square-o" : layer.type == "ellipse" ? "circle-o" : ""
+        return layer.is == "cpart" ? "th-large" : layer.type == "rect" ? "square" : layer.type == "ellipse" ? "circle" : ""
+      },
+      reverse(array) {
+        return JSON.parse(JSON.stringify(array)).reverse()
       }
     }
   }

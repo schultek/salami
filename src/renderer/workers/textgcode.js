@@ -44,7 +44,6 @@ self.addEventListener("message", (msg) => {
   });
 
   self.postMessage({gcode: out.join("\n")})
-  self.close();
 
 })
 

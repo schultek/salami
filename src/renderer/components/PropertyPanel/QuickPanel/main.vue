@@ -1,5 +1,5 @@
 <template>
-  <div class="quickSettings panel">
+  <div class="quickSettings">
     <MachineQuickPanel></MachineQuickPanel>
     <CPartQuickPanel v-for="layer in parts" :key="layer.id" :id="layer.id"></CPartQuickPanel>
     <ImageQuickPanel v-for="image in objects.images" :key="image.id" :id="image.id"></ImageQuickPanel>

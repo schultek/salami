@@ -1,5 +1,5 @@
 <template>
-  <component class="settings panel" :is="type+'X'" :id="id"></component>
+  <component class="settings" :is="type+'X'" :id="id"></component>
 </template>
 
 <script>

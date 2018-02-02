@@ -10,9 +10,6 @@
       <div class="dimen">
         <span>Tiefe</span><input type="number" v-model.number.lazy="object.bit.inDepth" v-blur/>
       </div>
-      <div class="dimen">
-        <span>Autom. Anpassen</span><input type="checkbox" :checked="autoAdjustMachine" @click="toggleAutoAdjustMachine"/>
-      </div>
     </div>
     <div class="settings-panel">
       <div class="settings-header">
@@ -57,17 +54,7 @@
   import BasePropertyPanel from "./BasePropertyPanel.vue"
 
   export default {
-    extends: BasePropertyPanel,
-    computed: {
-      autoAdjustMachine() {
-        return this.$store.state.project.autoAdjustMachine
-      }
-    },
-    methods: {
-      toggleAutoAdjustMachine() {
-        this.$store.commit("setAutoAdjustMachine", !this.autoAdjustMachine)
-      }
-    }
+    extends: BasePropertyPanel
   }
 
 </script>

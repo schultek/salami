@@ -2,7 +2,7 @@
   <div>
     <div class="settings-title">
       <span>Titel <input type="text" v-model.lazy="object.title" v-blur/></span>
-      <icon name="trash-o" @click="removeObject"></icon>
+      <i class="fa fa-trash-alt" @click="removeObject"></i>
     </div>
     <div class="settings-dimensions dimen-row-2">
       <div class="dimen">
@@ -22,8 +22,8 @@
       <div class="settings-header">
         <span>Rand</span>
         <!-- TODO <span><span>{{object.links.border!=undefined?object.links.border.title:''}}</span>
-          <icon v-if="object.links.border==undefined" name="link" @click="linkingBorder = true"></icon>
-          <icon v-else name="trash-o" @click="selectedLayer.unlink('border')"></icon>
+          <i v-if="object.links.border==undefined" class="fa fa-link" @click="linkingBorder = true"></i>
+          <i v-else class="fa fa-trash-alt" @click="selectedLayer.unlink('border')"></i>
         </span>
         <ul v-show="linkingBorder">
           <li v-for="layer in layers.filter(el=>is(el, CPart) & el!=selectedLayer)" @click="selectedLayer.linkTo(layer); linkingBorder = false">
@@ -33,16 +33,16 @@
       </div>
       <div class="settings-dimensions dimen-row-4">
         <div class="dimen">
-          <span><icon name="caret-right"></icon></span><input type="number" v-model.number.lazy="object.border.left" v-blur/>
+          <span><i class="fa fa-caret-right"></i></span><input type="number" v-model.number.lazy="object.border.left" v-blur/>
         </div>
         <div class="dimen">
-          <span><icon name="caret-left"></icon></span><input type="number" v-model.number.lazy="object.border.right" v-blur/>
+          <span><i class="fa fa-caret-left"></i></span><input type="number" v-model.number.lazy="object.border.right" v-blur/>
         </div>
         <div class="dimen">
-          <span><icon name="caret-down"></icon></span><input type="number" v-model.number.lazy="object.border.top" v-blur/>
+          <span><i class="fa fa-caret-down"></i></span><input type="number" v-model.number.lazy="object.border.top" v-blur/>
         </div>
         <div class="dimen">
-          <span><icon name="caret-up"></icon></span><input type="number" v-model.number.lazy="object.border.bottom" v-blur/>
+          <span><i class="fa fa-caret-up"></i></span><input type="number" v-model.number.lazy="object.border.bottom" v-blur/>
         </div>
       </div>
     </div>
@@ -50,8 +50,8 @@
       <div class="settings-header">
         <span>Rendering</span>
         <!-- TODO <span><span>{{selectedLayer.$.links.render!=undefined?selectedLayer.$.links.render.title:''}}</span>
-          <icon v-if="selectedLayer.$.links.render==undefined" name="link" @click="linkingRender = true"></icon>
-          <icon v-else name="trash-o" @click="selectedLayer.unlink('render')"></icon>
+          <i v-if="selectedLayer.$.links.render==undefined" class="fa fa-link" @click="linkingRender = true"></i>
+          <i v-else class="fa fa-trash-alt" @click="selectedLayer.unlink('render')"></i>
         </span>
         <ul v-show="linkingRender">
           <li v-for="layer in layers.filter(el=>is(el, CPart) & el!=selectedLayer)" @click="selectedLayer.linkTo(layer); linkingRender = false">
@@ -67,7 +67,7 @@
               {{curve.title}}
             </option>
           </select>
-          <icon v-show="object.render.curve" style="font-size: 12px" name="sign-in" @click="selectObject(object.render.curve)"></icon>
+          <i v-show="object.render.curve" class="fa fa-sign-in" @click="selectObject(object.render.curve)"></i>
         </div>
         <div class="dimen">
           <span>Bild</span>
@@ -76,7 +76,7 @@
               {{image.title}}
             </option>
           </select>
-          <icon v-show="object.render.image" style="font-size: 12px" name="sign-in" @click="selectedObject(object.render.image)"></icon>
+          <i v-show="object.render.image" class="fa fa-sign-in" @click="selectedObject(object.render.image)"></i>
         </div>
       </div>
       <div class="settings-dimensions dimen-row">
@@ -88,13 +88,13 @@
           <span>R</span><input type="number" v-model.number.lazy="object.render.lines.r" v-blur/>
         </div>
         <div class="dimen">
-          <input type="button" value="Füllen" @click="object.fill = true"/>
+          <input type="button" value="Füllen" @click="fillLines"/>
         </div>
         <div class="dimen">
           <span>Punkte</span><input type="checkbox" v-model="object.render.dotted" />
         </div>
         <div class="dimen">
-          <span><icon name="adjust"></icon></span><input type="checkbox" v-model="object.inverted"/>
+          <span><i class="fa fa-adjust"></i></span><input type="checkbox" v-model="object.inverted"/>
         </div>
         <div class="dimen">
           <span>Kantenglättung</span><input type="number" v-model.number.lazy="object.render.refinedEdges" v-blur />
@@ -122,7 +122,12 @@
   import BasePropertyPanel from "./BasePropertyPanel.vue"
 
   export default {
-    extends: BasePropertyPanel
+    extends: BasePropertyPanel,
+    methods: {
+      fillLines() {
+        this.$store.dispatch("fillLinesForLayer", this.id)
+      }
+    }
   }
 
 </script>

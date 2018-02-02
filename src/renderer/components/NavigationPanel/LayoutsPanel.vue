@@ -2,12 +2,12 @@
   <div id="navigation" class="sidepanel panel">
     <div id="layer-heading" @click="toggleSublayers">
       <span>Layouts</span>
-      <icon :name="subLayersOpen?'angle-down':'angle-up'"></icon>
+      <i class="fa" :class="subLayersOpen?'angle-down':'angle-up'"></i>
     </div>
-    <icon name="plus" scale="0.9" id="add-layout" @click="addLayout"></icon>
+    <i class="fa fa-plus" id="add-layout" @click="addLayout"></i>
     <div>
       <div class="layer-item" v-for="layout in layouts" @click="buildLayout(layout.id)" :class="[selectedLayout==layout.id?'selected':'']">
-        <icon name="columns"></icon>
+        <i class="fa fa-columns"></i>
         <template v-if="layout.edit">
           <input type="text" v-model="layout.title" @click.stop="" @blur="closeEditLayout(layout.id)" v-blur />
         </template>
@@ -15,8 +15,8 @@
           {{layout.title}}
         </template>
         <span style="display: block">
-          <icon v-if="layout.deleteable" name="pencil" @click.stop="startEditLayout(layout.id)"></icon>
-          <icon v-if="layout.deleteable" name="trash-o" @click.stop="removeLayout(layout.id)"></icon>
+          <i v-if="layout.deleteable" class="fa fa-pencil" @click.stop="startEditLayout(layout.id)"></i>
+          <i v-if="layout.deleteable" class="fa fa-trash-alt" @click.stop="removeLayout(layout.id)"></i>
         </span>
       </div>
     </div>

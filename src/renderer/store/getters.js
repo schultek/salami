@@ -1,7 +1,7 @@
 
 import $ from "jquery"
 
-let {getMaxLength} = require("../workers/renderfunctions.js")
+let {getMaxLength} = require("../includes/renderfunctions.js")
 
 export default {
 
@@ -9,9 +9,6 @@ export default {
       PROJECT
   *****************/
 
-  getProgress(state) {
-    return state.workers.reduce((sum, w) => sum + w.progress, 0) / state.workers.length
-  },
   getLocalPosition(state) {
     return (p) => {
       let svg = $("#svg").position();
@@ -87,11 +84,11 @@ export default {
   },
   getObjectsByType(state) {
     return state.objects.reduce((objects, o) => {
-      if (o.is == "cpart" || o.is == "form") objects.layers.push({id: o.id, is: o.is, icon: o.icon, title: o.title})
+      if (o.is == "cpart" || o.is == "form") objects.layers.push({id: o.id, is: o.is, title: o.title, type: o.type})
       else if (o.is == "curve") objects.curves.push({id: o.id, title: o.title})
       else if (o.is == "image") objects.images.push({id: o.id, title: o.title})
       else if (o.is == "text") objects.texts.push({id: o.id, title: o.title})
-      else throw new Error("Object of unknown type: "+o.is);
+      else console.error("Object of unknown type: ",o);
       return objects
     }, {layers: [], images: [], texts: [], curves: []})
   },
@@ -160,36 +157,10 @@ export default {
       }
     }
   },
-  getImagePixelsById(state) {
-    return (id) => state.pixels[id]
-  },
-  getCPartPathById(state) {
+  getPathById(state) {
     return (id) => {
-      let o = state.paths.cpart.find(el => el.id == id)
-      if (o) return o.path
-    }
-  },
-  getCurvePathsById(state) {
-    return (id) => {
-      let o = state.paths.curve.find(el => el.id == id)
-      if (o) return o.paths
-    }
-  },
-  getTextPathById(state) {
-    return (id) => {
-      let o = state.paths.text.find(el => el.id == id)
-      if (o) return o.path
-    }
-  },
-
-  /*****************
-      RENDERING
-  *****************/
-
-  getWorkerById(state) {
-    return (id, wid) => {
-      if (wid) return state.workers.find(el => el.id == id && el.wid == wid)
-      else return state.workers.find(el => el.id == id)
+      let o = state.paths.find(el => el.id == id)
+      return o ? o.path : ""
     }
   },
 

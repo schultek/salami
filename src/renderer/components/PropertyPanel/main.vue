@@ -1,8 +1,13 @@
 <template>
-  <QuickPanel v-if="quickMode"></QuickPanel>
-  <PropertyPanel v-else-if="selectedObject" :type="type" :id="selectedObject"></PropertyPanel>
+  <transition name="slide-right">
+    <div class="sidebar panel" v-if="quickMode">
+      <QuickPanel></QuickPanel>
+    </div>
+    <div class="sidebar panel" v-else-if="selectedObject">
+      <PropertyPanel :type="type" :id="selectedObject"></PropertyPanel>
+    </div>
+  </transition>
 </template>
-
 <script>
 
   import QuickPanel from "./QuickPanel/main.vue"
@@ -26,9 +31,18 @@
 
 <style>
 
-.settings, .quickSettings {
+.sidebar {
   width: 300px;
+  transition: width 1s;
   border-left-style: solid;
+}
+
+.sidebar > div {
+  width: 300px;
+}
+
+.slide-right-enter, .slide-right-leave-to {
+  width: 0;
 }
 
 input[type="text"], input[type="number"] {
@@ -71,13 +85,13 @@ input[type="text"]:focus, input[type="number"]:focus {
   text-transform: uppercase;
 }
 
-.settings-title .fa-icon {
+.settings-title i {
   font-size: 14px;
   margin: 6px;
   color: #9f9f9f;
 }
 
-.settings-title .fa-icon:hover {
+.settings-title i:hover {
   color: #008dea;
 }
 
@@ -146,7 +160,7 @@ input[type="text"]:focus, input[type="number"]:focus {
   text-transform: uppercase;
 }
 
-.settings-header .fa-icon {
+.settings-header i {
   font-size: 12px;
 }
 
@@ -191,5 +205,6 @@ input[type="text"]:focus, input[type="number"]:focus {
   width: 20px;
   background-color: blue;
 }
+
 
 </style>

@@ -6,7 +6,6 @@
   import Vue from "vue"
 
   function defineReactive(o, react, k, update) {
-    console.log(o, k)
     if (typeof o[k] === 'object') {
       react[k] = {}
       Object.keys(o[k]).forEach(k2 => defineReactive(o[k], react[k], k2, update))

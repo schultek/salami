@@ -2,7 +2,7 @@
   <div>
     <div class="settings-title">
       <span>Title <input type="text" v-model.lazy="object.title" v-blur/></span>
-      <icon name="trash-o" @click="removeObject"></icon>
+      <i class="fa fa-trash-alt" @click="removeObject"></i>
     </div>
     <div class="settings-dimensions dimen-row-3">
       <div class="dimen">
@@ -12,7 +12,7 @@
         <span>X</span><input type="number" v-model.number.lazy="object.x" v-blur/>
       </div>
       <div class="dimen">
-        <span><icon name="repeat"></icon></span><input type="number" v-model.number.lazy="object.rot" v-blur/>
+        <span><i class="fa fa-repeat"></i></span><input type="number" v-model.number.lazy="object.rot" v-blur/>
       </div>
       <div class="dimen">
         <span>H</span><input type="number" v-model.number.lazy="object.h" v-blur/>

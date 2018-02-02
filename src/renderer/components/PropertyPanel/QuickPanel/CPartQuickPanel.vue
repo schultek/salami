@@ -37,7 +37,7 @@
         <span>Punkte</span><input type="checkbox" v-model="layer.render.dotted" />
       </div>
       <div class="dimen">
-        <span><icon name="adjust"></icon></span><input type="checkbox" v-model="layer.inverted"/>
+        <span><i class="fa fa-adjust"></i></span><input type="checkbox" v-model="layer.inverted"/>
       </div>
     </div>
     <div v-if="layer.gcode" class="settings-dimensions dimen-row">

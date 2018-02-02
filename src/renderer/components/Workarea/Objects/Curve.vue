@@ -14,7 +14,7 @@
         return this.$store.getters.getObjectById(this.id)
       },
       paths() {
-        return this.$store.getters.getCurvePathsById(this.id)
+        return this.$store.getters.getPathById(this.id)
       },
       x() { return this.object.x },
       y() { return this.object.y },

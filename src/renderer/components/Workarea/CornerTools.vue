@@ -2,13 +2,14 @@
   <div id="corner-tools">
     <vue-slider v-model="zoom" v-bind="sliderOptions"></vue-slider>
     <div class="corner-action" @click="centerProject">
-      <icon name="compress"></icon>
+      <i class="fa fa-expand"></i>
     </div>
   </div>
 </template>
 
 <script>
 
+  import $ from "jquery"
   import vueSlider from 'vue-slider-component'
 
   export default {
@@ -28,12 +29,30 @@
       zoom: {
         get() {
           let z = this.$store.state.project.zoom;
-          let zz = 20-Math.cbrt(z/0.0025)
-          return zz
+          return 20-Math.cbrt(z/0.0025)
         },
         set(z) {
-          let zz = Math.pow(20-z, 3)*0.0025
-          this.$store.commit("zoomProject", zz)
+          let zoom = Math.pow(20-z, 3)*0.0025
+
+          let centered = this.$store.state.centered;
+
+
+          let size = {w: $("#workarea").width(), h: $("#workarea").height()}
+          let pos = {x: $("#workarea").position().left, y: $("#workarea").position().top}
+
+          var p = this.$store.getters.getLocalPosition({
+            x: pos.x + size.w/2,
+            y: pos.y + size.h/2
+          });
+
+          let x = size.w/2-(p.x*zoom);
+          let y = size.h/2-(p.y*zoom);
+
+          this.$store.commit("translateProject", {x, y})
+          this.$store.commit("zoomProject", zoom)
+
+          if (centered) this.$store.commit("setCentered", true)
+
         }
       }
     },
@@ -64,5 +83,17 @@
   color: #444;
   font-size: 14px;
 }
+
+.vue-slider-dot {
+  box-shadow: none !important;
+}
+
+.vue-slider-dot:hover {
+  box-shadow: 0 0 10px 0 rgba(0,0,0,.5) !important;
+}
+
+ .fa-expand:hover {
+   color: #008dea;
+ }
 
 </style>

@@ -1,19 +1,27 @@
 <template>
   <div id="menubar" class="panel">
-    <div id="title">
+    <div class="middle title">
       {{projectName}}
     </div>
-    <div id="menu">
+    <div class="menu">
       <span @click="loadProject">Öffnen</span>
       <span @click="saveProject">Speichern</span>
     </div>
-    <div class="menu-right">
-      <span class="loader" :style="{opacity: progress<100?1:0}"><span></span><span :style="{width: progress+'px'}"></span></span>
-      <span id="quickModeSwitch" class="switch" @click="toggleQuickMode" :class="[quickMode?'active':'']">
+    <div class="right" :class="quickMode || !objectSelected ? 'hide-settings' : ''">
+      <div class="loader" :style="{opacity: progress<100?1:0}">
+        <span></span>
+        <span :style="{width: progress+'px'}"></span>
+      </div>
+      <div id="quickModeSwitch" class="switch" @click="toggleQuickMode" :class="[quickMode?'active':'']">
         <div><div></div></div>
-      </span>
-      <span id="fullPreview" @click="togglePreview"><icon name="magic" scale="0.8" :style="{color: fullPreview?'#008dea':'inherit'}"></icon></span>
-      <span id="showSettings" v-show="!quickMode && objectSelected" @click="unselectObject"><icon name="wrench" scale="0.8" ></icon><icon name="angle-right" scale="1.2"></icon></span>
+      </div>
+      <div id="fullPreview" @click="togglePreview">
+        <i class="fa fa-magic fa-sm" :style="{color: fullPreview?'#008dea':'inherit'}"></i>
+      </div>
+      <div id="showSettings"  @click="unselectObject">
+        <i class="fa fa-wrench fa-sm" ></i>
+        <i class="fa fa-angle-right"></i>
+      </div>
     </div>
   </div>
 </template>
@@ -72,22 +80,38 @@
   align-items: center;
 }
 
-#title {
+.middle {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+}
+.right {
+  position: absolute;
+  right: 0;
+  height: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  transition: transform 1s;
+}
+
+.right.hide-settings {
+  transform: translateX(40px);
+}
+
+.title {
   font-size: 13px;
   font-weight: 400;
 }
 
-#menu {
+.menu {
   height: 100%;
   padding-left: 10px;
   display: flex;
 }
 
-#menu span {
+.menu span {
   display: block;
   padding: 0 10px;
   height: 100%;
@@ -95,23 +119,10 @@
   font-size: 13px;
 }
 
-#menu span:hover {
+.menu span:hover {
   background-color: #e4e4e4;
 }
 
-#menu span .fa-icon {
-  margin-right: 5px;
-}
-
-#menu input {
-  display: none;
-}
-
-.menu-right {
-  right: 0;
-  height: 100%;
-  display: flex;
-}
 
 .loader {
   display: flex;
@@ -143,15 +154,15 @@
   vertical-align: middle;
 }
 
-#showSettings .fa-icon, #fullPreview .fa-icon {
+#showSettings i, #fullPreview i {
   vertical-align: middle;
 }
 
-#showSettings .fa-icon:first-child {
-  margin-right: 3px;
+#showSettings i:first-child {
+  margin-right: -3px;
 }
 
-#showSettings:hover {
+#showSettings:hover, #fullPreview:hover {
   color: #008eda;
 }
 
@@ -183,5 +194,6 @@
   left: 50%;
   background: #008dea;
 }
+
 
 </style>

@@ -2,19 +2,19 @@
   <div id="toolbar" class="panel">
     <div id="tools">
       <span v-for="tool in tools" @click="selectTool(tool.id)" :class="[tool.id==selectedTool?'selected':'']">
-          <icon :name="tool.icon" scale="1.1"></icon>
-          <icon name="plus" v-show="tool.id!='select'" scale="0.8" class="corner-icon"></icon>
+          <i class="fa fa-fw" :class="'fa-'+tool.icon"></i>
+          <i class="fa fa-plus fa-xs corner-icon" v-show="tool.id!='select'"></i>
       </span>
     </div>
     <div id="sidepanel-icons">
-      <div @click="selectNavigationPanel(0)" :class="[navigationPanel==0?'selected':'']">
-        <icon name="layers" scale="1.3"></icon>
+      <!-- <div @click="selectNavigationPanel(0)" :class="[navigationPanel==0?'selected':'']">
+        <LayersIcon class="icon"></LayersIcon>
       </div>
       <div @click="selectNavigationPanel(1)" :class="[navigationPanel==1?'selected':'']">
-        <icon name="layouts" scale="1.3"></icon>
-      </div>
+        <LayoutsIcon></LayoutsIcon>
+      </div> -->
       <!-- <div @click="selectNavigationPanel(2)" :class="[navigationPanel==2?'selected':'']">
-        <icon name="users"></icon>
+        <i class="fa fa-users"></i>
       </div> -->
     </div>
   </div>
@@ -22,9 +22,13 @@
 
 <script>
 
+  // import LayersIcon from "../assets/layers.svg"
+  // import LayoutsIcon from "../assets/layouts.svg"
+
   import {mapState} from "vuex"
 
   export default {
+    //components: {LayersIcon, LayoutsIcon},
     computed: mapState(["selectedTool", "tools", "navigationPanel"]),
     methods: {
       selectTool(t) {
@@ -90,7 +94,7 @@
   fill: #505050;
 }
 
-#sidepanel-icons .selected svg, #sidepanel-icons .selected .fa-icon {
+#sidepanel-icons .selected svg, #sidepanel-icons .selected i {
   fill: #008dea;
   color: #008dea;
 }

@@ -4,13 +4,15 @@ import base64 from "base64-img"
 import fs from "mz/fs"
 import {remote} from "electron"
 import WorkerHandler from "../workers/WorkerHandler.js"
-
-let getPixels = require("get-pixels");
-
-let {updateDeep} = require("../workers/renderfunctions.js")
-import makeCurvePaths from "../workers/curvepaths.js"
+import path from "path"
 
 let dialog = remote.dialog
+let getPixels = require("get-pixels");
+
+let {updateDeep} = require("../includes/renderfunctions.js")
+import makeCurvePaths from "../includes/curvepaths.js"
+
+import Renderer from "../workers/Renderer.js"
 
 function showOpenDialog(options) {
   return new Promise((resolve, reject) => {
@@ -27,16 +29,6 @@ function showSaveDialog(options) {
   })
 }
 
-function getPixelsOfImage(url) {
-  return new Promise((resolve, reject) => {
-    getPixels(url, (err, pixels) => {
-      if (err) reject(err)
-      resolve(pixels)
-    })
-  })
-}
-
-
 function getDataURL(url) {
   return new Promise((resolve, reject) => {
     base64.base64(url, (err, data) => {
@@ -45,7 +37,6 @@ function getDataURL(url) {
     })
   })
 }
-
 
 function timeout(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -66,19 +57,23 @@ export default {
         APP
   *****************/
 
-  async init({commit, state, dispatch, getters}) {
+  init({commit, state, dispatch, getters}) {
+    Renderer.init({commit})
     let promises = [getDataURL(state.imgDefault.url).then(data => commit("setDefaultImageData", data))]
     //TODO load settings
-    let load = async (d, c) => {
-      if (!await fs.exists(d)) await fs.mkdir(d)
-      let files = await fs.readdir(d)
-      let proms = files.map(f => dispatch("loadLayout", {file: d+f, custom: c, build: false}))
-      await Promise.all(proms)
+    let load = (d, c) => {
+      if (!fs.existsSync(d))
+        return [fs.mkdir(d)]
+      else {
+        let files = fs.readdirSync(d)
+        return files.map(f =>
+          dispatch("loadLayout", {file: d+f, custom: c, build: false})
+        )
+      }
     }
-    promises.push(load(remote.app.getPath("userData")+"/layouts/", true))
-    promises.push(load("./src/layouts/", false))
-    await Promise.all(promises)
-    $("#overlay").fadeOut(500);
+    promises.concat(load(path.join(remote.app.getPath("userData"), "/layouts/"), true))
+    promises.concat(load(path.join(__static, "/layouts/"), false))
+    return Promise.all(promises)
   },
 
   /*****************
@@ -112,19 +107,28 @@ export default {
     commit("setProjectFile", file)
     console.log("Project saved to "+file);
   },
-  async centerProject({state, commit}, anim) {
+  async centerProject({state, commit}, options) {
     let size = {w: $("#workarea").width(), h: $("#workarea").height()}
+    if (options && options.withSidebar) {
+      if ($(".sidebar").hasClass("slide-right-enter-active")) {
+        let w = parseInt($(".sidebar > div").css("width"))
+        size.w -= w - $(".sidebar").width()
+      } else if ($(".sidebar").hasClass("slide-right-leave-active")) {
+        size.w += $(".sidebar").width()
+      }
+    }
     let zoom = size.w/state.machine.w*0.9
     if (state.machine.h*zoom > size.h*0.9)
       zoom = size.h/state.machine.h*0.9
-    let y = size.h/2 - (state.machine.y + state.machine.h/2) * zoom
-    let x = size.w/2 - (state.machine.x + state.machine.w/2) * zoom
-    if (anim != "noanimation") $("#svgProject").css("transition", "transform .8s")
+    let y = size.h/2 - (state.machine.h/2) * zoom //TODO include all objects
+    let x = size.w/2 - (state.machine.w/2) * zoom
+    if (!options || !options.preventAnimation) $("#svg").addClass("fade-zoom")
     commit("zoomProject", zoom)
     commit("translateProject", {x, y})
-    if (anim != "noanimation") {
-      await timeout(800)
-      $("#svgProject").css("transition", "none")
+    commit("setCentered", true)
+    if (!options || !options.preventAnimation) {
+      await timeout(1000)
+      $("#svg").removeClass("fade-zoom")
     }
   },
   async toggleQuickMode({state, commit, dispatch}) {
@@ -133,7 +137,7 @@ export default {
     commit("selectObject", null)
     commit("setSubLayersOpen", state.quickMode)
     await timeout(10)
-    dispatch("centerProject")
+    dispatch("centerProject", {withSidebar: true})
   },
   async setFullPreview({state, commit, dispatch}, fp) {
     commit("setFullPreview", fp)
@@ -145,29 +149,11 @@ export default {
       dispatch("centerProject")
     }
   },
-  adjustMachine({commit, state, getters}) {
-    let min = {x: Number.MAX_VALUE, y: Number.MAX_VALUE};
-    let max = {x: Number.MIN_VALUE, y: Number.MIN_VALUE};
-    for (let layer of state.objects.filter(getters.isSublayer)) {
-      min.x = Math.min(min.x, layer.x)
-      min.y = Math.min(min.y, layer.y)
-      max.x = Math.max(max.x, layer.x+layer.w)
-      max.y = Math.max(max.y, layer.y+layer.h)
-    }
-    if (min.x!==undefined) {
-      commit("adjustMachine", {
-        x: min.x,
-        y: min.y,
-        w: max.x-min.x,
-        h: max.y-min.y
-      })
-    }
-  },
   updateQuickProject({commit, state, getters}, {w, h, detail}) {
     if (w != state.machine.w || h != state.machine.h) {
       let c = {
-        x: state.machine.x + state.machine.w/2,
-        y: state.machine.y + state.machine.h/2
+        x: state.machine.w/2,
+        y: state.machine.h/2
       }
       let d = {
         x: w / state.machine.w,
@@ -295,8 +281,9 @@ export default {
 
     console.log("Finished building Layout "+layout.title)
 
+    commit("selectObject", null)
     await timeout(10)
-    await dispatch("centerProject", "noanimation")
+    await dispatch("centerProject", {withSidebar: true, preventAnimation: true})
 
     await dispatch("generateAll")
   },
@@ -328,26 +315,31 @@ export default {
       data: url ? await getDataURL(url) : state.imgDefault.data
     }
     if (url) {
-      let pixels = await getPixelsOfImage(url)
-      let h = Math.round(pixels.shape[1] / pixels.shape[0] * orig.w);
-      if (h >= orig.h) {
-        img.y = (orig.h - h) / 2;
-        img.h = h;
-      } else {
-        let w = Math.round(pixels.shape[0] / pixels.shape[1] * orig.h);
-        img.x = (orig.w - w) / 2;
-        img.w = w;
-      }
-      commit("setImagePixels", {id, pixels})
+      getPixels(url, (err, pixels) => {
+        if (err) throw err;
+        let h = Math.round(pixels.shape[1] / pixels.shape[0] * orig.w);
+        if (h >= orig.h) {
+          img.y = (orig.h - h) / 2;
+          img.h = h;
+        } else {
+          let w = Math.round(pixels.shape[0] / pixels.shape[1] * orig.h);
+          img.x = (orig.w - w) / 2;
+          img.w = w;
+        }
+        Renderer.setImagePixels({id, pixels})
+        commit("updateObject", img)
+        console.log("Image Data loaded for " + img.id);
+      })
+    } else {
+      commit("updateObject", img)
+      console.log("Image Data loaded for " + img.id);
     }
-    commit("updateObject", img)
-    console.log("Image Data loaded for " + img.id);
   },
   async loadNewImage({state, dispatch}, id) {
     //TODO cancel second dialog
     let file = await showOpenDialog({filters: [{name: 'Images', extensions: ['jpg', 'png', 'gif', 'jpeg']}]})
     if (!file) return
-    await dispatch("loadImage", {id, url: file});
+    dispatch("loadImage", {id, url: file});
   },
 
   /*****************
@@ -377,11 +369,11 @@ export default {
     commit("setFillById", {id, fill: true})
     dispatch("generateLayerPath", id)
   },
-  async generateAll({state, dispatch}) {
+  async generateAll({state, dispatch, getters}) {
     let promises = []
     console.log("Start generating full Project")
     state.objects.forEach(o => {
-      if (o.is == "cpart") promises.push(dispatch("generateLayerPath", o.id))
+      if (getters.isSublayer(o)) promises.push(dispatch("generateLayerPath", o.id))
       else if (o.is == "text") promises.push(dispatch("generateTextPath", o.id))
       else if (o.is == "curve") promises.push(dispatch("generateCurvePaths", o.id))
       else if (o.is == "image") promises.push(dispatch("loadImage", {id: o.id, url: o.url}))
@@ -391,27 +383,13 @@ export default {
     await Promise.all(promises)
     console.log("Finished generating full Project")
   },
-  async generateLayerPath({state, getters, commit, dispatch}, id) {
-    let object = getters.getObjectById(id);
-    if (object.is == "cpart") {
-      await dispatch("startWorkerFor", id)
-    } else if (object.is == "form" && object.mask && object.ownRenderer) {
-      let layers = getters.getObjectsByType.layers;
-      let i = layers.indexOf(object);
-      let promises = [];
-      layers.filter(el => el.is == "cpart").filter((el, j) => j < i).forEach(el => {
-        promises.push(dispatch("startWorkerFor", el.id))
-      })
-      await Promise.all(promises)
-    }
-  },
   async generateTextPath({state, getters}, id) {
     let object = getters.getObjectById(id);
     if (object.is != "text") throw new Error("Object with id "+id+" need to be a Text")
     let font = state.fonts.find(el => el.id == object.font);
     if (!font) return
     let path = font.font.getPath(object.title, 0, 0, object.size)
-    commit("setTextPath", {id, path: path.toPathData(3)});
+    commit("setPathById", {id, path: path.toPathData(3)});
     console.log("Generated Text Path for "+id)
     await dispatch("generateTextGCode", {id, path});
   },
@@ -419,65 +397,25 @@ export default {
     let curve = getters.getObjectById(id)
     let machine = getters.getObjectById("machine")
 
-    let paths = makeCurvePaths(curve, machine)
-    commit("setCurvePaths", {id, paths})
+    let path = makeCurvePaths(curve, machine)
+    commit("setPathById", {id, path})
   },
-  async startWorkerFor({state, getters, commit, dispatch}, id) {
+  generateLayerPath({state, getters, commit, dispatch}, id) {
     let object = getters.getObjectById(id);
-    if (!object.is == "cpart") return
+    if (object.is != "cpart" && (object.is != "form" || !object.ownRenderer)) return;
     let layers = state.objects.filter(getters.isSublayer)
     let i = layers.indexOf(object);
     let forms = layers
       .filter(el => el.is == "form")
-      .filter((el, j) => j > i)
+      .filter(el => layers.indexOf(el) > i)
 
-    let images = [getters.getObjectById(object.render.image)]
-      .concat(forms
-        .filter(el => el.mask && el.ownRenderer)
-        .map(el => el.render.image)
-        .map(id => state.objects.filter(el => el.id == id))
-      ).map(el => ({...el, pixels: getters.getImagePixelsById(el.id)}))
-    let curves = [getters.getObjectById(object.render.curve)]
-      .concat(forms
-        .filter(el => el.mask && el.ownRenderer)
-        .map(el => el.render.curve)
-        .map(id => state.objects.filter(el => el.id == id))
-      )
+    let image = getters.getObjectById(object.render.image)
+    let curve = getters.getObjectById(object.render.curve)
     let machine = state.machine
 
-    let startmillis = Date.now()
+    console.log("Start Worker for Layer "+id);
 
-    let wid = getters.getNewId()
-
-    console.log("Start Worker "+wid+" for Layer "+id);
-
-    let worker = new WorkerHandler((progress) => {
-      commit("updateWorkerProgress", {id, progress})
-    })
-    commit("registerWorker", {id, terminate: worker.terminate.bind(worker), wid})
-
-    let result = await worker.run({layer: object, forms, images, curves, machine}) //TODO handle pre-, post gcode snippets
-
-    commit("unregisterWorker", {id, wid})
-
-    if (result.error) {
-      console.log("Rendering for Layer "+id+" with Worker "+wid+" finished with an Error: "+result.error);
-    } else {
-
-      console.log(result)
-
-      commit("setCPartPath", {id, path: result.path})
-
-      if (object.fill) {
-        commit("setLineCountById", {id, lineCount: result.lineCount})
-        commit("setFillById", {id, fill: false})
-      }
-
-      console.log("Finished Rendering for Layer "+id+", took "+(Date.now()-startmillis)+"ms");
-
-      await dispatch("generateCPartGCode", {id, lines: result.lines})
-
-    }
+    Renderer.runWorker(id, {layer: object, forms, image, curve, machine})
   },
 
   /*****************
@@ -492,6 +430,10 @@ export default {
     let promises = []
     for (let layer of state.objects.filter(el => el.is == 'cpart' && el.gcode)) {
       let gcode = layer.gcode.gcode.slice()
+      state.objects
+        .filter(el => el.is == "form")
+        .filter(el => el.mask && el.ownRenderer)
+        .forEach(el => gcode = gcode.concat(el.gcode.gcode))
       state.objects
         .filter(el => el.is == 'text')
         .filter(el => el.gcode && el.x > layer.x && el.y > layer.y && el.x < layer.x+layer.w && el.y < layer.y+layer.h)
@@ -521,21 +463,21 @@ export default {
       worker.postMessage({text, path, machine})
     })
   },
-  generateCPartGCode({commit, state, getters}, {id, lines}) {
-    let worker = new Worker("src/renderer/workers/cpartgcode.js")
-    let machine = getters.getObjectById("machine");
-    let layer = getters.getObjectById(id)
-    console.log("Start generating cpart gcode for "+id)
-    return new Promise((resolve, reject) => {
-      worker.addEventListener("message", (event) => {
-        commit("setCPartGCode", {id, gcode: event.data.gcode})
-        worker.terminate();
-        console.log("Finished generating cpart gcode for "+id)
-        resolve()
-      })
-      worker.postMessage({layer, machine, lines})
-    })
-  },
+  // generateCPartGCode({commit, state, getters}, {id, lines}) {
+  //   let worker = new Worker("src/renderer/workers/cpartgcode.js")
+  //   let machine = getters.getObjectById("machine");
+  //   let layer = getters.getObjectById(id)
+  //   console.log("Start generating cpart gcode for "+id)
+  //   return new Promise((resolve, reject) => {
+  //     worker.addEventListener("message", (event) => {
+  //       commit("setCPartGCode", {id, gcode: event.data.gcode})
+  //       worker.terminate();
+  //       console.log("Finished generating cpart gcode for "+id)
+  //       resolve()
+  //     })
+  //     worker.postMessage({layer, machine, lines})
+  //   })
+  // },
 
   /*****************
         OBJECTS

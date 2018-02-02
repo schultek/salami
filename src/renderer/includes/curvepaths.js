@@ -1,4 +1,4 @@
-let {getGlobalConstants, getCurveConstants, getCurvePoint} = require("./renderfunctions.js")
+let {getGlobalConstants, getCurveConstants, getCurvePoint} = require("../includes/renderfunctions.js")
 
 const count = 2;
 

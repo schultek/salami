@@ -37,14 +37,17 @@ export default {
   selectLayout(state, id) {
     state.selectedLayout = id
   },
-  setAutoAdjustMachine(state, a) {
-    state.project.autoAdjustMachine = a
-  },
   selectTool(state, tid) {
     state.selectedTool = tid
   },
   switchNavigationPanel(state, n) {
     state.navigationPanel = n
+  },
+  setProgress(state, p) {
+    state.progress = p;
+  },
+  setCentered(state, c) {
+    state.centered = c;
   },
 
   /*****************
@@ -71,12 +74,6 @@ export default {
   cleanProject(state) {
     state.objects = []
     state.selectedObject = null
-  },
-  adjustMachine(state, {x, y, w, h}) {
-    state.machine.x = round(x,10);
-    state.machine.y = round(y,10);
-    state.machine.w = round(w,10);
-    state.machine.h = round(h,10);
   },
 
   /*****************
@@ -112,13 +109,15 @@ export default {
     o.h = round(h,10);
   },
   updateLayerOrder(state, order) {
-    let objects = getters.getObjectsByType(state)
-    let layers = order.map(el => objects.layers.find(e => e.id == el.id))
-    state.objects = layers.concat(objects.curves).concat(objects.images).concat(objects.texts)
+    let layers = state.objects.filter(getters.isSublayer(state))
+    let rest = state.objects.filter(el => !getters.isSublayer(state)(el))
+    state.objects = order.map(el => layers.find(l => l.id == el.id)).concat(rest)
   },
   addObject(state, object) {
-    if (object.id && object.is)
+    if (object.id && object.is) {
       state.objects.push(object)
+      state.selectedObject = object.id
+    }
   },
   removeObject(state, id) {
     let o = getters.getObjectById(state)(id)
@@ -171,56 +170,32 @@ export default {
   OBJECT RENDERING
   *****************/
 
-  setLineCountById(state, {id, lineCount}) {
-    if (getters.isSublayerById(state)(id)) {
-      let object = getters.getObjectById(state)(id)
-      object.render.lines.l = lineCount.l;
-      object.render.lines.r = lineCount.r;
+  setLineCountById(state, {id, lines}) {
+    let object = getters.getObjectById(state)(id)
+    if (getters.isSublayer(state)(object)) {
+      object.render.lines.l = lines.l;
+      object.render.lines.r = lines.r;
     }
   },
   setFillById(state, {id, fill}) {
-    if (getters.isSublayerById(state)(id)) {
-      let object = getters.getObjectById(state)(id)
+    let object = getters.getObjectById(state)(id)
+    if (getters.isSublayer(state)(object)) {
       Vue.set(object, "fill", fill);
     }
   },
-  setImagePixels(state, {id, pixels}) {
-    state.pixels[id] = pixels //don't trigger reactiveness
+  setPathById(state, {id, path}) {
+    let o = state.paths.find(el => el.id == id)
+    if (o)
+      o.path = path
+    else
+      state.paths.push({id, path})
   },
-  setTextPath(state, o) {
-    state.paths.text.push(o)
-  },
-  setCPartPath(state, o) {
-    state.paths.cpart.push(o)
-  },
-  setCurvePaths(state, o) {
-    state.paths.curve.push(o)
-  },
-  setTextGCode(state, o) {
-    state.gcodes.text.push(o)
-  },
-  setCPartGCode(state, o) {
-    state.gcodes.cpart.push(o)
-  },
-  registerWorker(state, {id, terminate, wid}) {
-    let worker = {id, terminate, progress: 0, wid};
-    let old = getters.getWorkerById(state)(id)
-    if (old) {
-      old.terminate(wid);
-      state.workers.splice(state.workers.indexOf(worker), 1)
-    }
-    state.workers.push(worker)
-  },
-  unregisterWorker(state, {id, wid}) {
-    let worker = getters.getWorkerById(state)(id, wid)
-    if (worker) {
-      worker.terminate(wid)
-      state.workers.splice(state.workers.indexOf(worker), 1)
-    }
-  },
-  updateWorkerProgress(state, {id, progress}) {
-    let worker = getters.getWorkerById(state)(id)
-    if (worker) worker.progress = progress
+  setGCodeById(state, {id, gcode}) {
+    let o = state.gcodes.find(el => el.id == id)
+    if (o)
+      o.gcode = gcode
+    else
+      state.gcodes.push({id, gcode})
   },
 
   /*****************
@@ -229,5 +204,8 @@ export default {
 
   setDefaultImageData(state, data) {
     state.imgDefault.data = data;
+  },
+  putObject(state, id) {
+    //Buffer Mutation for Plugins
   }
 }

@@ -12,10 +12,10 @@ self.addEventListener("message", (event) => {
 
   var sq = (a) => a*a;
   var add = function(g, x, y, z, s) {
-    var str = "G"+g+(x!=null?" X"+round(x-machine.x, 1000):"")+(y!=null?" Y"+round(y-machine.y,1000):"")+(z!=null?" Z"+round(z,1000):"")+" F"+s;
+    var str = "G"+g+(x!=null?" X"+round(x, 1000):"")+(y!=null?" Y"+round(y,1000):"")+(z!=null?" Z"+round(z,1000):"")+" F"+s;
     output.push(str);
-    x = x!=null ? x-machine.x : pos.x;
-    y = y!=null ? y-machine.y : pos.y;
+    x = x!=null ? x : pos.x;
+    y = y!=null ? y : pos.y;
     z = z!=null ? z : pos.z;
     var td = Math.sqrt(sq(Math.sqrt(sq(pos.x-x)+sq(pos.y-y)))+sq(pos.z-z))/s;
     time += td;
@@ -77,7 +77,6 @@ self.addEventListener("message", (event) => {
   //output.push(gcode.post.replace(/\$W/g, layer.w).replace(/\$H/g, layer.h));
 
   self.postMessage({time, gcode: output.join("\n")})
-  self.close()
 
 })
 

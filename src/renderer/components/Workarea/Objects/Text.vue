@@ -22,7 +22,7 @@
       rot() { return this.object.rot },
       selected() { return this.$store.state.selectedObject == this.id },
       zoom() { return this.$store.state.project.zoom },
-      path() { return this.$store.getters.getCPartPathById(this.id) }
+      path() { return this.$store.getters.getPathById(this.id) }
     }
   }
 

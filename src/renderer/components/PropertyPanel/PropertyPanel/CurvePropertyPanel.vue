@@ -2,7 +2,7 @@
   <div>
     <div class="settings-title">
       <span>Titel <input type="text" v-model.lazy="object.title" v-blur/></span>
-      <icon name="trash-o" @click="removeObject"></icon>
+      <i class="fa fa-trash-alt" @click="removeObject"></i>
     </div>
     <div class="settings-panel">
       <div class="settings-header">

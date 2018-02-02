@@ -1,7 +1,7 @@
 <template>
   <div id="navigation" class="sidepanel panel">
     <div id="layer-heading" @click="closeSublayers">
-      <icon v-if="subLayersOpen" name="angle-left"></icon>
+      <i v-if="subLayersOpen" class="fa fa-angle-left"></i>
       <span>{{subLayersOpen?'Fräsbereich':'Arbeitsbereich'}}</span>
     </div>
     <SubLayers v-if="subLayersOpen"></SubLayers>
@@ -45,7 +45,7 @@
   align-items: center;
 }
 
-#layer-heading .fa-icon {
+#layer-heading i {
   margin-right: 5px;
 }
 
@@ -56,7 +56,7 @@
   text-transform: uppercase;
 }
 
-#layer-heading:hover .fa-icon {
+#layer-heading:hover i {
   color: #008dea;
 }
 
@@ -73,7 +73,7 @@
   background-color: #ededed;
 }
 
-.layer-item .fa-icon {
+.layer-item i {
   margin-right: 5px;
 }
 
@@ -86,26 +86,8 @@
   color: #aaa;
 }
 
-.layer-item span .fa-icon:hover {
-  fill: #555;
+.layer-item span i:hover {
+  color: #555;
 }
-
-.layer-item .sublayer_link {
-  flex-grow: 1;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  height: 25px;
-}
-
-.layer-item .sublayer_link .fa-icon {
-  font-size: 15px;
-  padding: 6px 10px;
-}
-
-.layer-item .sublayer_link .fa-icon:hover {
-  color: #008dea;
-}
-
 
 </style>

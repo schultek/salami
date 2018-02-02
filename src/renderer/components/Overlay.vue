@@ -1,13 +1,24 @@
-html, body, #app {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  cursor: default;
-  font-family: Helvetica, sans-serif;
-  color: #505050;
+<template>
+  <div id="overlay">
+    <span>Laden</span>
+  </div>
+</template>
+
+<script>
+
+import $ from "jquery"
+
+export default {
+  methods: {
+    fadeOut() {
+      $("#overlay").fadeOut(800)
+    }
+  }
 }
+
+</script>
+
+<style>
 
 #overlay {
   display: flex;
@@ -46,3 +57,6 @@ html, body, #app {
     width: 130px;
   }
 }
+
+
+</style>

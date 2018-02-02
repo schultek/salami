@@ -1,4 +1,6 @@
 
+let curveBoxSize = 200
+
 function getGlobalConstants(c_, m_) {
   let curve = c_ ? c_ : curve;
   let machine = m_ ? m_ : machine;
@@ -15,7 +17,7 @@ function getGlobalConstants(c_, m_) {
       startlength: dist(start.x, start.y, mid.x, mid.y)+dist(mid.x, mid.y, end.x, end.y)
     };
   } else if (curve.type == "Kreis") {
-    var r = Math.min(machine.w, machine.h)/4
+    var r = curveBoxSize/4
     return {center: curve, r: r, maxlength: getMaxLength(curve, machine), twoPi: Math.PI*2};
   } else if (curve.type == "Welle") {
     var cotstr = (curve.dcos / curve.dsin) / curve.stretch;
@@ -75,9 +77,9 @@ function getMaxLength(c_, m_) {
   let machine = m_ ? m_ : machine;
 
   if (curve.type=="Linie" || curve.type == "Bogen" || curve.type == "Welle") {
-    return dist(machine.x, machine.y, machine.w, machine.h);
+    return curveBoxSize * Math.sqrt(2);
   } else if (curve.type == "Kreis") {
-    return 2 * Math.PI * Math.min(machine.w, machine.h)/4;
+    return 2 * Math.PI * curveBoxSize/4;
   } else {
     return 0
   }
@@ -103,23 +105,23 @@ function getCurveConstants(num, c_, m_, g_) {
     var c1 = {x: end.x-2*mid.x+start.x, y: end.y-2*mid.y+start.y};
     var c2 = {x: 2*mid.x-2*start.x, y: 2*mid.y-2*start.y};
     var p = {x: -c2.x/2/c1.x, y: -c2.y/2/c1.y};
-    var q = [(p.x*p.x)-(c0.x-machine.x)/c1.x, (p.x*p.x)-(c0.x-machine.x-machine.w)/c1.x,
-            (p.y*p.y)-(c0.y-machine.y)/c1.y, (p.y*p.y)-(c0.y-machine.y-machine.h)/c1.y];
+    var q = [(p.x*p.x)-c0.x/c1.x, (p.x*p.x)-(c0.x-curveBoxSize)/c1.x,
+            (p.y*p.y)-c0.y/c1.y, (p.y*p.y)-(c0.y-curveBoxSize)/c1.y];
     var farr = [];
     if (c1.x == 0) {
-      farr.push((machine.x-c0.x)/c2.x);
-      farr.push((machine.x+machine.w-c0.x)/c2.x);
+      farr.push(c0.x/c2.x);
+      farr.push((curveBoxSize-c0.x)/c2.x);
     }
     if (c1.y == 0) {
-      farr.push((machine.y-c0.y)/c2.y);
-      farr.push((machine.y+machine.h-c0.y)/c2.y);
+      farr.push(c0.y/c2.y);
+      farr.push((curveBoxSize-c0.y)/c2.y);
     }
     for (var i in q) for (var d of [1,-1]) {
       if (q[i] >= 0 && c1[i>1?"y":"x"] != 0) {
         var f1 = p[i>1?"y":"x"]+d*Math.sqrt(q[i]);
         var dx = round(c0.x+f1*(f1*c1.x+c2.x), 100);
         var dy = round(c0.y+f1*(f1*c1.y+c2.y), 100);
-        if (dx >= machine.x && dx <= machine.x+machine.w && dy >= machine.y && dy <= machine.y+machine.h) {
+        if (dx >= 0 && dx <= curveBoxSize && dy >= 0 && dy <= curveBoxSize) {
           farr.push(f1);
         }
       }
@@ -143,15 +145,15 @@ function getCurveConstants(num, c_, m_, g_) {
     var l = 200;
     var mid = {x: curve.x+curve.xgap*num, y: curve.y+curve.ygap*num}
 
-    var f1 = globals.getApproxY(machine.y, mid);
+    var f1 = globals.getApproxY(0, mid);
     var fx1 = globals.getX(f1, mid);
-    if (fx1 < machine.x || fx1 > machine.x+machine.w) {
-      f1 = globals.getApproxX(fx1<machine.x?machine.x:(machine.x+machine.w), mid);
+    if (fx1 < 0 || fx1 > curveBoxSize) {
+      f1 = globals.getApproxX(fx1<0?0:curveBoxSize, mid);
     }
-    var f2 = globals.getApproxY(machine.y+machine.h, mid);
+    var f2 = globals.getApproxY(curveBoxSize, mid);
     var fx2 = globals.getX(f2, mid);
-    if (fx2 < machine.x || fx2 > machine.x+machine.w) {
-      f2 = globals.getApproxX(fx2<machine.x?machine.x:(machine.x+machine.w), mid);
+    if (fx2 < 0 || fx2 > curveBoxSize) {
+      f2 = globals.getApproxX(fx2<0?0:curveBoxSize, mid);
     }
 
     return err ? null : {f1: f1, f2: f2-f1, mid: mid, length: l};
@@ -174,22 +176,22 @@ function makeBorderPoints(c, c_, m_) {
   let machine = m_ ? m_ : machine;
 
   //generate start position with x or y is 0
-  var start = {x: machine.x-1, y: machine.y};
+  var start = {x: -1, y: 0};
   if (curve.dcos!=0) {
-    start.x = c.x+curve.dsin*((c.y-machine.y)/curve.dcos);
+    start.x = c.x+curve.dsin*(c.y/curve.dcos);
   }
-  if (start.x < machine.x || start.x > machine.x+machine.w) {
-    start.x = start.x<machine.x?machine.x:machine.x+machine.w;
+  if (start.x < 0 || start.x > curveBoxSize) {
+    start.x = start.x<0?0:curveBoxSize;
     start.y = c.y+curve.dcos*((c.x-start.x)/curve.dsin);
   }
 
   //generate end position with x is width or y is height
-  var end = {x: machine.x+machine.w+1, y: machine.y+machine.h};
+  var end = {x: curveBoxSize+1, y: curveBoxSize};
   if (curve.dcos!=0) {
-    end.x = c.x+curve.dsin*((c.y-machine.y-machine.h)/curve.dcos);
+    end.x = c.x+curve.dsin*((c.y-curveBoxSize)/curve.dcos);
   }
-  if (end.x > machine.x+machine.w || end.x < machine.x) {
-    end.x = end.x>machine.x+machine.w?machine.x+machine.w:machine.x;
+  if (end.x > curveBoxSize || end.x < 0) {
+    end.x = end.x>curveBoxSize?curveBoxSize:0;
     end.y = c.y+curve.dcos*((c.x-end.x)/curve.dsin);
   }
 
@@ -212,6 +214,23 @@ function getCurvePoint(step, cdata, c_, m_, g_) {
   } else if (curve.type == "Welle") {
     var f = cdata.f1+cdata.f2*step;
     return globals.getPoint(f, cdata.mid);
+  }
+}
+
+function rotate(p, dim, inv, m) {
+  if (!dim.rot) return p;
+  m = m || {
+    x: dim.x+dim.w/2,
+    y: dim.y+dim.h/2
+  }
+  let rad = (inv?1:-1)*dim.rot*Math.PI*2/360;
+  let cos = Math.cos(rad);
+  let sin = Math.sin(rad);
+
+  let d = {x: p.x-m.x, y: p.y-m.y}
+  return {
+    x: m.x + d.x * cos - d.y * sin,
+    y: m.y + d.y * cos + d.x * sin
   }
 }
 
@@ -247,5 +266,5 @@ if (this.__esModule) {
   let set = (global, functions) => {
     Object.keys(functions).forEach(f => global[f] = functions[f])
   }
-  set(this, {updateDeep, getGlobalConstants, getMaxLength, getCurveConstants, makeBorderPoints, getCurvePoint, map, dist, round, def})
+  set(this, {updateDeep, getGlobalConstants, getMaxLength, getCurveConstants, makeBorderPoints, getCurvePoint, rotate, map, dist, round, def})
 }

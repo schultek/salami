@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" unselectable="on" onselectstart="return false;">
     <Menubar></Menubar>
     <div id="panels">
       <Toolbar v-show="!quickMode"></Toolbar>
@@ -30,9 +30,21 @@
 
 <style>
 
+@import "./assets/fontawesome-all.css";
+
+html, body, #app {
+  position: fixed;
+  width: 100%; height: 100%;
+  margin: 0; padding: 0;
+  cursor: default;
+  font-family: Helvetica, sans-serif;
+  color: #505050;
+}
+
 #app {
   display: flex;
   flex-flow: column nowrap;
+  user-select: none;
 }
 
 #panels {
@@ -40,6 +52,7 @@
   display: flex;
   flex-flow: row nowrap;
   align-items: stretch;
+  position: relative;
 }
 
 .panel {
