@@ -44,10 +44,11 @@ export default [
       } else if (mutation.payload.is == "form") {
         let o = store.getters.getObjectById(mutation.payload.id);
         let i = store.state.objects.indexOf(o);
-        store.state.objects
+        let l = store.state.objects
           .filter(el => el.is == "cpart" || (el.is == "form" && el.ownRenderer))
           .filter(el => store.state.objects.indexOf(el) < i)
-          .forEach(el => store.dispatch("generateLayerPath", el.id))
+        console.log(l);
+        l.forEach(el => store.dispatch("generateLayerPath", el.id))
       }else if (mutation.payload.is == "text") {
         store.dispatch("generateTextPath", mutation.payload.id)
       } else if (mutation.payload.is == "curve") {
@@ -56,9 +57,6 @@ export default [
     }
   }),
   store => store.subscribe((mutation, state) => {
-    if (mutation.type == "translateProject" || mutation.type == "zoomProject") {
-      store.commit("setCentered", false)
-    }
     if (mutation.type == "selectObject" && store.state.centered) {
       setTimeout(() => store.dispatch("centerProject", {withSidebar: true}), 10)
     }

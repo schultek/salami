@@ -32,6 +32,18 @@
         <img id="preview" :src="object.data" width="100%" />
       </div>
     </div>
+    <div class="settings-panel linked-layer-list">
+      <div class="settings-header">
+        <span>Ebenen</span>
+      </div>
+      <div class="linked-layer-item" v-for="layer in layers" @click="selectLayer(layer.id)">
+        <i class="fa fa-fw" :class="'fa-'+icon(layer)"></i>
+        {{layer.title}}
+        <span>
+          <i class="fa fa-angle-right"></i>
+        </span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -41,9 +53,23 @@
 
   export default {
     extends: BasePropertyPanel,
+    computed: {
+      layers() {
+        let l = this.$store.state.objects
+          .filter(this.$store.getters.isSublayer)
+          .filter(el => el.render.image == this.id)
+        return l;
+      }
+    },
     methods: {
       loadImage() {
         this.$store.dispatch("loadNewImage", this.id)
+      },
+      icon(layer) {
+        return layer.is == "cpart" ? "th-large" : layer.type == "rect" ? "square" : layer.type == "ellipse" ? "circle" : ""
+      },
+      selectLayer(id) {
+        this.$store.commit("selectObject", id)
       }
     }
   }

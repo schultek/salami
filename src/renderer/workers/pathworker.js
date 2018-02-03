@@ -1,29 +1,21 @@
-importScripts("../includes/renderfunctions.js")
 
-let f = {
-  deg: function(r) { return (r/Math.PI/2)*360; },
-  r: function(d) { return round(d, 100); },
-  //intersect: funcIntersect(),
-  str: {
-    l: function(p) { return "L"+f.r(p.x)+","+f.r(p.y)+" "; },
-    m: function(p) { return "M"+f.r(p.x)+","+f.r(p.y)+" "; },
-    a: function(r, s, p) { return "A"+f.r(r)+","+f.r(r)+" 0 0 "+s+" "+f.r(p.x)+","+f.r(p.y)+" "; },
-    c: function(p, r) { return "M "+f.r(p.x-f.r(r))+" "+f.r(p.y)+" A"+f.r(r)+" "+f.r(r)+" 0 0 0"+f.r(p.x+f.r(r))+" "+f.r(p.y)
-                                +" A"+f.r(r)+" "+f.r(r)+" 0 0 0"+f.r(p.x-f.r(r))+" "+f.r(p.y)+" " }
-  }
-};
+let r = (d) => round(d, 100)
+let deg = (r) => (r/Math.PI/2)*360
+let lx = (x) => r(x-layer.x)
+let ly = (y) => r(y-layer.y)
+let str = {
+  l: (p) => "L"+lx(p.x)+","+ly(p.y)+" ",
+  m: (p) => "M"+lx(p.x)+","+ly(p.y)+" ",
+  a: (rad,s,p) => "A"+r(rad)+","+r(rad)+" 0 0 "+s+" "+lx(p.x)+","+ly(p.y)+" ",
+  c: (p,rad) => "M "+lx(p.x-r(rad))+" "+ly(p.y)+" A"+r(rad)+" "+r(rad)+" 0 0 0"+lx(p.x+r(rad))+" "+ly(p.y)
+              +" A"+r(rad)+" "+r(rad)+" 0 0 0"+lx(p.x-r(rad))+" "+ly(p.y)+" "
+}
+let f = {}
 
-let layer, lines, machine, curve;
-
-self.addEventListener("message", (event) => {
+function generatePaths() {
 
   let time = Date.now();
   var sendTime = Date.now();
-
-  lines = event.data.lines;
-  layer = event.data.layer;
-  machine = event.data.machine;
-  curve = event.data.curve;
 
   let key = (p) => {
     return p[0].x.toFixed(1)+p[0].y.toFixed(1)
@@ -45,15 +37,16 @@ self.addEventListener("message", (event) => {
 
   console.log("Generated SVG ("+(Date.now()-time)+"ms)");
 
-  self.postMessage({path: paths})
+  return paths
 
-})
+}
 
 
 function getPathFromLine(line) {
 
   f.rad = funcRad(line);
   f.angle = funcAngle(line);
+
   var nextPoint = funcNextPoint(line);
 
   var a0 = f.angle(0), r0 = f.rad(0);
@@ -62,23 +55,23 @@ function getPathFromLine(line) {
     "1": {x: line[0].x+a0[1].cos*r0, y: line[0].y+a0[1].sin*r0},
     a: a0, r: r0
   }
-  var path1 = f.str.m(p[0]);
-  var path2 = f.str.l(p[1])+f.str.a(p.r, 0, p[0])+"Z";
+  var path1 = str.m(p[0]);
+  var path2 = str.l(p[1])+str.a(p.r, 0, p[0])+"Z";
 
   for (var i=0; i<line.length-2; i++) {
     //console.log(p);
     p = nextPoint(p, i);
-    path1 += f.str.l(p[0]);
-    path2 = f.str.l(p[1])+path2;
+    path1 += str.l(p[0]);
+    path2 = str.l(p[1])+path2;
   }
   //console.log(p);
   p = nextPoint(p, line.length-2);
-  path1 += f.str.l(p[0]);
+  path1 += str.l(p[0]);
   //console.log(p);
 
   //console.log(p[0], p[1], p.a[0].val*180/Math.PI, p.a[1].val*180/Math.PI);
 
-  return path1 + f.str.a(p.r, 0, p[1]) + path2;
+  return path1 + str.a(p.r, 0, p[1]) + path2;
 
 }
 
@@ -86,7 +79,7 @@ function getDottedPathFromLine(line) {
   var p = "";
   f.rad = funcRad(line);
   for (var l in line) {
-    p += f.str.c(line[l], f.rad(l));
+    p += str.c(line[l], f.rad(l));
   }
   return p;
 }

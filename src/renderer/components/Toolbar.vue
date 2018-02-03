@@ -35,6 +35,8 @@
         this.$store.commit("selectTool", t)
         if (t != "select") { //TODO constant
           this.$store.commit("selectObject", null)
+          setTimeout(() => this.$store.dispatch("centerProject", {withSidebar: true}), 10)
+          this.$store.commit("setSubLayersOpen", t == "cpart" || t == "rect" || t == "ellipse")
         }
       },
       selectNavigationPanel(n) {

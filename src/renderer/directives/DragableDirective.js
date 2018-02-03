@@ -3,13 +3,14 @@ export default {
   bind(el, binding, vnode) {
     let id = vnode.context.id;
     let store = vnode.context.$store;
-    let drag = false;
+    let drag = false, dragged = false
     let data = {}
 
     el.addEventListener("mousedown", event => {
       if (store.state.selectedTool != "select") return
       store.commit("selectObject", id);
       drag = true;
+      dragged = false;
       let p = store.getters.getLocalPosition(event)
       let o = store.getters.getObjectById(id)
       data = {
@@ -19,6 +20,7 @@ export default {
     })
     document.addEventListener("mousemove", event => {
       if (!drag) return
+      dragged = true;
       let p = store.getters.getLocalPosition(event)
       store.commit("moveObject", {
         id,
@@ -27,7 +29,7 @@ export default {
       })
     })
     document.addEventListener("mouseup", event => {
-      if (drag) {
+      if (dragged) {
         store.commit("putObject", {id})
       }
       drag = false;

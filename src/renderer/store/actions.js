@@ -109,6 +109,7 @@ export default {
   },
   async centerProject({state, commit}, options) {
     let size = {w: $("#workarea").width(), h: $("#workarea").height()}
+
     if (options && options.withSidebar) {
       if ($(".sidebar").hasClass("slide-right-enter-active")) {
         let w = parseInt($(".sidebar > div").css("width"))
@@ -117,11 +118,21 @@ export default {
         size.w += $(".sidebar").width()
       }
     }
-    let zoom = size.w/state.machine.w*0.9
-    if (state.machine.h*zoom > size.h*0.9)
-      zoom = size.h/state.machine.h*0.9
-    let y = size.h/2 - (state.machine.h/2) * zoom //TODO include all objects
-    let x = size.w/2 - (state.machine.w/2) * zoom
+
+    let max = state.objects.reduce((max, o) => ({
+        x: Math.max(max.x, o.w ? o.x+o.w : o.x),
+        y: Math.max(max.y, o.h ? o.y+o.h : o.y)
+      }), {x: -Number.MAX_VALUE, y: -Number.MAX_VALUE})
+    let min = state.objects.reduce((min, o) => ({
+        x: Math.min(min.x, o.x),
+        y: Math.min(min.y, o.y)
+      }), {x: Number.MAX_VALUE, y: Number.MAX_VALUE})
+
+
+    let zoom = Math.min(size.w/(max.x-min.x), size.h/(max.y-min.y))*0.9
+    let y = size.h/2 - (max.y+min.y)/2 * zoom
+    let x = size.w/2 - (max.x+min.x)/2 * zoom
+
     if (!options || !options.preventAnimation) $("#svg").addClass("fade-zoom")
     commit("zoomProject", zoom)
     commit("translateProject", {x, y})

@@ -1,26 +1,24 @@
-let {getGlobalConstants, getCurveConstants, getCurvePoint} = require("../includes/renderfunctions.js")
+let {makeCurveFactory, round} = require("../includes/renderfunctions.js")
 
 const count = 2;
 
-export default function generateCurvePaths(c, machine) {
+export default function generateCurvePaths(c) {
 
   let curve = {...c}
 
-  curve.direction = curve.direction / 360 * Math.PI*2
-  curve.dcos = Math.cos(curve.direction);
-  curve.dsin = Math.sin(curve.direction);
-  curve.xgap = curve.dcos*curve.gap;
-  curve.ygap = curve.dsin*curve.gap;
+  curve.direction = round(curve.direction / 360 * Math.PI*2)
+  curve.dcos = round(Math.cos(curve.direction));
+  curve.dsin = round(Math.sin(curve.direction));
+  curve.xgap = round(curve.dcos*curve.gap);
+  curve.ygap = round(curve.dsin*curve.gap);
 
-  let globals = getGlobalConstants(curve, machine)
+  let factory = makeCurveFactory(curve)
 
   let paths = []
 
-  if (!globals) return paths
-
   for (var i = -count; i <= count; i++) {
     paths.push({
-      data: makePath(i, curve, machine, globals),
+      data: makePath(i, curve, factory),
       opacity: 1 - Math.abs(i) / (count+1)
     })
   }
@@ -28,14 +26,14 @@ export default function generateCurvePaths(c, machine) {
   return paths
 }
 
-function makePath(num, curve, machine, globals) {
-  var cdata = getCurveConstants(num, curve, machine, globals);
-  if (!cdata) return "";
-  var di = curve.steps/Math.round(curve.steps*cdata.length/globals.maxlength);
+function makePath(num, curve, factory) {
+  var cdata = factory.curve(num);
+  var di = 1/Math.round(curve.steps*cdata.length/factory.maxlength);
   var path = "";
-  for (var i = 0; i<=curve.steps+1; i += di) {
-    var point = getCurvePoint(i/curve.steps, cdata, curve, machine, globals);
-    path += (path==""?"M ":"L ")+point.x+" "+point.y+" ";
+  for (var i = 0-di; i<=1+di; i += di) {
+    var point = cdata.point(i);
+    if (point)
+      path += (path==""?"M ":"L ")+point.x+" "+point.y+" ";
   }
   return path;
 }

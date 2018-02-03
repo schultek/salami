@@ -36,18 +36,16 @@
 
           let centered = this.$store.state.centered;
 
-
-          let size = {w: $("#workarea").width(), h: $("#workarea").height()}
           let pos = {x: $("#workarea").position().left, y: $("#workarea").position().top}
+          let e = {
+            x: pos.x + $("#workarea").width()/2,
+            y: pos.y + $("#workarea").height()/2
+          }
+          var p = this.$store.getters.getLocalPosition(e);
 
-          var p = this.$store.getters.getLocalPosition({
-            x: pos.x + size.w/2,
-            y: pos.y + size.h/2
-          });
-
-          let x = size.w/2-(p.x*zoom);
-          let y = size.h/2-(p.y*zoom);
-
+          let x = e.x-(p.x*zoom)-pos.x;
+          let y = e.y-(p.y*zoom)-pos.y;
+          
           this.$store.commit("translateProject", {x, y})
           this.$store.commit("zoomProject", zoom)
 

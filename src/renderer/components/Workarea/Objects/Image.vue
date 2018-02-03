@@ -1,6 +1,6 @@
 <template>
   <g :transform="'translate('+x+' '+y+') rotate('+rot+' '+(w/2)+' '+(h/2)+')'" v-dragable>
-    <image :id="id" x="0" y="0" :width="w" :height="h" :xlink:href="object.data" preserveAspectRatio="none"></image>
+    <image :id="id" x="0" y="0" :width="w" :height="h" :class="selected ? 'selected' : opac ? 'opac' : ''":xlink:href="object.data" preserveAspectRatio="none"></image>
     <SelectBox :id="id" can-rotate="true" can-resize="true"></SelectBox>
   </g>
 </template>
@@ -12,7 +12,15 @@
 
   export default {
     components: {SelectBox},
-    extends: BaseObject
+    extends: BaseObject,
+    computed: {
+      selected() {
+        return this.$store.state.selectedObject == this.id;
+      },
+      opac() {
+        return  !this.$store.state.selectedObject && this.$store.state.selectedTool == "select"
+      }
+    }
   }
 
 
@@ -21,7 +29,12 @@
 <style>
 
 image {
-  opacity: 0.4
+  transition: opacity .5s;
+  opacity: 0.3
+}
+
+image.opac:hover, image.selected {
+  opacity: 0.8
 }
 
 </style>

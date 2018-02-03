@@ -1,80 +1,215 @@
 
 let curveBoxSize = 200
 
-function getGlobalConstants(c_, m_) {
+function makeCurveFactory(c_) {
   let curve = c_ ? c_ : curve;
-  let machine = m_ ? m_ : machine;
 
+  let {start, end} = makeBorderPoints(curve)
+  let maxlength = getMaxLength(curve)
+  let length = dist(start.x, start.y, end.x, end.y)
+
+  let nums = (corners) => ({
+    min: Math.floor(corners.map(el => el.num).reduce((m,e) => Math.min(m,e), Number.MAX_VALUE))-1,
+    max: Math.ceil( corners.map(el => el.num).reduce((m,e) => Math.max(m,e), Number.MIN_VALUE))+1
+  })
+
+  let steps = (corners) => ({
+    min: corners.map(el => el.step).reduce((m,e) => Math.min(m,e), Number.MAX_VALUE),
+    max: corners.map(el => el.step).reduce((m,e) => Math.max(m,e), Number.MIN_VALUE)
+  })
+
+  /*****************
+        LINIE
+   *****************/
   if (curve.type=="Linie") {
-    return {maxlength: getMaxLength(curve, machine)};
-  } else if (curve.type == "Bogen") {
-    var {start, end, err} = makeBorderPoints(curve, curve, machine);
-    if (err) return null;
-    var mlength = getMaxLength(curve, machine);
-    var l = dist(start.x, start.y, end.x, end.y);
-    var mid = {x: (start.x+end.x)/2+curve.dcos*curve.stretch*l/mlength, y: (start.y+end.y)/2+curve.dsin*curve.stretch*l/mlength};
-    return {start: start, end: end, mid: mid, maxlength: mlength,
-      startlength: dist(start.x, start.y, mid.x, mid.y)+dist(mid.x, mid.y, end.x, end.y)
+
+    let sg = start.x*curve.ygap-start.y*curve.xgap;
+    let ges = (curve.xgap*(end.y-start.y)-curve.ygap*(end.x-start.x))
+
+    return {
+      maxlength,
+      curve: (num) => {
+        let p = {
+          x1: start.x+curve.xgap*num, y1: start.y+curve.ygap*num,
+          x2: end.x  +curve.xgap*num, y2: end.y  +curve.ygap*num
+        }
+        p.x2 = p.x2 - p.x1;
+        p.y2 = p.y2 - p.y1;
+        return {
+          length,
+          point: (step) => ({
+            x: p.x1+p.x2*step,
+            y: p.y1+p.y2*step
+          })
+        };
+      },
+      find: (p) => {
+        let step = (p.y*curve.xgap-p.x*curve.ygap+sg)/ges;
+        let num = (p.x-start.x-(end.x-start.x)*step)/curve.xgap;
+        return {num, step}
+      },
+      nums, steps
     };
+
+  /*****************
+        BOGEN
+   *****************/
+  } else if (curve.type == "Bogen") {
+    let mid = {x: curve.x+curve.dcos*curve.stretch, y: curve.y+curve.dsin*curve.stretch};
+    let length = dist(start.x, start.y, mid.x, mid.y)+dist(mid.x, mid.y, end.x, end.y)
+
+    let c1 = {x: end.x-2*mid.x+start.x, y: end.y-2*mid.y+start.y};
+    let c2 = {x: 2*mid.x-2*start.x, y: 2*mid.y-2*start.y};
+
+    return {
+      maxlength,
+      curve: (num) => {
+        let c0 = {x: start.x+curve.xgap*num, y: start.y+curve.ygap*num}
+        return {
+          length,
+          point: (step) => ({
+            x: c0.x+step*(step*c1.x+c2.x),
+            y: c0.y+step*(step*c1.y+c2.y)
+          })
+        };
+      },
+      find: (p) => {
+
+        let numx = (f) => (p.x - start.x - f * (f * c1.x+c2.x)) / curve.xgap
+        let numy = (f) => (p.y - start.y - f * (f * c1.y+c2.y)) / curve.ygap
+
+        let step = approx((f) => numx(f)-numy(f), 0, 1)
+        let num = numx(step)
+
+        return {step, num}
+      },
+      nums, steps
+    };
+
+  /*****************
+        KREIS
+   *****************/
   } else if (curve.type == "Kreis") {
-    var r = curveBoxSize/4
-    return {center: curve, r: r, maxlength: getMaxLength(curve, machine), twoPi: Math.PI*2};
+    let r_ = curveBoxSize/4
+    let twoPi = Math.PI*2
+    return {
+      maxlength, r: r_,
+      curve: (num) => {
+        let r = r_+num*curve.gap;
+        let l = r<=0?0:twoPi*r;
+        return {
+          length: l,
+          point: (step) => step <= 1 ? ({
+              x: curve.x+Math.cos(step*twoPi)*r,
+              y: curve.y+Math.sin(step*twoPi)*r
+          }) : null
+        }
+      },
+      find: (p) => {
+        let num = (dist(p.x, p.y, curve.x, curve.y)-r_) / curve.gap;
+        let step = Math.acos((p.x-curve.x)/(r_+num*curve.gap))/twoPi;
+        return {num, step}
+      },
+      nums,
+      steps: (corners) => ({min: 0, max: 1})
+    };
+
+  /*****************
+        WELLE
+   *****************/
   } else if (curve.type == "Welle") {
-    var cotstr = (curve.dcos / curve.dsin) / curve.stretch;
-    var tanstr = (curve.dsin / curve.dcos) / curve.stretch;
-    var cosstr = curve.dcos*curve.stretch;
-    var sinstr = curve.dsin*curve.stretch;
-    var dtan = curve.dsin / curve.dcos;
-    var dcot = curve.dcos / curve.dsin;
+    let cotstr = curve.dsin != 0 ? round((curve.dcos / curve.dsin) / curve.stretch) : null;
+    let tanstr = curve.dcos != 0 ? round((curve.dsin / curve.dcos) / curve.stretch) : null;
+    let cosstr = round(curve.dcos*curve.stretch);
+    let sinstr = round(curve.dsin*curve.stretch);
+    let dtan =   curve.dcos != 0 ? round(curve.dsin / curve.dcos) : null;
+    let dcot =   curve.dsin != 0 ? round(curve.dcos / curve.dsin) : null;
 
-    var fy = function(x, mid, a) { return (cotstr * x) - Math.cos( x / curve.stretch ) + (mid.y - a) / sinstr + 1; };
-    var fx = function(y, mid, a) { return (-tanstr * y) - Math.cos( y / curve.stretch ) + (mid.x - a) / cosstr + 1; };
+    let fy = (a) => curve.dsin != 0 ? (x) => (cotstr * x) - Math.cos( x / curve.stretch ) + a / sinstr + 1 : () => 0
+    let fx = (a) => curve.dcos != 0 ? (y) => (-tanstr * y) - Math.cos( y / curve.stretch ) + a / cosstr + 1 : () => 0
 
-    var approx = function(func, mid, f1, f2, a, n) {
-      var fm = (f1+f2)/2;
-      var ym = func(fm, mid, a);
-      if (n>20) return fm;
-      if (round(ym, 1000) == 0) {
-        return fm;
-      } else {
-        if (ym < 0) return approx(func, mid, fm, f2, a, n+1);
-        else return approx(func, mid, f1, fm, a, n+1);
+    let _2strcot = dcot ? 2*curve.stretch / dcot : 0;
+    let getApproxY = function(a) {
+      let f1 = - a / curve.dcos - _2strcot;
+      let f2 = - a / curve.dcos;
+      return approx(fy(a), f1, f2);
+    }
+
+    let _2strtan = dtan ? 2*curve.stretch / dtan : 0;
+    let getApproxX = function(a) {
+      let f1 = a / curve.dsin + _2strtan;
+      let f2 = a / curve.dsin;
+      return approx(fx(a), f1, f2);
+    }
+
+    let getDx = (f) =>  curve.dsin*f - cosstr + Math.cos(f/curve.stretch)*cosstr
+    let getDy = (f) => -curve.dcos*f - sinstr + Math.cos(f/curve.stretch)*sinstr
+
+    let s = curveBoxSize/2
+
+    let f1, f2;
+
+    if (Math.abs(curve.direction) < Math.PI/4 || Math.abs(curve.direction) > Math.PI*(3/4)) {
+      f1 = getApproxY(s);
+      let fx1 = getDx(f1);
+      if (fx1 < -s || fx1 > s) {
+        f1 = getApproxX((fx1<-s?-1:1)*s);
+      }
+      f2 = getApproxY(-s);
+      let fx2 = getDx(f2);
+      if (fx2 < -s || fx2 > s) {
+        f2 = getApproxX((fx2<-s?-1:1)*s);
+      }
+    } else {
+      f1 = getApproxX(s);
+      let fy1 = getDy(f1);
+      if (fy1 < -s || fy1 > s) {
+        f1 = getApproxY((fy1<-s?-1:1)*s);
+      }
+      f2 = getApproxX(-s);
+      let fy2 = getDy(f2);
+      if (fy2 < -s || fy2 > s) {
+        f2 = getApproxY((fy2<-s?-1:1)*s);
       }
     }
 
-    var _2strcot = 2*curve.stretch / dcot;
-    var getApproxY = function(a, mid) {
-      var f1 = - ((mid.y - a) / curve.dsin) / dcot - _2strcot;
-      var f2 = - ((mid.y - a) / curve.dsin) / dcot;
-      return approx(fy, mid, f1, f2, a, 0);
-    }
-
-    var _2strtan = 2*curve.stretch / dtan;
-    var getApproxX = function(a, mid) {
-      var f1 = ((mid.x - a) / curve.dcos) / dtan + _2strtan;
-      var f2 = ((mid.x - a) / curve.dcos) / dtan;
-      return approx(fx, mid, f1, f2, a, 0);
-    }
+    f2 = f2-f1;
 
     return {
-      getApproxX: getApproxX,
-      getApproxY: getApproxY,
-      getX: function(f, mid) { return mid.x - curve.dsin*f + cosstr - Math.cos(f/curve.stretch)*cosstr; },
-      getPoint: function(f, mid) {
-        var c = - Math.cos(f/curve.stretch);
+      maxlength,
+      curve: (num) => {
+        let mid = {
+          x: curve.x+curve.xgap*num + cosstr,
+          y: curve.y+curve.ygap*num + sinstr
+        }
         return {
-          x: mid.x - curve.dsin*f + cosstr + c*cosstr,
-          y: mid.y + curve.dcos*f + sinstr + c*sinstr
+          length,
+          point: (step) => {
+            let f = f1+f2*step;
+            let c = -Math.cos(f/curve.stretch);
+            return {
+              x: mid.x - curve.dsin*f + c*cosstr,
+              y: mid.y + curve.dcos*f + c*sinstr
+            }
+          }
         }
       },
-      maxlength: getMaxLength(curve, machine)
+      find(p) {
+        let numx = (f) => (p.x - curve.x - cosstr + curve.dsin * f + Math.cos(f / curve.stretch) * cosstr) / curve.xgap
+        let numy = (f) => (p.y - curve.y - sinstr - curve.dcos * f + Math.cos(f / curve.stretch) * sinstr) / curve.ygap
+
+        let f = approx((f) => numx(f)-numy(f), f1, f2+f1)
+        let num = numx(f)
+
+        return {num, step: (f-f1)/f2}
+      },
+      nums, steps
     };
   }
 }
 
-function getMaxLength(c_, m_) {
+function getMaxLength(c_) {
   let curve = c_ ? c_ : curve;
-  let machine = m_ ? m_ : machine;
 
   if (curve.type=="Linie" || curve.type == "Bogen" || curve.type == "Welle") {
     return curveBoxSize * Math.sqrt(2);
@@ -85,136 +220,22 @@ function getMaxLength(c_, m_) {
   }
 }
 
-function getCurveConstants(num, c_, m_, g_) {
+function makeBorderPoints(c_) {
   let curve = c_ ? c_ : curve;
-  let machine = m_ ? m_ : machine;
-  let globals = g_ ? g_ : globals;
 
-  if (!globals) return null;
-  if (curve.type == "Linie") {
-    //center pos of current line
-    var c = {x: curve.x+curve.xgap*num, y: curve.y+curve.ygap*num};
-    var {start, end, err} = makeBorderPoints(c, curve, machine);
-    var l = dist(start.x, start.y, end.x, end.y);
-    return err ? null : {x1: start.x, x2: end.x-start.x, y1: start.y, y2: end.y-start.y, length: l};
-  } else if (curve.type == "Bogen") {
-    var start = {x: globals.start.x+curve.xgap*num, y: globals.start.y+curve.ygap*num}
-    var end = {x: globals.end.x+curve.xgap*num, y: globals.end.y+curve.ygap*num}
-    var mid = {x: globals.mid.x+curve.xgap*num, y: globals.mid.y+curve.ygap*num}
-    var c0 = start;
-    var c1 = {x: end.x-2*mid.x+start.x, y: end.y-2*mid.y+start.y};
-    var c2 = {x: 2*mid.x-2*start.x, y: 2*mid.y-2*start.y};
-    var p = {x: -c2.x/2/c1.x, y: -c2.y/2/c1.y};
-    var q = [(p.x*p.x)-c0.x/c1.x, (p.x*p.x)-(c0.x-curveBoxSize)/c1.x,
-            (p.y*p.y)-c0.y/c1.y, (p.y*p.y)-(c0.y-curveBoxSize)/c1.y];
-    var farr = [];
-    if (c1.x == 0) {
-      farr.push(c0.x/c2.x);
-      farr.push((curveBoxSize-c0.x)/c2.x);
-    }
-    if (c1.y == 0) {
-      farr.push(c0.y/c2.y);
-      farr.push((curveBoxSize-c0.y)/c2.y);
-    }
-    for (var i in q) for (var d of [1,-1]) {
-      if (q[i] >= 0 && c1[i>1?"y":"x"] != 0) {
-        var f1 = p[i>1?"y":"x"]+d*Math.sqrt(q[i]);
-        var dx = round(c0.x+f1*(f1*c1.x+c2.x), 100);
-        var dy = round(c0.y+f1*(f1*c1.y+c2.y), 100);
-        if (dx >= 0 && dx <= curveBoxSize && dy >= 0 && dy <= curveBoxSize) {
-          farr.push(f1);
-        }
-      }
-    }
-    var f1 = closestTo(-10, farr);
-    farr.splice(farr.indexOf(f1), 1);
-    var f2 = closestTo(20, farr);
-    if (f2 < f1) {
-      var ftemp = f1;
-      f1 = f2;
-      f2 = ftemp;
-    }
-    var l = globals.startlength*(f2-f1);
-    var g = {c0: c0, c1: c1, c2: c2, f1: f1, f2: f2-f1, length: l};
-    return g;
-  } else if (curve.type == "Kreis") {
-    var r = globals.r+num*curve.gap;
-    var l = r<=0?0:2*Math.PI*r;
-    return {r: r, length: l};
-  } else if (curve.type == "Welle") {
-    var l = 200;
-    var mid = {x: curve.x+curve.xgap*num, y: curve.y+curve.ygap*num}
+  let dc = curve.dcos*(curveBoxSize/2/curve.dsin)
+  let ds = curve.dsin*(curveBoxSize/2/curve.dcos)
 
-    var f1 = globals.getApproxY(0, mid);
-    var fx1 = globals.getX(f1, mid);
-    if (fx1 < 0 || fx1 > curveBoxSize) {
-      f1 = globals.getApproxX(fx1<0?0:curveBoxSize, mid);
-    }
-    var f2 = globals.getApproxY(curveBoxSize, mid);
-    var fx2 = globals.getX(f2, mid);
-    if (fx2 < 0 || fx2 > curveBoxSize) {
-      f2 = globals.getApproxX(fx2<0?0:curveBoxSize, mid);
-    }
-
-    return err ? null : {f1: f1, f2: f2-f1, mid: mid, length: l};
-  }
-}
-
-function closestTo(d, arr) {
-  var min = {a: null, d: null}
-  for (var a of arr) {
-    if (min.a == null || Math.abs(a-d) < min.d) {
-      min.a = a;
-      min.d = Math.abs(a-d);
-    }
-  }
-  return min.a;
-}
-
-function makeBorderPoints(c, c_, m_) {
-  let curve = c_ ? c_ : curve;
-  let machine = m_ ? m_ : machine;
-
-  //generate start position with x or y is 0
-  var start = {x: -1, y: 0};
-  if (curve.dcos!=0) {
-    start.x = c.x+curve.dsin*(c.y/curve.dcos);
-  }
-  if (start.x < 0 || start.x > curveBoxSize) {
-    start.x = start.x<0?0:curveBoxSize;
-    start.y = c.y+curve.dcos*((c.x-start.x)/curve.dsin);
+  let start, end;
+  if (Math.abs(curve.direction) > Math.PI/4 && Math.abs(curve.direction) < Math.PI*(3/4)) {
+    start = { x: curve.x-curveBoxSize/2, y: curve.y+dc }
+    end   = { x: curve.x+curveBoxSize/2, y: curve.y-dc }
+  } else {
+    start = { x: curve.x+ds, y: curve.y-curveBoxSize/2 }
+    end   = { x: curve.x-ds, y: curve.y+curveBoxSize/2 }
   }
 
-  //generate end position with x is width or y is height
-  var end = {x: curveBoxSize+1, y: curveBoxSize};
-  if (curve.dcos!=0) {
-    end.x = c.x+curve.dsin*((c.y-curveBoxSize)/curve.dcos);
-  }
-  if (end.x > curveBoxSize || end.x < 0) {
-    end.x = end.x>curveBoxSize?curveBoxSize:0;
-    end.y = c.y+curve.dcos*((c.x-end.x)/curve.dsin);
-  }
-
-  return {start: start, end: end, err: start.x==end.x&&start.y==end.y};
-}
-
-function getCurvePoint(step, cdata, c_, m_, g_) {
-  let curve = c_ ? c_ : curve;
-  let machine = m_ ? m_ : machine;
-  let globals = g_ ? g_ : globals;
-
-  if (curve.type == "Linie") {
-    return {x: cdata.x1+cdata.x2*step, y: cdata.y1+cdata.y2*step};
-  } else if (curve.type == "Bogen") {
-    var f = cdata.f1+cdata.f2*step;
-    return {x: cdata.c0.x+f*(f*cdata.c1.x+cdata.c2.x), y: cdata.c0.y+f*(f*cdata.c1.y+cdata.c2.y)};
-  } else if (curve.type == "Kreis") {
-    var p = {x: globals.center.x+Math.cos(step*globals.twoPi)*cdata.r, y: globals.center.y+Math.sin(step*globals.twoPi)*cdata.r};
-    return p;
-  } else if (curve.type == "Welle") {
-    var f = cdata.f1+cdata.f2*step;
-    return globals.getPoint(f, cdata.mid);
-  }
+  return curve.direction < Math.PI ? {start, end} : {start: end, end: start};
 }
 
 function rotate(p, dim, inv, m) {
@@ -249,7 +270,8 @@ function map(v, s1, e1, s2, e2) {
 }
 
 function round(data, r) {
-  return Math.round(data*r)/r;
+  r = r | 100000;
+  return Math.round(data*r) / r;
 }
 
 function updateDeep(toUpdate, object) {
@@ -262,9 +284,47 @@ function updateDeep(toUpdate, object) {
   })
 }
 
+function approx(f, x1, x2, n) {
+  if (!n) n = 0;
+  if (n>40) return (x1+x2)/2;
+
+  let y1 = f(x1);
+  let y2 = f(x2);
+
+  let o1 = {x: x1, y: y1};
+  let o2 = {x: x2, y: y2};
+
+  if (Math.abs(y2) < Math.abs(y1)) {
+    let t = o1;
+    o1 = o2;
+    o2 = t;
+  }
+
+  let om = {x: (x1+x2)/2, y: f((x1+x2)/2)}
+
+  if (round(om.y, 1000) == 0) {
+    return om.x;
+  } else {
+
+    if (Math.abs(om.y) < Math.abs(o1.y)) {
+      o2 = o1;
+      o1 = om;
+    } else if (Math.abs(om.y) < Math.abs(o2.y)) {
+      o2 = om;
+    }
+
+    if (o1.y != o2.y) {
+      x1 = o1.x;
+      x2 = o1.x + (o1.x - o2.x) * 2 * (0 - o1.y) / (o1.y - o2.y)
+      return approx(f, x1, x2, n+1)
+    } else
+      return (o1.x+o2.x)/2;
+  }
+}
+
 if (this.__esModule) {
   let set = (global, functions) => {
     Object.keys(functions).forEach(f => global[f] = functions[f])
   }
-  set(this, {updateDeep, getGlobalConstants, getMaxLength, getCurveConstants, makeBorderPoints, getCurvePoint, rotate, map, dist, round, def})
+  set(this, {updateDeep, makeCurveFactory, getMaxLength, rotate, map, dist, round, def})
 }

@@ -56,10 +56,12 @@ export default {
 
   zoomProject(state, zoom) {
     state.project.zoom = zoom
+    state.centered = false;
   },
   translateProject(state, {x, y}) {
     state.project.x = x;
     state.project.y = y;
+    state.centered = false;
   },
   setProjectFile(state, file) {
     state.project.name = file.substring(file.lastIndexOf("/")+1, file.lastIndexOf("."));
@@ -84,10 +86,7 @@ export default {
     if (o.id == "machine") {
       Object.keys(o).forEach(k => state.machine[k] = o[k])
     } else {
-      if (o.rot) {
-        while (o.rot < 0) o.rot += 360
-        while (o.rot >= 360) o.rot -= 360
-      }
+      o = fixBadParameter(o)
       let orig = getters.getObjectById(state)(o.id)
       updateDeep(orig, o)
     }
@@ -116,7 +115,6 @@ export default {
   addObject(state, object) {
     if (object.id && object.is) {
       state.objects.push(object)
-      state.selectedObject = object.id
     }
   },
   removeObject(state, id) {
@@ -208,4 +206,24 @@ export default {
   putObject(state, id) {
     //Buffer Mutation for Plugins
   }
+}
+
+
+function fixBadParameter(o) {
+  let map = (p) => {
+    while (o[p] < 0) o[p] += 360
+    while (o[p] >= 360) o[p] -= 360
+  }
+  if (o.rot !== undefined) map("rot")
+  if (o.direction !== undefined) map("direction")
+  if (o.stretch !== undefined && o.stretch == 0) o.stretch = 1
+  if (o.steps !== undefined && o.steps == 0) o.steps = 1
+  if (o.gap !== undefined && o.gap == 0) o.gap = 1
+  if (o.render !== undefined) {
+    if (o.render.refinedEdges > 100) o.render.refinedEdges = 100
+    if (o.render.refinedEdges < 0) o.render.refinedEdges = 0
+    if (o.render.smooth > 100) o.render.smooth = 100;
+    if (o.render.smooth < 0) o.render.smooth = 0;
+  }
+  return o;
 }

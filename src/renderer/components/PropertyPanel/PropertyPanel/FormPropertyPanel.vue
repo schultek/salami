@@ -12,7 +12,7 @@
         <span>X</span><input type="number" v-model.number.lazy="object.x" v-blur/>
       </div>
       <div class="dimen">
-        <span><i class="fa fa-repeat"></i></span><input type="number" v-model.number.lazy="object.rot" @change="mapRotation('rot')" v-blur/>
+        <span><i class="fa fa-repeat"></i></span><input type="number" v-model.number.lazy="object.rot" v-blur/>
       </div>
       <div class="dimen">
         <span>H</span><input type="number" v-model.number.lazy="object.h" v-blur/>
@@ -73,7 +73,7 @@
           <input type="button" value="Füllen" @click="fillLines"/>
         </div>
         <div class="dimen">
-          <span>Kantenglättung</span><input type="number" v-model.number.lazy="object.render.refinedEdges" v-blur />
+          <span>Kantenglättung (%)</span><input type="number" v-model.number.lazy="object.render.refinedEdges" v-blur />
         </div>
         <div class="dimen">
           <span>Pixelglättung (%)</span><input type="number" v-model.number.lazy="object.render.smooth" v-blur />

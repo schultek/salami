@@ -52,7 +52,6 @@ html, body, #app {
   display: flex;
   flex-flow: row nowrap;
   align-items: stretch;
-  position: relative;
 }
 
 .panel {

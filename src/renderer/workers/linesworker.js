@@ -1,9 +1,9 @@
 importScripts("../includes/renderfunctions.js")
+importScripts("./pathworker.js")
 
-let images = []
-var layer, image, curve, machine, forms, gcode;
-
-var getDataPoint, globals;
+let images = [], lines = []
+var layer, image, curve, machine, forms;
+let pixRad, factory;
 
 self.addEventListener("message", function(e) {
 
@@ -13,19 +13,17 @@ self.addEventListener("message", function(e) {
       image.pixels = e.data.pixels
     else
       images.push(e.data)
-
     return;
   }
-
   var time = Date.now();
-
-  console.log("Start rendering (linesWorker)")
 
   layer = e.data.layer;
   image = e.data.image;
   curve = e.data.curve;
   machine = e.data.machine;
   forms = e.data.forms;
+
+  lines = [];
 
   let img = images.find(i => i.id == image.id)
   if (!img) {
@@ -55,9 +53,11 @@ self.addEventListener("message", function(e) {
 
   if (layer.border)
     def(layer.border, "left", "right", "top", "bottom");
+  else
+    layer.border = {left: 0, right: 0, top: 0, bottom: 0}
 
-  if (layer.w > machine.w) layer.w = machine.w;
-  if (layer.h > machine.h) layer.h = machine.h;
+  // if (layer.w > machine.w) layer.w = machine.w;
+  // if (layer.h > machine.h) layer.h = machine.h;
 
   for (let f of forms.concat([layer])) {
 
@@ -80,147 +80,116 @@ self.addEventListener("message", function(e) {
     }
   }
 
-  machine.inArea = makeAreaFunc(machine);
-
   image.inArea = makeAreaFunc({x:0,y:0,w:image.pixels.shape[0],h:image.pixels.shape[1]});
   image.rotate = makeRotateFunc(image);
 
-  globals = getGlobalConstants(curve, machine);
+  factory = makeCurveFactory(curve);
 
-  getDataPoint = makeDataPointFunc();
+  pixRad = Math.round(curve.rad*image.pixels.shape[0]/image.w*layer.render.smooth/100)
 
-  var apprLineCount = Math.max(layer.w, layer.h)/curve.gap;
   var sendTime = Date.now();
 
+  let corners = [
+    factory.find({x: layer.x        +layer.border.left,  y: layer.y        +layer.border.top    }),
+    factory.find({x: layer.x+layer.w-layer.border.right, y: layer.y        +layer.border.top    }),
+    factory.find({x: layer.x        +layer.border.left,  y: layer.y+layer.h-layer.border.bottom }),
+    factory.find({x: layer.x+layer.w-layer.border.right, y: layer.y+layer.h-layer.border.bottom })
+  ]
+
+  let nums = factory.nums(corners)
+  let steps = factory.steps(corners)
+
+  if (!layer.fill) {
+    nums.min = -layer.render.lines.l;
+    nums.max = layer.render.lines.r;
+  }
+
+  let expectedLineCount = nums.max - nums.min + 1;
+
+  for (let i = nums.min; i <= nums.max; i++) {
+    lines.push(generateLine(i, steps).data)
+    if (sendTime+100<Date.now()) {
+      self.postMessage({progress: Math.min(40,Math.round(40*lines.length/expectedLineCount))});
+      sendTime = Date.now();
+    }
+  }
   if (layer.fill) {
-    layer.render.lines.l = 1;
-    layer.render.lines.r = 1;
-  }
-
-  var lines = [];
-  var line0 = getLine(0);
-  if (layer.render.lines.r>=0 && layer.render.lines.l >= 0) {
-    lines.push(line0);
-  }
-  if (line0.length>0) {
-    var left;
-    for (var i=layer.render.lines.r<0?-layer.render.lines.r:1; layer.fill||i<=layer.render.lines.l; i++) {
-      left = getLine(-i);
-      if (left.length==0) {
-        break;
-      }
-      lines.unshift(left);
-      if (sendTime+100<Date.now()) {
-        self.postMessage({progress: Math.min(40,Math.round(40*lines.length/apprLineCount))});
-        sendTime = Date.now();
-      }
+    let n = 1;
+    while (n < 1000) {
+      let line = generateLine(--nums.min, steps)
+      if (line.inLayer) lines.unshift(line.data)
+      else break;
+      n++;
     }
-    var right;
-    for (var i=layer.render.lines.l<0?-layer.render.lines.l:1; layer.fill||i<=layer.render.lines.r; i++) {
-      right = getLine(i);
-      if (right.length==0) {
-        break;
-      }
-      lines.push(right);
-      if (sendTime+100<Date.now()) {
-        self.postMessage({progress: Math.min(40,Math.round(40*lines.length/apprLineCount))});
-        sendTime = Date.now();
-      }
+    n = 1;
+    while (n < 1000) {
+      let line = generateLine(++nums.max, steps)
+      if (line.inLayer) lines.push(line.data)
+      else break;
+      n++;
     }
-  } else {
-    //console.log("Not in Layer, test dists");
-
-    var addLines = function(lines, delta, count, arrfunc) {
-      var prevline = lines[0];
-      var line = getLine(delta);
-      var i=delta*2;
-      while ((layer.fill||Math.abs(i)<=count) && (prevline.length==0 || line.length>0)) {
-        prevline = line;
-        line = getLine(i);
-        arrfunc.call(lines, line);
-        if (sendTime+100<Date.now()) {
-          self.postMessage({progress: Math.min(40,Math.round(40*lines.length/apprLineCount))});
-          sendTime = Date.now();
-        }
-        i += delta;
-        if (layer.fill&&Math.abs(i)>10000) {
-          break;
-        }
-      }
-    }
-
-    var lcenter = {x: layer.x+layer.w/2, y: layer.y+layer.h/2};
-
-    if (leftCloserToLayer(lcenter)) {
-      addLines(lines, -1, layer.render.lines.l, lines.unshift);
-    } else {
-      addLines(lines, 1, layer.render.lines.r, lines.push);
-    }
-
   }
 
   console.log("Generated "+lines.length+" Lines ("+(Date.now()-time)+"ms)");
 
-  var i = lines.indexOf(line0);
-
-  let result = {lines}
   if (layer.fill)
-    result.fillLines = {l: i, r: lines.length-i-1}
+    self.postMessage({fillLines: {l: -nums.min, r: nums.max}})
 
-  self.postMessage(result);
+  let paths = generatePaths()
+
+  self.postMessage({paths, lines})
 
 }, false);
 
-function getLine(num) {
+function generateLine(num, steps) {
   //console.log("Generate Line "+num);
-  var line = [[]]; //array of line parts
-  var cline = line[0]; //current line part
+  var line = {inLayer: false, data: [[]]}; //array of line parts
+  var cline = line.data[0]; //current line part
 
   //curve data for point calculation
-  var cdata = getCurveConstants(num, curve, machine, globals);
-  if (cdata == null || cdata.length <= 0) {
-    return [];
+  var cdata = factory.curve(num);
+  if (cdata.length <= 0) {
+    return {inLayer: false, data: []};
   }
-  //console.log("Start:", cdata.start, "End:", cdata.end);
   //regulates step count
-  var di = curve.steps/Math.round(curve.steps*cdata.length/globals.maxlength);
+  var di = 1/Math.round(curve.steps*cdata.length/factory.maxlength);
   //console.log("Line Steps: "+(curve.steps/di));
-  for (var i = 0; i<=curve.steps+1; i += di) {
+  for (let i = steps.min-di; i<=steps.max+di; i += di) {
     //point on curve
-    var point = getPoint(i/curve.steps, cdata);
+    var point = getPoint(i, cdata);
 
-    if (point && point.data) {
+    line.inLayer |= point.inLayer
+
+    if (point.data) {
       if (cline.length==0) {
-        var first = findEdgePoint(point, i/curve.steps, (i-di)/curve.steps, cdata);
+        var first = findEdgePoint(point, i, (i-di), cdata);
         if (first != point) {
-          cline.push(first);
+          cline.push(first.data);
         }
       }
-      cline.push(point);
+      cline.push(point.data);
     } else if (cline.length>0 && cline[cline.length-1].data) {
-      var last = findEdgePoint(cline[cline.length-1], (i-di)/curve.steps, i/curve.steps, cdata);
+      var last = findEdgePoint(cline[cline.length-1], (i-di), i, cdata);
       if (last != cline[cline.length-1]) {
-        cline.push(last);
+        cline.push(last.data);
       }
       //add new line part
-      line.push([]);
-      cline = line[line.length-1];
-    } else if (point) {
-      line.push([]);
+      line.data.push([]);
+      cline = line.data[line.data.length-1];
     }
   }
 
-  if (line[line.length-1].length == 0) {
-    line.splice(line.length-1, 1);
+  if (line.data[line.data.length-1].length == 0) {
+    line.data.splice(line.data.length-1, 1);
   }
   return line;
 }
 
 function findEdgePoint(pnt, ilow, ihigh, cdata, n) {
-  if (layer.render.dotted || layer.render.refinedEdges==0 || Math.abs(ihigh-ilow)<0.1/layer.render.refinedEdges) { return  pnt; }
+  if (layer.render.dotted || layer.render.refinedEdges==0 || Math.abs(ihigh-ilow)*layer.render.refinedEdges<0.01) { return  pnt; }
   try {
     var p = getPoint((ilow+ihigh)/2, cdata);
-    if (p && p.data) {
+    if (p.data) {
       return findEdgePoint(p, (ihigh+ilow)/2, ihigh, cdata, n?n+1:1);
     } else {
       return findEdgePoint(pnt, ilow, (ihigh+ilow)/2, cdata, n?n+1:1);
@@ -231,9 +200,9 @@ function findEdgePoint(pnt, ilow, ihigh, cdata, n) {
 }
 
 function getPoint(step, cdata, widthdata) {
-  var cp = getCurvePoint(step, cdata, curve, machine, globals);
+  var cp = cdata.point(step);
   //console.log("Curve Point for "+step+":", cp);
-  if (machine.inArea(cp) && layer.inArea(cp)) {
+  if (cp && layer.inArea(cp)) {
     //console.log("-> in Area");
 
     var valid = forms.length>0?forms[0].mask?-1:1:-1;
@@ -249,13 +218,13 @@ function getPoint(step, cdata, widthdata) {
       }
     }
     if (valid==0) {
-      return {};
+      return {inLayer: true};
     }
 
     //add data-point to current line part
-    return getDataPoint(cp, widthdata);
+    return {inLayer: true, data: getDataPoint(cp, widthdata)};
   } else {
-    return null;
+    return {inLayer: false};
   }
 }
 
@@ -287,76 +256,60 @@ function toPix(pos) { //convert mm to pixel
   return {x: Math.round(p.x*image.pixels.shape[0]/image.w), y: Math.round(p.y*image.pixels.shape[1]/image.h)};
 }
 
-function makeDataPointFunc() {
+function getDataPoint(pos, withdata) {
 
-  let pixRad = Math.round(curve.rad*image.pixels.shape[0]/image.w*layer.render.smooth/100);
+  var sum = 0;
+  var count = 0;
+  var pix = toPix(pos);
 
-  return (pos, widthdata) => {
-    var sum = 0;
-    var count = 0;
-    var pix = toPix(pos);
-
-    if (!layer.render.smooth) {
-      if (!image.inArea(pix)) {
-        return null;
-      } else {
-        return {x: pos.x, y: pos.y, data: gray(pix)/255}
-      }
+  if (!layer.render.smooth) {
+    if (!image.inArea(pix)) {
+      return null;
     } else {
-      //top left corner of point area
-      var start = {x: pix.x-pixRad, y: pix.y-pixRad};
-      //bottom right corner of point area
-      var end = {x: pix.x+pixRad, y: pix.y+pixRad};
+      return {x: pos.x, y: pos.y, data: gray(pix)/255}
+    }
+  } else {
+    //top left corner of point area
+    var start = {x: pix.x-pixRad, y: pix.y-pixRad};
+    //bottom right corner of point area
+    var end = {x: pix.x+pixRad, y: pix.y+pixRad};
 
-      if (!(image.inArea(start) || image.inArea(end) || image.inArea({x: start.x, y: end.y}) || image.inArea({x: end.x, y: start.y}))) {
-        return null;
-      }
+    if (!(image.inArea(start) || image.inArea(end) || image.inArea({x: start.x, y: end.y}) || image.inArea({x: end.x, y: start.y}))) {
+      return null;
+    }
 
-      var dx = start.x<end.x?1:-1;
-      var dy = start.y<end.y?1:-1;
-      var xrange = start.x<end.x?function(ix) { return ix<end.x; }:function(ix) { return ix>=end.x; };
-      var yrange = start.y<end.y?function(iy) { return iy<end.y; }:function(iy) { return iy>=end.y; };
-      let i = {x: start.x, y: start.y};
-      for (; xrange(i.x); i.x+=dx) {
-        for (; yrange(i.y); i.y+=dy) {
-          //point in image
-          if (image.inArea(i)) {
-            //calculate grayscale value from rgb
-            sum += gray(i);
-            count++;
-          }
+    var dx = start.x<end.x?1:-1;
+    var dy = start.y<end.y?1:-1;
+    var xrange = start.x<end.x?function(ix) { return ix<end.x; }:function(ix) { return ix>=end.x; };
+    var yrange = start.y<end.y?function(iy) { return iy<end.y; }:function(iy) { return iy>=end.y; };
+    let i = {x: start.x, y: start.y};
+    for (; xrange(i.x); i.x+=dx) {
+      for (; yrange(i.y); i.y+=dy) {
+        //point in image
+        if (image.inArea(i)) {
+          //calculate grayscale value from rgb
+          sum += gray(i);
+          count++;
         }
       }
-      return count>0?{x: pos.x, y: pos.y, data: sum/count/255}:null;
     }
+    return count>0?{x: pos.x, y: pos.y, data: sum/count/255}:null;
   }
+
 }
 
 function makeAreaFunc(layer) {
-  if (!layer.border) {
-    layer.border = {left: 0, right: 0, top: 0, bottom: 0};
-  }
+  let border = layer.border || {left: 0, right: 0, top: 0, bottom: 0}
   return function(pos) {
+    if (!pos) return false;
     if (layer.rotate) {
       pos = layer.rotate(pos);
     }
-    let b = pos.x>=layer.x+layer.border.left &&
-      pos.x<=layer.x+layer.w-layer.border.right &&
-      pos.y>=layer.y+layer.border.top &&
-      pos.y<=layer.y+layer.h-layer.border.bottom;
-    if (!b) {
-      //console.log(pos, layer);
-    }
+    let b =
+      pos.x>=layer.x+        border.left   &&
+      pos.x<=layer.x+layer.w-border.right  &&
+      pos.y>=layer.y+        border.top    &&
+      pos.y<=layer.y+layer.h-border.bottom;
     return b;
   };
-}
-
-function leftCloserToLayer(lcenter) {
-  if (curve.type == "Linie" || curve.type == "Bogen") {
-    var dright = dist(curve.x+curve.dcos*curve.gap, curve.y+curve.dsin*curve.gap, lcenter.x, lcenter.y);
-    var dleft = dist(curve.x-curve.dcos*curve.gap, curve.y-curve.dsin*curve.gap, lcenter.x, lcenter.y);
-    return dleft<dright;
-  } else if (curve.type == "Kreis") {
-    return dist(lcenter.x, lcenter.y, curve.x, curve.y)<globals.r;
-  }
 }

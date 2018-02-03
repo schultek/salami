@@ -12,7 +12,7 @@
         <span>Y</span><input type="number" v-model.number.lazy="object.y" v-blur/>
       </div>
       <div class="dimen">
-        <span><i class="fa fa-repeat"></i></span><input type="number" v-model.number.lazy="object.rot" @change="mapRotation('rot')"  v-blur/>
+        <span><i class="fa fa-repeat"></i></span><input type="number" v-model.number.lazy="object.rot"  v-blur/>
       </div>
     </div>
     <div class="settings-dimensions dimen-row">

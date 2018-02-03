@@ -1,17 +1,18 @@
 
-import {rotate} from "../includes/renderfunctions.js"
+let {rotate} = require("../includes/renderfunctions.js")
 
 export default {
   bind(el, binding, vnode) {
     let id = vnode.context.id
     let mode = binding.arg
     let store = vnode.context.$store
-    let drag = false
+    let drag = false, dragged = false;
     let data = {}
 
     el.addEventListener("mousedown", event => {
       if (store.state.selectedTool != "select") return
       drag = true;
+      dragged = false;
       data = store.getters.getLocalPosition(event)
       let obj = store.getters.getObjectById(id)
       data.pro = obj.w/obj.h
@@ -21,6 +22,7 @@ export default {
 
     document.addEventListener("mousemove", event => {
       if (!drag) return
+      dragged = true;
       let p = store.getters.getLocalPosition(event)
       let object = store.getters.getObjectById(id)
 
@@ -71,7 +73,7 @@ export default {
     })
 
     document.addEventListener("mouseup", event => {
-      if (drag)
+      if (dragged)
         store.commit("putObject", {id})
       drag = false;
     })

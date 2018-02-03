@@ -1,5 +1,11 @@
 <template>
   <svg id="svg" height="100%" width="100%" @mousedown="drag = true" @mouseup="mouseUp" @mousemove="spanObject" @click="unselectObject" :class="[adding?'cursor-add':'']" v-zoomable>
+    <defs>
+      <radialGradient id="gradient">
+        <stop offset="0.8" stop-color="white" stop-opacity="1" />
+        <stop offset="1" stop-color="white" stop-opacity="0" />
+      </radialGradient>
+    </defs>
     <g id="svgProject" :transform="'translate('+p.x+' '+p.y+') scale('+p.zoom+')'">
       <g id="svgLayers" :style="{opacity: subLayersOpen ? 1 : 0.6}">
         <component v-for="layer in objects.layers" :key="layer.id" :is="layer.is+'X'" :ref="layer.id" :id="layer.id"></component>
@@ -7,7 +13,7 @@
       <g id="svgImages" :style="{display: subLayersOpen ? 'none' : 'inherit'}">
         <ImageX v-for="image in objects.images" :key="image.id" :ref="image.id" :id="image.id"></ImageX>
       </g>
-      <g id="svgCurves">
+      <g id="svgCurves" :style="{display: subLayersOpen ? 'none' : 'inherit'}">
         <Curve v-for="curve in objects.curves" :key="curve.id" :ref="curve.id" :id="curve.id"></Curve>
       </g>
       <g id="svgTexts">
@@ -54,15 +60,19 @@
         this.$store.commit("selectObject", null);
       },
       mouseUp(event) {
-        this.dragData = null;
-
-        if (this.drag && !this.objectId) {
-          this.addObject(event, {x: -20, y: -20, w: 40, h: 40})
+        if (this.adding) {
+          debugger;
+          if (this.objectId) {
+            this.$store.commit("putObject", {id: this.objectId})
+          } else {
+            this.objectId = this.addObject(event, {x: -20, y: -20, w: 40, h: 40})
+          }
+          this.$store.commit("selectObject", this.objectId)
+          this.$store.commit("selectTool", "select")
         }
 
-        this.$store.commit("selectTool", "select")
-
         this.drag = false;
+        this.dragData = null;
         this.objectId = null;
       },
       spanObject(event) {

@@ -131,7 +131,7 @@ export default {
         case "cpart": return {
           id, is: "cpart", x, y, w, h,
           title: "Part " + n, render, inverted: false,
-          border: {left: 0, right: 0, top: 0, bottom: 0}
+          border: {left: 5, right: 5, top: 5, bottom: 5}
         }
         case "image": return {
           id, is: "image", x, y, w, h, rot,
@@ -182,7 +182,7 @@ export default {
     return (id) => {
       let curve = state.objects.find(el => el.id == id)
       if (curve.is != curve) throw new Error("Object with id "+id+" isn't a curve")
-      return getMaxLength(curve, state.machine)
+      return getMaxLength(curve)
     }
   },
   getCleanObject(state) {

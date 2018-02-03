@@ -7,15 +7,7 @@ export default class WorkerHandler {
     this.progress = 0;
 
     linesWorker = new Worker("src/renderer/workers/linesworker.js")
-    pathWorker = new Worker("src/renderer/workers/pathworker.js")
     gcodeWorker = new Worker("src/renderer/workers/gcodeworker.js")
-
-    pathWorker.onmessage = event => {
-      if (event.data.progress)
-        this.onProgress(50+event.data.progress/2)
-      if (event.data.path)
-        this.onPath(event.data.path)
-    }
 
     gcodeWorker.onmessage = event => {
       this.onGCode(event.data.gcode)
@@ -31,10 +23,10 @@ export default class WorkerHandler {
         this.onError(event.data.error)
       if (event.data.progress)
         this.onProgress(event.data.progress/2)
-      if (event.data.lines) {
-        pathWorker.postMessage({lines: event.data.lines, layer: data.layer, machine: data.machine, curve: data.curve})
+      if (event.data.paths)
+        this.onPath(event.data.paths)
+      if (event.data.lines)
         gcodeWorker.postMessage({lines: event.data.lines, layer: data.layer, machine: data.machine})
-      }
       if (event.data.fillLines)
         this.onFillLines(event.data.fillLines)
     }

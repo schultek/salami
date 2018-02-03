@@ -15,7 +15,7 @@
           return o[k]
         },
         set(v) {
-          console.log("Set Property "+k+" to "+v)
+          //console.log("Set Property "+k+" to "+v)
           o[k] = v;
           update()
         }
@@ -32,7 +32,6 @@
           let reactive = {}
           Object.keys(o).forEach(k => {
             defineReactive(o, reactive, k, () => {
-              console.log(o);
               this.$store.commit("updateObject", o)
             })
           })

@@ -1,10 +1,10 @@
 <template>
-  <g :id="id" v-dragable>
-    <rect :x="x" :y="y" :width="w" :height="h" :style="{fill: object.inverted?'#000':'#fff'}"></rect>
+  <g :id="id" :transform="'translate('+x+' '+y+')'" v-dragable>
+    <rect x="0" y="0" :width="w" :height="h" :style="{fill: object.inverted?'#000':'#fff'}"></rect>
     <transition-group name="fade" tag="g" v-if="paths">
       <path :d="path.path" :key="path.k" v-for="(path,i) in paths"></path>
     </transition-group>
-    <SelectBox :id="id" can-resize="true" :transform="'translate('+x+' '+y+')'" ></SelectBox>
+    <SelectBox :id="id" can-resize="true"></SelectBox>
   </g>
 </template>
 

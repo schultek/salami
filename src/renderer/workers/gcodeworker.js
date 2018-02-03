@@ -5,7 +5,8 @@ self.addEventListener("message", (event) => {
   let machine = event.data.machine;
   let layer = event.data.layer;
 
-  console.log("Generating GCode for "+lines.length);
+  let starttime = Date.now()
+
   var output = [];
   var pos = {x: 0, y: 0, z: 0};
   var time = 0;
@@ -73,6 +74,8 @@ self.addEventListener("message", (event) => {
       }
     }
   }
+
+  console.log("Generated GCode ("+(Date.now()-starttime)+"ms)");
 
   //output.push(gcode.post.replace(/\$W/g, layer.w).replace(/\$H/g, layer.h));
 

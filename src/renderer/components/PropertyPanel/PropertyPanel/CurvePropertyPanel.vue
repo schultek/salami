@@ -22,7 +22,7 @@
           <span>Biegung</span><input type="number" v-model.number.lazy="object.stretch" v-blur/>
         </div>
         <div class="dimen">
-          <span>Richtung</span><input type="number" v-model.number.lazy="object.direction" @change="mapRotation('direction')" v-blur/>
+          <span>Richtung</span><input type="number" v-model.number.lazy="object.direction" v-blur/>
         </div>
       </div>
     </div>
@@ -47,6 +47,18 @@
         </div>
       </div>
     </div>
+    <div class="settings-panel linked-layer-list">
+      <div class="settings-header">
+        <span>Ebenen</span>
+      </div>
+      <div class="linked-layer-item" v-for="layer in layers" @click="selectLayer(layer.id)">
+        <i class="fa fa-fw" :class="'fa-'+icon(layer)"></i>
+        {{layer.title}}
+        <span>
+          <i class="fa fa-angle-right"></i>
+        </span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -55,7 +67,23 @@
   import BasePropertyPanel from "./BasePropertyPanel.vue"
 
   export default {
-    extends: BasePropertyPanel
+    extends: BasePropertyPanel,
+    computed: {
+      layers() {
+        let l = this.$store.state.objects
+          .filter(this.$store.getters.isSublayer)
+          .filter(el => el.render.curve == this.id)
+        return l;
+      }
+    },
+    methods: {
+      icon(layer) {
+        return layer.is == "cpart" ? "th-large" : layer.type == "rect" ? "square" : layer.type == "ellipse" ? "circle" : ""
+      },
+      selectLayer(id) {
+        this.$store.commit("selectObject", id)
+      }
+    }
   }
 
 </script>

@@ -67,7 +67,7 @@
               {{curve.title}}
             </option>
           </select>
-          <i v-show="object.render.curve" class="fa fa-sign-in" @click="selectObject(object.render.curve)"></i>
+          <i v-show="object.render.curve" class="fa fa-angle-right switch_to" @click="selectObject(object.render.curve)"></i>
         </div>
         <div class="dimen">
           <span>Bild</span>
@@ -76,7 +76,7 @@
               {{image.title}}
             </option>
           </select>
-          <i v-show="object.render.image" class="fa fa-sign-in" @click="selectedObject(object.render.image)"></i>
+          <i v-show="object.render.image" class="fa fa-angle-right switch_to" @click="selectObject(object.render.image)"></i>
         </div>
       </div>
       <div class="settings-dimensions dimen-row">
@@ -97,7 +97,7 @@
           <span><i class="fa fa-adjust"></i></span><input type="checkbox" v-model="object.inverted"/>
         </div>
         <div class="dimen">
-          <span>Kantenglättung</span><input type="number" v-model.number.lazy="object.render.refinedEdges" v-blur />
+          <span>Kantenglättung (%)</span><input type="number" v-model.number.lazy="object.render.refinedEdges" v-blur />
         </div>
         <div class="dimen">
           <span>Pixelglättung (%)</span><input type="number" v-model.number.lazy="object.render.smooth" v-blur />
@@ -133,5 +133,13 @@
 </script>
 
 <style>
+
+.switch_to {
+  vertical-align: middle;
+}
+
+.switch_to:hover {
+  color: #008dea;
+}
 
 </style>
