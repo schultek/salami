@@ -61,7 +61,6 @@
       },
       mouseUp(event) {
         if (this.adding) {
-          debugger;
           if (this.objectId) {
             this.$store.commit("putObject", {id: this.objectId})
           } else {

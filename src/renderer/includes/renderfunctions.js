@@ -208,6 +208,99 @@ function makeCurveFactory(c_) {
   }
 }
 
+function makeSvgFactory(layer, curve, machine) {
+
+
+  let maxRad = round(machine.bit.inDepth/machine.bit.height*machine.bit.width/2, 100);
+  let makeRad = layer.inverted ?
+    (p) => {
+      let r = p.data*maxRad
+      return r < machine.bit.tiprad ? machine.bit.tiprad : r
+    } :
+    (p) => {
+      let r = (1-p.data)*maxRad;
+      return r < machine.bit.tiprad ? machine.bit.tiprad : r
+    }
+
+  if (!layer.render.dotted) {
+
+    let a = (line, i1, i2) => Math.atan2(line[i2].y-line[i1].y,line[i2].x-line[i1].x)
+    let ret = (a_1) => {
+      if (a_1 > Math.PI) a_1 = a_1 - Math.PI*2
+      let a_2 = a_1 <= 0 ? a_1+Math.PI : a_1-Math.PI;
+      return [{val: a_1, sin: Math.sin(a_1), cos: Math.cos(a_1)}, {val: a_2, sin: Math.sin(a_2), cos: Math.cos(a_2)}];
+    }
+
+
+    let makeAngle;
+
+    if (curve.type == "Linie") {
+      let an;
+      makeAngle = (line) => {
+        an = an || ret(a(line,0,1)+Math.PI/2);
+        return (i) => an;
+      }
+    } else {
+      makeAngle = (line) => {
+        let a0 = ret(a(line,0,1)+Math.PI/2);
+        let al = ret(a(line,line.length-2,line.length-1)+Math.PI/2);
+        return (i) => {
+          if (i==0) {
+            return a0;
+          } else if (i == line.length-1) {
+            return al;
+          } else {
+            let a1 = a(line, i, i-1);
+            let a2 = a(line, i, i+1);
+            return a1 >= a2 ? ret((a2+a1)/2) : ret((a2+a1)/2+Math.PI);
+          }
+        }
+      }
+    }
+
+    let time = {
+      angle: 0,
+      rad: 0,
+      p: 0,
+      str: 0
+    }
+
+    return {
+      curve: (line) => {
+
+        let angle = line.length < 2 ? (i) => [{val:0,sin:0,cos:0}, {val:0,sin:0,cos:0}] : makeAngle(line)
+        let rad = (i) => makeRad(line[i])
+
+        return {
+          point: (i) => {
+            let t = Date.now();
+            var a = angle(i);
+            time.angle += Date.now()-t;
+            t = Date.now();
+            var r = rad(i);
+            time.rad += Date.now()-t;
+            t = Date.now();
+            var q1 = {x: line[i].x+a[0].cos*r, y: line[i].y+a[0].sin*r};
+            var q2 = {x: line[i].x+a[1].cos*r, y: line[i].y+a[1].sin*r};
+            time.p += Date.now()-t;
+            return {"0": q1, "1": q2, r};
+          }
+        }
+      },
+      time
+    }
+  } else {
+    return {
+      curve: (line) => {
+        let rad = (i) => makeRad(line[i])
+        return {
+          point: (i) => ({x: line[i].x, y: line[i].y, rad: rad(i)})
+        }
+      }
+    }
+  }
+}
+
 function getMaxLength(c_) {
   let curve = c_ ? c_ : curve;
 
