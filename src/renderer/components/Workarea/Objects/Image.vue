@@ -7,8 +7,8 @@
 
 <script>
 
-  import SelectBox from './SelectBox.vue'
-  import BaseObject from './BaseObject.vue'
+  import SelectBox from './Parts/SelectBox.vue'
+  import BaseObject from './Parts/BaseObject.vue'
 
   export default {
     components: {SelectBox},

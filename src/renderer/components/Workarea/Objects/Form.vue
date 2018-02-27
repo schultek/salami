@@ -1,8 +1,6 @@
 <template>
   <g :id="id" v-dragable>
-    <transition-group name="fade" tag="g" v-if="paths">
-      <path :d="path.path" :key="path.k" v-for="(path,i) in paths"></path>
-    </transition-group>
+    <path :d="path" v-for="path in paths"></path>
     <g :transform="'translate('+x+' '+y+') rotate('+rot+' '+(w/2)+' '+(h/2)+')'">
       <rect v-if="object.type=='rect'" x="0" y="0" :width="w" :height="h" class="form"></rect>
       <ellipse v-if="object.type=='ellipse'" :cx="w/2" :cy="h/2" :rx="w/2" :ry="h/2" class="form"></ellipse>
@@ -13,8 +11,8 @@
 
 <script>
 
-  import SelectBox from "./SelectBox.vue"
-  import BaseObject from "./BaseObject.vue"
+  import SelectBox from "./Parts/SelectBox.vue"
+  import BaseObject from "./Parts/BaseObject.vue"
 
   export default {
     components: {SelectBox},

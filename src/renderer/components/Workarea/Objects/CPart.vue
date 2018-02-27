@@ -1,25 +1,24 @@
 <template>
   <g :id="id" :transform="'translate('+x+' '+y+')'" v-dragable>
     <rect x="0" y="0" :width="w" :height="h" :style="{fill: object.inverted?'#000':'#fff'}"></rect>
-    <transition-group name="fade" tag="g" v-if="paths">
-      <path :d="path.path" :key="path.k" v-for="(path,i) in paths"></path>
-    </transition-group>
+    <path :d="path" v-for="path in paths"></path>
+    <DangerArea :w="w" :h="h"></DangerArea>
     <SelectBox :id="id" can-resize="true"></SelectBox>
   </g>
 </template>
 
 <script>
 
-  import SelectBox from "./SelectBox.vue"
-  import BaseObject from "./BaseObject.vue"
+  import SelectBox from "./Parts/SelectBox.vue"
+  import BaseObject from "./Parts/BaseObject.vue"
+  import DangerArea from "./Parts/DangerArea.vue"
 
   export default {
-    components: {SelectBox},
+    components: {SelectBox, DangerArea},
     extends: BaseObject,
     computed: {
       paths() {
-        let paths = this.$store.getters.getPathById(this.id)
-        return paths;
+        return this.$store.getters.getPathById(this.id)
       }
     }
   }

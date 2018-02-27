@@ -1,9 +1,21 @@
 importScripts("../includes/renderfunctions.js")
-importScripts("./pathworker.js")
+// importScripts("./pathworker.js")
 
-let images = [], lines = []
+let images = [], lines = [], paths = []
 var layer, image, curve, machine, forms;
 let pixRad, factory;
+
+let svg = {
+  r: (d) => round(d, 100),
+  deg: (r) => (r/Math.PI/2)*360,
+  lx: (x) => svg.r(x-layer.x),
+  ly: (y) => svg.r(y-layer.y),
+  l: (p) => "L"+svg.lx(p.x)+","+svg.ly(p.y)+" ",
+  m: (p) => "M"+svg.lx(p.x)+","+svg.ly(p.y)+" ",
+  a: (r,s,p) => "A"+svg.r(r)+","+svg.r(r)+" 0 0 "+s+" "+svg.lx(p.x)+","+svg.ly(p.y)+" ",
+  c: (p) => "M "+svg.lx(p.x-svg.r(p.r))+" "+svg.ly(p.y)+" A"+svg.r(p.r)+" "+svg.r(p.r)+" 0 0 0"+svg.lx(p.x+svg.r(p.r))+" "+svg.ly(p.y)
+              +" A"+svg.r(p.r)+" "+svg.r(p.r)+" 0 0 0"+svg.lx(p.x-svg.r(p.r))+" "+svg.ly(p.y)+" "
+}
 
 self.addEventListener("message", function(e) {
 
@@ -24,6 +36,7 @@ self.addEventListener("message", function(e) {
   forms = e.data.forms;
 
   lines = [];
+  paths = [];
 
   let img = images.find(i => i.id == image.id)
   if (!img) {
@@ -56,8 +69,20 @@ self.addEventListener("message", function(e) {
   else
     layer.border = {left: 0, right: 0, top: 0, bottom: 0}
 
-  // if (layer.w > machine.w) layer.w = machine.w;
-  // if (layer.h > machine.h) layer.h = machine.h;
+  if (layer.w > machine.w) {
+    let border = (layer.w - machine.w) / 2;
+    if (border > layer.border.left)
+      layer.border.left = border;
+    if (border > layer.border.right)
+      layer.border.right = border;
+  }
+  if (layer.h > machine.h) {
+    let border = (layer.h - machine.h) / 2;
+    if (border > layer.border.top)
+      layer.border.top = border;
+    if (border > layer.border.bottom)
+      layer.border.bottom = border;
+  }
 
   for (let f of forms.concat([layer])) {
 
@@ -83,7 +108,7 @@ self.addEventListener("message", function(e) {
   image.inArea = makeAreaFunc({x:0,y:0,w:image.pixels.shape[0],h:image.pixels.shape[1]});
   image.rotate = makeRotateFunc(image);
 
-  factory = makeCurveFactory(curve);
+  factory = makeCurveFactory(curve, layer, machine);
 
   pixRad = Math.round(curve.rad*image.pixels.shape[0]/image.w*layer.render.smooth/100)
 
@@ -107,7 +132,11 @@ self.addEventListener("message", function(e) {
   let expectedLineCount = nums.max - nums.min + 1;
 
   for (let i = nums.min; i <= nums.max; i++) {
-    lines.push(generateLine(i, steps).data)
+    let line = generateLine(i, steps)
+    if (line.inLayer) {
+      lines.push(line.data)
+      paths = paths.concat(line.paths)
+    }
     if (sendTime+100<Date.now()) {
       self.postMessage({progress: Math.min(40,Math.round(40*lines.length/expectedLineCount))});
       sendTime = Date.now();
@@ -117,15 +146,19 @@ self.addEventListener("message", function(e) {
     let n = 1;
     while (n < 1000) {
       let line = generateLine(--nums.min, steps)
-      if (line.inLayer) lines.unshift(line.data)
-      else break;
+      if (line.inLayer) {
+        lines.unshift(line.data)
+        paths = line.paths.concat(paths);
+      } else break;
       n++;
     }
     n = 1;
     while (n < 1000) {
       let line = generateLine(++nums.max, steps)
-      if (line.inLayer) lines.push(line.data)
-      else break;
+      if (line.inLayer) {
+        lines.push(line.data)
+        paths = paths.concat(line.paths)
+      } else break;
       n++;
     }
   }
@@ -135,27 +168,80 @@ self.addEventListener("message", function(e) {
   if (layer.fill)
     self.postMessage({fillLines: {l: -nums.min, r: nums.max}})
 
-  let paths = generatePaths()
-
   self.postMessage({paths, lines})
 
 }, false);
 
-function generateLine(num, steps) {
-  //console.log("Generate Line "+num);
-  var line = {inLayer: false, data: [[]]}; //array of line parts
-  var cline = line.data[0]; //current line part
 
-  //curve data for point calculation
-  var cdata = factory.curve(num);
+function svgFactory() {
+
+  let paths = [];
+  let path1 = "", path2 = "";
+  let lastPoint;
+
+  if (!layer.render.dotted)
+    return {
+      next(p) {
+        if (lastPoint) {
+          path2 = svg.l(lastPoint[1])+path2;
+        }
+        if (path1 == "") {
+          path1 = svg.m(p[0]);
+          path2 = svg.a(p.r, 0, p[0])+"Z";
+        } else {
+          path1 += svg.l(p[0]);
+        }
+        lastPoint = p;
+      },
+      close() {
+        if (lastPoint) {
+          path2 = svg.a(lastPoint.r, 0, lastPoint[1]) + path2
+        }
+        paths.push(path1 + path2)
+        path1 = path2 = ""
+        lastPoint = null;
+      },
+      get() {
+        if (lastPoint) {
+          this.close()
+        }
+        return paths;
+      }
+    }
+  else
+    return {
+      next(p) {
+        path1 += svg.c(p);
+      },
+      close() {
+        paths.push(path1);
+        path1 = "";
+      },
+      get() {
+        if (path1 != "")
+          paths.push(path1)
+        return paths;
+      }
+    }
+}
+
+function generateLine(num, steps) {
+
+  let line = {inLayer: false, data: [[]]};
+  let cline = line.data[0];
+
+  let svg = svgFactory()
+
+  let cdata = factory.curve(num);
+
   if (cdata.length <= 0) {
-    return {inLayer: false, data: []};
+    return {inLayer: false};
   }
-  //regulates step count
+
   var di = 1/Math.round(curve.steps*cdata.length/factory.maxlength);
-  //console.log("Line Steps: "+(curve.steps/di));
+
   for (let i = steps.min-di; i<=steps.max+di; i += di) {
-    //point on curve
+
     var point = getPoint(i, cdata);
 
     line.inLayer |= point.inLayer
@@ -165,15 +251,19 @@ function generateLine(num, steps) {
         var first = findEdgePoint(point, i, (i-di), cdata);
         if (first != point) {
           cline.push(first.data);
+          svg.next(first.path)
         }
       }
+      svg.next(point.path)
       cline.push(point.data);
     } else if (cline.length>0 && cline[cline.length-1].data) {
       var last = findEdgePoint(cline[cline.length-1], (i-di), i, cdata);
       if (last != cline[cline.length-1]) {
         cline.push(last.data);
+        svg.next(last.path)
       }
       //add new line part
+      svg.close()
       line.data.push([]);
       cline = line.data[line.data.length-1];
     }
@@ -182,6 +272,8 @@ function generateLine(num, steps) {
   if (line.data[line.data.length-1].length == 0) {
     line.data.splice(line.data.length-1, 1);
   }
+
+  line.paths = svg.get()
   return line;
 }
 
@@ -222,7 +314,10 @@ function getPoint(step, cdata, widthdata) {
     }
 
     //add data-point to current line part
-    return {inLayer: true, data: getDataPoint(cp, widthdata)};
+
+    let p = getDataPoint(cp, widthdata)
+
+    return {inLayer: true, path: p ? cdata.path(p, step) : null, data: p};
   } else {
     return {inLayer: false};
   }

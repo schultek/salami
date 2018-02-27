@@ -29,38 +29,31 @@
         <span>Seperates Rendering</span><input type="checkbox" v-model="object.ownRenderer" />
       </div>
     </div>
-    <div v-show="object.mask && object.ownRenderer" class="settings-panel">
+    <div v-show="object.mask && object.ownRenderer" class="settings-panel linked-layer-list">
       <div class="settings-header">
         <span>Rendering</span>
-        <!-- <span><span>{{object.links.render!=undefined?object.links.render.title:''}}</span>
-          <i v-if="object.links.render==undefined" class="fa fa-link" @click="linkingRender = true"></i>
-          <i v-else class="fa fa-trash-alt" @click="selectedLayer.unlink('render')"></i>
-        </span>
-        <ul v-show="linkingRender">
-          <li v-for="layer in layers.filter(el=>is(el, CPart) & el!=selectedLayer)" @click="selectedLayer.linkTo(layer); linkingRender = false">
-            {{layer.$.title}}
-          </li>
-        </ul> -->
       </div>
-      <div class="settings.dimenstions dimen-row">
-        <div class="dimen">
-          <span>Kurve</span>
-          <select v-model="object.render.curve">
-            <option :value="curve.id" v-for="curve in curves">
-              {{curve.title}}
-            </option>
-          </select>
-          <i v-show="object.render.curve" style="font-size: 12px" class="fa fa-sign-in" @click="selectObject(object.render.curve)"></i>
-        </div>
-        <div class="dimen">
-          <span>Bild</span>
-          <select v-model="object.render.image">
-            <option :value="image.id" v-for="image in images">
-              {{image.title}}
-            </option>
-          </select>
-          <i v-show="object.render.image" style="font-size: 12px" class="fa fa-sign-in" @click="selectObject(object.render.image)"></i>
-        </div>
+      <div class="linked-layer-item render-link" @click="selectObject(object.render.curve)">
+        <i class="fa fa-fw fa-leaf"></i>
+        <select v-model="object.render.curve" @click.stop="">
+          <option :value="curve.id" v-for="curve in curves">
+            {{curve.title}}
+          </option>
+        </select>
+        <span>
+          <i v-show="object.render.curve" class="fa fa-angle-right switch_to"></i>
+        </span>
+      </div>
+      <div class="linked-layer-item render-link" @click="selectObject(object.render.image)">
+        <i class="fas fa-fw fa-image"></i>
+        <select v-model="object.render.image" @click.stop="">
+          <option :value="image.id" v-for="image in images">
+            {{image.title}}
+          </option>
+        </select>
+        <span>
+          <i v-show="object.render.image" class="fa fa-angle-right switch_to"></i>
+        </span>
       </div>
       <div class="settings-dimensions dimen-row">
         <div class="dimen">

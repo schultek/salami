@@ -90,7 +90,11 @@ let rendererConfig = {
             name: 'fonts/[name]--[folder].[ext]'
           }
         }
-      }
+      }//,
+      // {
+      //  test: /\.svg$/,
+      //  loader: 'vue-svg-loader',
+      // }
     ]
   },
   node: {

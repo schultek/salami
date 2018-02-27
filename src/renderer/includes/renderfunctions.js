@@ -1,8 +1,7 @@
 
 let curveBoxSize = 200
 
-function makeCurveFactory(c_) {
-  let curve = c_ ? c_ : curve;
+function makeCurveFactory(curve, layer, machine) {
 
   let {start, end} = makeBorderPoints(curve)
   let maxlength = getMaxLength(curve)
@@ -18,6 +17,31 @@ function makeCurveFactory(c_) {
     max: corners.map(el => el.step).reduce((m,e) => Math.max(m,e), Number.MIN_VALUE)
   })
 
+  let twoPi = Math.PI * 2;
+  let halfPi = Math.PI / 2;
+
+  let includePath = (layer && machine)
+
+  let dotPath, maxRad, rad;
+  let failPath = () => console.warn("No path method, missing layer and machine parameters in factory call!")
+
+  if (includePath) {
+    maxRad = round(machine.bit.inDepth/machine.bit.height*machine.bit.width/2, 100);
+    rad = (p) => {
+      let r = (layer.inverted ? p.data : (1-p.data)) * maxRad
+      return r < machine.bit.tiprad ? machine.bit.tiprad : r
+    }
+    if (layer && layer.render.dotted)
+      dotPath = (p) => ({x: p.x, y: p.y, r: rad(p)})
+  }
+
+  let angle = (dx, dy) => Math.atan2(dy, dx)
+  let format = (a) => {
+    if (a > Math.PI) a = a - twoPi
+    let a2 = a <= 0 ? a+Math.PI : a-Math.PI;
+    return [{val: a, sin: Math.sin(a), cos: Math.cos(a)}, {val: a2, sin: Math.sin(a2), cos: Math.cos(a2)}];
+  }
+
   /*****************
         LINIE
    *****************/
@@ -31,17 +55,26 @@ function makeCurveFactory(c_) {
       curve: (num) => {
         let p = {
           x1: start.x+curve.xgap*num, y1: start.y+curve.ygap*num,
-          x2: end.x  +curve.xgap*num, y2: end.y  +curve.ygap*num
+          x2: end.x-start.x,          y2: end.y-start.y
         }
-        p.x2 = p.x2 - p.x1;
-        p.y2 = p.y2 - p.y1;
+
+        let a = format(angle(p.x2, p.y2)+halfPi)
+
         return {
           length,
           point: (step) => ({
             x: p.x1+p.x2*step,
             y: p.y1+p.y2*step
-          })
-        };
+          }),
+          path: includePath ? dotPath || ((p) => {
+            let r = rad(p);
+            return {
+              "0": {x: p.x+a[0].cos*r, y: p.y+a[0].sin*r},
+              "1": {x: p.x+a[1].cos*r, y: p.y+a[1].sin*r},
+              r
+            };
+          }) : failPath
+        }
       },
       find: (p) => {
         let step = (p.y*curve.xgap-p.x*curve.ygap+sg)/ges;
@@ -70,7 +103,16 @@ function makeCurveFactory(c_) {
           point: (step) => ({
             x: c0.x+step*(step*c1.x+c2.x),
             y: c0.y+step*(step*c1.y+c2.y)
-          })
+          }),
+          path: includePath ? dotPath || ((p, step) => {
+            let a = format(angle(2*c1.x*step + c2.x, 2*c1.y*step + c2.y)+halfPi)
+            let r = rad(p);
+            return {
+              "0": {x: p.x+a[0].cos*r, y: p.y+a[0].sin*r},
+              "1": {x: p.x+a[1].cos*r, y: p.y+a[1].sin*r},
+              r
+            };
+          }) : failPath
         };
       },
       find: (p) => {
@@ -91,18 +133,31 @@ function makeCurveFactory(c_) {
    *****************/
   } else if (curve.type == "Kreis") {
     let r_ = curveBoxSize/4
-    let twoPi = Math.PI*2
     return {
       maxlength, r: r_,
       curve: (num) => {
         let r = r_+num*curve.gap;
         let l = r<=0?0:twoPi*r;
+
+        let RtwoPi = twoPi * r;
+
         return {
           length: l,
           point: (step) => step <= 1 ? ({
               x: curve.x+Math.cos(step*twoPi)*r,
               y: curve.y+Math.sin(step*twoPi)*r
-          }) : null
+          }) : null,
+          path: includePath ? dotPath || ((p, step) => {
+            let dx = -RtwoPi * Math.sin(twoPi * step);
+            let dy = RtwoPi * Math.cos(twoPi * step);
+            let a = format(angle(dx, dy)+halfPi)
+            let r = rad(p);
+            return {
+              "0": {x: p.x+a[0].cos*r, y: p.y+a[0].sin*r},
+              "1": {x: p.x+a[1].cos*r, y: p.y+a[1].sin*r},
+              r
+            };
+          }) : failPath
         }
       },
       find: (p) => {
@@ -175,6 +230,9 @@ function makeCurveFactory(c_) {
 
     f2 = f2-f1;
 
+    let f2dsin = -curve.dsin * f2;
+    let f2dcos =  curve.dcos * f2;
+
     return {
       maxlength,
       curve: (num) => {
@@ -191,7 +249,18 @@ function makeCurveFactory(c_) {
               x: mid.x - curve.dsin*f + c*cosstr,
               y: mid.y + curve.dcos*f + c*sinstr
             }
-          }
+          }, path: includePath ? dotPath || ((p, step) => {
+            let fsin =  Math.sin((f1+f2*step)/curve.stretch);
+            let dx = f2dsin + f2dcos * fsin;
+            let dy = f2dcos - f2dsin * fsin;
+            let a = format(angle(dx, dy)+halfPi)
+            let r = rad(p);
+            return {
+              "0": {x: p.x+a[0].cos*r, y: p.y+a[0].sin*r},
+              "1": {x: p.x+a[1].cos*r, y: p.y+a[1].sin*r},
+              r
+            };
+          }) : failPath
         }
       },
       find(p) {
@@ -205,99 +274,6 @@ function makeCurveFactory(c_) {
       },
       nums, steps
     };
-  }
-}
-
-function makeSvgFactory(layer, curve, machine) {
-
-
-  let maxRad = round(machine.bit.inDepth/machine.bit.height*machine.bit.width/2, 100);
-  let makeRad = layer.inverted ?
-    (p) => {
-      let r = p.data*maxRad
-      return r < machine.bit.tiprad ? machine.bit.tiprad : r
-    } :
-    (p) => {
-      let r = (1-p.data)*maxRad;
-      return r < machine.bit.tiprad ? machine.bit.tiprad : r
-    }
-
-  if (!layer.render.dotted) {
-
-    let a = (line, i1, i2) => Math.atan2(line[i2].y-line[i1].y,line[i2].x-line[i1].x)
-    let ret = (a_1) => {
-      if (a_1 > Math.PI) a_1 = a_1 - Math.PI*2
-      let a_2 = a_1 <= 0 ? a_1+Math.PI : a_1-Math.PI;
-      return [{val: a_1, sin: Math.sin(a_1), cos: Math.cos(a_1)}, {val: a_2, sin: Math.sin(a_2), cos: Math.cos(a_2)}];
-    }
-
-
-    let makeAngle;
-
-    if (curve.type == "Linie") {
-      let an;
-      makeAngle = (line) => {
-        an = an || ret(a(line,0,1)+Math.PI/2);
-        return (i) => an;
-      }
-    } else {
-      makeAngle = (line) => {
-        let a0 = ret(a(line,0,1)+Math.PI/2);
-        let al = ret(a(line,line.length-2,line.length-1)+Math.PI/2);
-        return (i) => {
-          if (i==0) {
-            return a0;
-          } else if (i == line.length-1) {
-            return al;
-          } else {
-            let a1 = a(line, i, i-1);
-            let a2 = a(line, i, i+1);
-            return a1 >= a2 ? ret((a2+a1)/2) : ret((a2+a1)/2+Math.PI);
-          }
-        }
-      }
-    }
-
-    let time = {
-      angle: 0,
-      rad: 0,
-      p: 0,
-      str: 0
-    }
-
-    return {
-      curve: (line) => {
-
-        let angle = line.length < 2 ? (i) => [{val:0,sin:0,cos:0}, {val:0,sin:0,cos:0}] : makeAngle(line)
-        let rad = (i) => makeRad(line[i])
-
-        return {
-          point: (i) => {
-            let t = Date.now();
-            var a = angle(i);
-            time.angle += Date.now()-t;
-            t = Date.now();
-            var r = rad(i);
-            time.rad += Date.now()-t;
-            t = Date.now();
-            var q1 = {x: line[i].x+a[0].cos*r, y: line[i].y+a[0].sin*r};
-            var q2 = {x: line[i].x+a[1].cos*r, y: line[i].y+a[1].sin*r};
-            time.p += Date.now()-t;
-            return {"0": q1, "1": q2, r};
-          }
-        }
-      },
-      time
-    }
-  } else {
-    return {
-      curve: (line) => {
-        let rad = (i) => makeRad(line[i])
-        return {
-          point: (i) => ({x: line[i].x, y: line[i].y, rad: rad(i)})
-        }
-      }
-    }
   }
 }
 

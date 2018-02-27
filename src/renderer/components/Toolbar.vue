@@ -28,7 +28,7 @@
   import {mapState} from "vuex"
 
   export default {
-    //components: {LayersIcon, LayoutsIcon},
+    // components: {LayersIcon, LayoutsIcon},
     computed: mapState(["selectedTool", "tools", "navigationPanel"]),
     methods: {
       selectTool(t) {

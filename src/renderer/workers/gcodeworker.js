@@ -11,8 +11,22 @@ self.addEventListener("message", (event) => {
   var pos = {x: 0, y: 0, z: 0};
   var time = 0;
 
+  var dx = 0, dy = 0;
+
+  if (layer.w > machine.w) {
+    dx = (layer.w - machine.w) / 2
+    layer.w = machine.w;
+  }
+  if (layer.h > machine.h) {
+    dy = (layer.h - machine.h) / 2
+    layer.h = machine.h
+  }
+  //TODO test correct behaviour
+
   var sq = (a) => a*a;
   var add = function(g, x, y, z, s) {
+    x = x-dx;
+    y = y-dy;
     var str = "G"+g+(x!=null?" X"+round(x, 1000):"")+(y!=null?" Y"+round(y,1000):"")+(z!=null?" Z"+round(z,1000):"")+" F"+s;
     output.push(str);
     x = x!=null ? x : pos.x;

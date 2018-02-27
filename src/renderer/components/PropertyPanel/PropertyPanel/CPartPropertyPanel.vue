@@ -4,6 +4,10 @@
       <span>Titel <input type="text" v-model.lazy="object.title" v-blur/></span>
       <i class="fa fa-trash-alt" @click="removeObject"></i>
     </div>
+    <div class="size-warning" v-show="sizewarning">
+      <i class="fa fa-compress" @click="compressPart"></i>
+      <span>This Part is bigger then your machine. Resize!</span>
+    </div>
     <div class="settings-dimensions dimen-row-2">
       <div class="dimen">
         <span>B</span><input type="number" v-model.number.lazy="object.w" v-blur/>
@@ -21,15 +25,6 @@
     <div class="settings-panel">
       <div class="settings-header">
         <span>Rand</span>
-        <!-- TODO <span><span>{{object.links.border!=undefined?object.links.border.title:''}}</span>
-          <i v-if="object.links.border==undefined" class="fa fa-link" @click="linkingBorder = true"></i>
-          <i v-else class="fa fa-trash-alt" @click="selectedLayer.unlink('border')"></i>
-        </span>
-        <ul v-show="linkingBorder">
-          <li v-for="layer in layers.filter(el=>is(el, CPart) & el!=selectedLayer)" @click="selectedLayer.linkTo(layer); linkingBorder = false">
-            {{layer.title}}
-          </li>
-        </ul> -->
       </div>
       <div class="settings-dimensions dimen-row-4">
         <div class="dimen">
@@ -46,40 +41,33 @@
         </div>
       </div>
     </div>
-    <div class="settings-panel">
+    <div class="settings-panel linked-layer-list">
       <div class="settings-header">
         <span>Rendering</span>
-        <!-- TODO <span><span>{{selectedLayer.$.links.render!=undefined?selectedLayer.$.links.render.title:''}}</span>
-          <i v-if="selectedLayer.$.links.render==undefined" class="fa fa-link" @click="linkingRender = true"></i>
-          <i v-else class="fa fa-trash-alt" @click="selectedLayer.unlink('render')"></i>
-        </span>
-        <ul v-show="linkingRender">
-          <li v-for="layer in layers.filter(el=>is(el, CPart) & el!=selectedLayer)" @click="selectedLayer.linkTo(layer); linkingRender = false">
-            {{layer.$.title}}
-          </li>
-        </ul> -->
       </div>
-      <div class="settings.dimensions dimen-row">
-        <div class="dimen">
-          <span>Kurve</span>
-          <select v-model="object.render.curve">
+        <div class="linked-layer-item render-link" @click="selectObject(object.render.curve)">
+          <i class="fa fa-fw fa-leaf"></i>
+          <select v-model="object.render.curve" @click.stop="">
             <option :value="curve.id" v-for="curve in curves">
               {{curve.title}}
             </option>
           </select>
-          <i v-show="object.render.curve" class="fa fa-angle-right switch_to" @click="selectObject(object.render.curve)"></i>
+          <span>
+            <i v-show="object.render.curve" class="fa fa-angle-right switch_to"></i>
+          </span>
         </div>
-        <div class="dimen">
-          <span>Bild</span>
-          <select v-model="object.render.image">
+        <div class="linked-layer-item render-link" @click="selectObject(object.render.image)">
+          <i class="fas fa-fw fa-image"></i>
+          <select v-model="object.render.image" @click.stop="">
             <option :value="image.id" v-for="image in images">
               {{image.title}}
             </option>
           </select>
-          <i v-show="object.render.image" class="fa fa-angle-right switch_to" @click="selectObject(object.render.image)"></i>
+          <span>
+            <i v-show="object.render.image" class="fa fa-angle-right switch_to"></i>
+          </span>
         </div>
-      </div>
-      <div class="settings-dimensions dimen-row">
+      <div class="settings-dimensions dimen-row" style="padding-left: 10px !important; padding-right: 10px !important;">
         <div class="dimen">
           <span>Linien</span>
           <span>L</span><input type="number" v-model.number.lazy="object.render.lines.l" v-blur/>
@@ -123,9 +111,24 @@
 
   export default {
     extends: BasePropertyPanel,
+    computed: {
+      sizewarning() {
+        return this.object.w > this.$store.state.machine.w || this.object.h > this.$store.state.machine.h
+      }
+    },
     methods: {
       fillLines() {
         this.$store.dispatch("fillLinesForLayer", this.id)
+      },
+      compressPart() {
+        if (this.object.w > this.$store.state.machine.w) {
+          this.object.x = this.object.x + this.object.w/2 - this.$store.state.machine.w/2
+          this.object.w = this.$store.state.machine.w;
+        }
+        if (this.object.h > this.$store.state.machine.h) {
+          this.object.y = this.object.y + this.object.h/2 - this.$store.state.machine.h/2
+          this.object.h = this.$store.state.machine.h;
+        }
       }
     }
   }
@@ -139,6 +142,38 @@
 }
 
 .switch_to:hover {
+  color: #008dea;
+}
+
+.size-warning {
+  background: #ededed;
+  font-size: 12px;
+  padding: 5px 10px !important;
+  border-left: 3px solid red;
+  border-bottom: none !important;
+}
+
+.size-warning i {
+  margin: 5px;
+}
+
+.size-warning i:hover {
+  color: #008dea;
+}
+
+.render-link {
+  padding-left: 20px;
+}
+
+.linked-layer-item select {
+  height: 100%;
+}
+
+.linked-layer-item:hover select {
+  background: #ededed;
+}
+
+.linked-layer-item:hover select:hover {
   color: #008dea;
 }
 
