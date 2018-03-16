@@ -1,5 +1,5 @@
 
-let {rotate} = require("../includes/renderfunctions.js")
+import {rotate} from "@/functions.js"
 
 export default {
   bind(el, binding, vnode) {

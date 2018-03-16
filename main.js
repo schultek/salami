@@ -97,7 +97,7 @@ function createWindow () {
 }
 
 
-app.setName("WebCarve");
+app.setName("Salami");
 //app.dock.setIcon("img/curve1.png");
 
 app.on('ready', createWindow);

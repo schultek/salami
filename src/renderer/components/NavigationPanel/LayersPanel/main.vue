@@ -21,7 +21,7 @@
     computed: mapState(["subLayersOpen", "selectedObject"]),
     watch: {
       selectedObject(id) {
-        if (id && (this.subLayersOpen != this.$store.getters.isSublayerById(id)))
+        if (id && (this.subLayersOpen != this.$store.getters.isLayerById(id)))
           this.$store.commit("setSubLayersOpen", !this.subLayersOpen)
       }
     },

@@ -20,9 +20,9 @@
     computed: {
       ...mapState(["quickMode", "selectedObject"]),
       type() {
+        if (!this.selectedObject) return
         if (this.selectedObject == "machine") return "machine";
-        let o = this.$store.getters.getObjectById(this.selectedObject);
-        return o ? o.is : ""
+        return this.$store.getters.getObjectTypeById(this.selectedObject);
       }
     }
   }
@@ -69,70 +69,9 @@ input[type="text"]:focus, input[type="number"]:focus {
   padding: 10px;
 }
 
-.settings-title {
-  display: flex;
-  justify-content: space-between;
-  height: 25px;
-  letter-spacing: 1px;
-}
-
-.settings-title span {
-  font-size: 10px;
-  margin: 6px 0;
-  margin-right: 10px;
-  display: inline-block;
-  color: #9f9f9f;
-  text-transform: uppercase;
-}
-
-.settings-title i {
-  font-size: 14px;
-  margin: 6px;
-  color: #9f9f9f;
-}
-
-.settings-title i:hover {
-  color: #008dea;
-}
-
 .settings-dimensions {
   display: flex;
   flex-flow: row wrap;
-}
-
-.dimen-row-3 .dimen {
-  width: 80px;
-}
-
-.dimen-row-2 .dimen {
-  width: 120px;
-}
-
-.dimen-row-4 .dimen {
-  width: 55px;
-}
-
-.dimen-row .dimen {
-  width: auto;
-}
-
-.dimen-row .dimen input {
-  width: 45px;
-}
-
-.dimen {
-  height: 20px;
-  margin: 10px 5px;
-}
-
-.dimen span {
-  display: inline-block;
-  font-size: 11px;
-  margin: 5px;
-}
-
-.dimen input {
-  width: 60%;
 }
 
 .settings-panel {
@@ -148,20 +87,13 @@ input[type="text"]:focus, input[type="number"]:focus {
   display: flex;
   justify-content: space-between;
   color: #9f9f9f;
-}
-
-.settings-header > span {
-  margin: 10px;
-  font-size: 10px;
+    font-size: 10px;
 }
 
 .settings-header > span:first-child {
+  margin: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
-}
-
-.settings-header i {
-  font-size: 12px;
 }
 
 .settings-header span span {

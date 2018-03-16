@@ -1,7 +1,9 @@
 
 import $ from "jquery"
 
-let {getMaxLength} = require("../includes/renderfunctions.js")
+import {getNewId, getMaxLength} from "@/functions.js"
+
+import {CPart, Form, Layer, Image, Text, Machine, Renderer, HalftoneRenderer, StippleRenderer, RenderParams} from "@/models.js"
 
 export default {
 
@@ -26,11 +28,15 @@ export default {
     }
   },
   getJsonFromProject(state) {
+
     let o = {
       project: state.project,
-      objects: state.objects.map(cleanObject),
-      fonts: state.fonts.map(cleanFont),
-      machine: state.machine,
+      layers: state.layers.map(o => o.toObj()),
+      images: state.images.map(o => o.toObj()),
+      renderer: state.renderer.map(o => o.toObj()),
+      texts: state.texts.map(o => o.toObj()),
+      fonts: state.fonts.map(o => o.toObj()),
+      machine: state.machine.toObj()
     }
     return JSON.stringify(o);
   },
@@ -50,117 +56,158 @@ export default {
   *****************/
 
   getLayoutFromProject(state) {
-    let images = state.objects
-      .filter(o => o.is == "image")
-      .map(cleanObject)
-    let curves = state.objects
-      .filter(o => o.is == "curve")
-      .map(cleanObject)
-    let layers = state.objects
-      .filter(o => o.is == "cpart" || o.is == "form")
-      .map(cleanObject)
+    let images = state.images.map(o => o.toObj())
+    let layers = state.layers.map(o => o.toObj())
+    let renderer = state.renderer.map(o => o.toObj())
+    let texts = state.texts.map(o => o.toObj())
+
     let o = {
       title: "Layout " + (state.layouts.length + 1),
       template: {
-        layers, images, curves,
-        fonts: state.fonts.map(cleanFont),
-        machine: JSON.parse(JSON.stringify(state.machine))
+        layers, images, renderer, texts,
+        fonts: state.fonts.map(o => o.toObj()),
+        machine: state.machine.toObj()
       }
     }
     return o;
   },
 
   /*****************
-      OBEJCTS
+      OBJECTS
   *****************/
 
-  getObjectById(state) {
+  getObjectById(state, getters) {
     return (id) => {
       if (id == 'machine') return state.machine
-      let o = state.objects.find(el => el.id == id);
-      if (!o) throw new Error("Object with id "+id+" not found")
-      return o;
+      let arr = getters.getObjectArrayById(id)
+      if (arr)
+        return arr.find(el => el.id == id);
     }
   },
-  getObjectsByType(state) {
-    return state.objects.reduce((objects, o) => {
-      if (o.is == "cpart" || o.is == "form") objects.layers.push({id: o.id, is: o.is, title: o.title, type: o.type})
-      else if (o.is == "curve") objects.curves.push({id: o.id, title: o.title})
-      else if (o.is == "image") objects.images.push({id: o.id, title: o.title})
-      else if (o.is == "text") objects.texts.push({id: o.id, title: o.title})
-      else console.error("Object of unknown type: ",o);
-      return objects
-    }, {layers: [], images: [], texts: [], curves: []})
-  },
-  isSublayer(state, getters) {
-    return (o) => {
-      return o.is == 'cpart' || o.is == 'form'
+  getObjectArrayById(state) {
+    return (id) => {
+      if (state.layers.find(el => el.id == id)) return state.layers
+      else if (state.images.find(el => el.id == id)) return state.images
+      else if (state.texts.find(el => el.id == id)) return state.texts
+      else if (state.renderer.find(el => el.id == id)) return state.renderer
     }
   },
-  isSublayerById(state, getters) {
+  getObjectTypeById(state, getters) {
+    return (id) => {
+      let o = getters.getObjectById(id);
+      if (o instanceof CPart)    return "cpart"
+      if (o instanceof Form)     return "form"
+      if (o instanceof Renderer) return "renderer"
+      if (o instanceof Image)    return "image"
+      if (o instanceof Machine)  return "machine"
+      if (o instanceof Text)     return "text"
+    }
+  },
+  isLayerById(state, getters) {
     return (id) => {
       let o = getters.getObjectById(id)
-      return getters.isSublayer(o)
+      return o instanceof Layer
     }
   },
-  getNewObjectByType(state) {
+  getNewObjectByType(state, getters) {
     return (type, o) => {
 
-      let def = {
-        id: getNewId(),
-        x: 0, y: 0, w: state.machine.w, h: state.machine.h
+      if (!o) o = {}
+
+      if (["cpart", "ellipse", "rect"].indexOf(type) >= 0) {
+        if (!("renderParams" in o) || o.renderParams.length == 0)
+          o.renderParams = [new RenderParams()]
+        o.renderParams.forEach(p => {
+          if (!p.renderer) p.renderer = (state.renderer[0] || {id: null}).id
+          if (!p.image)    p.image    = (state.images[0] || {id: null}).id
+          p = new RenderParams(p)
+        })
       }
 
-      let {id, x, y, w, h} = o ? {
-        id: o.id || def.id,
-        x: o.x || def.x, y: o.y || def.y,
-        w: o.w || def.w, h: o.h || def.h
-      } : def
-
-      let rot = 0
-
-      let render = {
-        curve: (state.objects.filter(el => el.is == "curve")[0] || {id: null}).id,
-        image: (state.objects.filter(el => el.is == "image")[0] || {id: null}).id,
-        lines: {l: 10, r: 10}, dotted: false, refinedEdges: 100, smooth: 50
+      if (["cpart", "image"].indexOf(type) >= 0) {
+        if (!("w" in o)) o.w = state.machine.w
+        if (!("h" in o)) o.h = state.machine.h
       }
 
-      let n = state.objects.filter(el => el.is == (type == "rect" || type == "ellipse" ? "form" : type)).length+1
+      if (!o.title) {
+        let arr = type == "cpart" || type == "rect" || type == "ellipse" ? state.layers :
+                  type == "image" ? state.images :
+                  type == "halftone" || type == "stipple" ? state.renderer :
+                  type == "text" ? state.texts : []
+
+        let n = arr.length+1
+        o.title = type.charAt(0).toUpperCase() + type.slice(1) + " " + n
+      }
 
       switch (type) {
-        case "cpart": return {
-          id, is: "cpart", x, y, w, h,
-          title: "Part " + n, render, inverted: false,
-          border: {left: 5, right: 5, top: 5, bottom: 5}
-        }
-        case "image": return {
-          id, is: "image", x, y, w, h, rot,
-          title: "Image " + n,
-        }
-        case "curve": return {
-          id, is: "curve", x, y, title: "Curve " + n,
-          type: "Linie", direction: 45, stretch: 80, gap: 2, steps: 400
-        }
-        case "rect": return {
-          id, is: "form", x, y, w, h, rot, title: "Form " + n,
-          type: "rect", render, mask: false, ownRenderer: false
-        }
-        case "ellipse": return {
-          id, is: "form", x, y, w, h, rot, title: "Form " + n,
-          type: "ellipse", render, mask: false, ownRenderer: false
-        }
-        case "text": return {
-          id, is: "text", x, y, rot, stroke: 1, size: 12,
-          title: "Text " + n
-        }
-        default: throw new Error("Unsupported type "+type)
+        case "cpart": return new CPart(o)
+        case "ellipse": return new Form({...o, type: "ellipse"})
+        case "rect": return new Form({...o, type: "rect"})
+        case "image": return new Image(o)
+        case "halftone": return new HalftoneRenderer(o)
+        case "stipple": return new StippleRenderer(o)
+        case "text": return new Text(o)
+        default: throw new Error(`Object of type ${type} not supported!`)
       }
     }
   },
-  getPathById(state) {
+  getRenderingPairById(state, getters) {
+    return (pId) => {
+      for (let layer of state.layers) {
+        let params = layer.renderParams.find(p => p.id == pId)
+        if (params) {
+          if (layer instanceof Form && !layer.ownRenderer) return {};
+          return {object: layer, renderParams: params}
+        }
+      }
+      return {}
+    }
+  },
+  getRenderingIds(state, getters) {
     return (id) => {
-      let o = state.paths.find(el => el.id == id)
-      return o ? o.path : ""
+      let o = getters.getObjectById(id)
+      let toRender = []
+      if (o instanceof Layer && o.isRendering())
+        o.renderParams.forEach(p => toRender.push(p.id))
+      if (o instanceof Renderer)
+        state.layers
+          .filter(el => el.isRendering())
+          .forEach(l => l.renderParams
+            .filter(p => p.renderer == o.id)
+            .forEach(p => toRender.push(p.id))
+          )
+      if (o instanceof Image)
+        state.layers
+          .filter(el => el.isRendering())
+          .forEach(l => l.renderParams
+            .filter(p => p.image == o.id)
+            .forEach(p => toRender.push(p.id))
+          )
+      if (o instanceof Form) {
+        let i = state.layers.indexOf(o);
+        state.layers
+          .filter(el => el.isRendering())
+          .filter(el => state.layers.indexOf(el) < i)
+          .forEach(l => l.renderParams
+            .filter(p => !p.ignoreForms.find(f => f.id == o.id))
+            .forEach(p => toRender.push(p.id))
+          )
+      }
+      if (o instanceof Machine)
+        state.layers
+          .filter(o => o.isRendering)
+          .forEach(l => l.renderParams.forEach(p =>
+            toRender.push(p.id)
+          ))
+      return toRender;
+    }
+  },
+  getRenderParams(state, getters) {
+    return (id, pId) => {
+      let p, o = getters.getObjectById(id)
+      if (o)
+        p = o.renderParams.find(p => p.id == pId);
+      return p
     }
   },
 
@@ -168,62 +215,11 @@ export default {
         MISC
   *****************/
 
-  getTimeString(state) {
-    return (time) => {
-      var h = Math.floor(time/60);
-      var m = Math.round(time - h*60);
-      return (h>0?h+"h ":"")+m+"m";
-    }
-  },
-  getNewId(state) {
-    return getNewId
-  },
   getMaxLength(state) {
     return (id) => {
-      let curve = state.objects.find(el => el.id == id)
-      if (curve.is != curve) throw new Error("Object with id "+id+" isn't a curve")
-      return getMaxLength(curve)
-    }
-  },
-  getCleanObject(state) {
-    return cleanObject
-  }
-}
-
-function cleanObject(o) {
-  let d1 = ["x", "y", "title"]
-  let d2 = d1.concat(["w", "h"])
-  let d3 = d2.concat(["rot"])
-  return (o) => {
-    switch (o.is) {
-      case "cpart": return withProps(o, [...d2, "border", "render"])
-      case "form": return withProps(o, [...d3, "title", "type", "render", "mask", "ownRenderer"])
-      case "image": return withProps(o, [...d3, "url"])
-      case "curve": return withProps(o, [...d1, "type", "direction", "stretch", "gap", "steps"])
-      case "text": return withProps(o, [...d1, "rot", "stroke", "size", "font"])
+      let renderer = state.renderer.find(el => el.id == id)
+      if (!(renderer instanceof HalftoneRenderer)) throw new Error("Object with id "+id+" isn't a HalftoneRenderer")
+      return getMaxLength(renderer)
     }
   }
-}
-
-function cleanFont(o) {
-  return withProps(o, ["id", "file", "title"])
-}
-
-function withProps(o, props) {
-  let new_o = {};
-  for (let p of props) {
-    new_o[p] = o[p]
-  }
-  return new_o
-}
-
-function getNewId() {
-  return [0,0].reduce((str) => {
-    let a = str + (str != "" ? "-" : "");
-    let b = [0,0,0].reduce((str) => {
-      let c = Math.round(Math.random()*62)
-      return str + (c < 52 ? String.fromCharCode(c < 26 ? 65 + c : 71 + c) : (c - 52))
-    }, "")
-    return a+b;
-  }, "")
 }

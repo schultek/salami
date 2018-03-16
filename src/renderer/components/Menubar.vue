@@ -8,7 +8,7 @@
       <span @click="saveProject">Speichern</span>
     </div>
     <div class="right" :class="quickMode || !objectSelected ? 'hide-settings' : ''">
-      <div class="loader" :style="{opacity: progress<100?1:0}">
+      <div class="loader">
         <span></span>
         <span :style="{width: progress+'px'}"></span>
       </div>
@@ -28,13 +28,15 @@
 
 <script>
 
+  import $ from "jquery"
+
   export default {
     computed: {
       projectName() {
         return this.$store.state.project.name
       },
       progress() {
-        return this.$store.getters.getProgress
+        return this.$store.state.progress
       },
       quickMode() {
         return this.$store.state.quickMode
@@ -44,6 +46,15 @@
       },
       objectSelected() {
         return this.$store.state.selectedObject != null
+      }
+    },
+    watch: {
+      progress(n, o) {
+          if (!n || n == 100) {
+            $(".loader").fadeOut();
+          } else if (n && n < 100) {
+            $(".loader").fadeIn();
+          }
       }
     },
     methods: {
@@ -123,13 +134,11 @@
   background-color: #e4e4e4;
 }
 
-
 .loader {
   display: flex;
   align-items: center;
   width: 100px;
   height: 100%;
-  transition: opacity 0.8s;
   margin-right: 10px;
 }
 

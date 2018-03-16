@@ -10,6 +10,8 @@ import directives from "./directives/index.js"
 import fs from "mz/fs"
 import path from "path"
 
+import {ipcRenderer} from "electron"
+
 Vue.use(VueElectron);
 
 // Vue.config.productionTip = false
@@ -24,3 +26,7 @@ new Vue({
   },
   store
 }).$mount('#app')
+
+ipcRenderer.on("touchbar", (e, m) => {
+  console.log(m)
+})

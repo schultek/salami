@@ -8,16 +8,16 @@
     </defs>
     <g id="svgProject" :transform="'translate('+p.x+' '+p.y+') scale('+p.zoom+')'">
       <g id="svgLayers" :style="{opacity: subLayersOpen ? 1 : 0.6}">
-        <component v-for="layer in objects.layers" :key="layer.id" :is="layer.is+'X'" :ref="layer.id" :id="layer.id"></component>
+        <component v-for="layer in layers" :key="layer.id" :is="compType(layer)+'X'" :ref="layer.id" :id="layer.id"></component>
       </g>
       <g id="svgImages" :style="{display: subLayersOpen ? 'none' : 'inherit'}">
-        <ImageX v-for="image in objects.images" :key="image.id" :ref="image.id" :id="image.id"></ImageX>
+        <ImageX v-for="image in images" :key="image.id" :ref="image.id" :id="image.id"></ImageX>
       </g>
-      <g id="svgCurves" :style="{display: subLayersOpen ? 'none' : 'inherit'}">
-        <Curve v-for="curve in objects.curves" :key="curve.id" :ref="curve.id" :id="curve.id"></Curve>
+      <g id="svgRenderer" :style="{display: subLayersOpen ? 'none' : 'inherit'}">
+        <Renderer v-for="renderer in renderer" :key="renderer.id" :ref="renderer.id" :id="renderer.id" :type="rendererType(renderer)"></Renderer>
       </g>
       <g id="svgTexts">
-        <TextX v-for="text in objects.texts" :key="text.id" :ref="text.id" :id="text.id"></TextX>
+        <TextX v-for="text in texts" :key="text.id" :ref="text.id" :id="text.id"></TextX>
       </g>
     </g>
   </svg>
@@ -26,10 +26,12 @@
 <script>
 
   import CPart from "./Objects/CPart.vue"
-  import Curve from "./Objects/Curve.vue"
+  import Renderer from "./Objects/Renderer.vue"
   import ImageX from "./Objects/Image.vue"
   import Form from "./Objects/Form.vue"
   import TextX from "./Objects/Text.vue"
+
+  import {CPart as CPartObject, HalftoneRenderer, StippleRenderer, Image} from "@/models.js"
 
   export default {
     data: () => ({
@@ -39,12 +41,13 @@
     components: {
       cpartX: CPart,
       formX: Form,
-      Curve, ImageX, TextX
+      Renderer, ImageX, TextX
     },
     computed: {
-      objects() {
-        return this.$store.getters.getObjectsByType
-      },
+      layers()   { return this.$store.state.layers   },
+      images()   { return this.$store.state.images   },
+      renderer() { return this.$store.state.renderer },
+      texts()    { return this.$store.state.texts    },
       p() {
         return this.$store.state.project
       },
@@ -56,15 +59,21 @@
       }
     },
     methods: {
+      rendererType(renderer) {
+        return renderer instanceof HalftoneRenderer ? "halftone" : renderer instanceof StippleRenderer ? "stipple" : ""
+      },
       unselectObject() {
         this.$store.commit("selectObject", null);
+      },
+      compType(layer) {
+        return layer instanceof CPartObject ? "cpart" : "form"
       },
       mouseUp(event) {
         if (this.adding) {
           if (this.objectId) {
             this.$store.commit("putObject", {id: this.objectId})
           } else {
-            this.objectId = this.addObject(event, {x: -20, y: -20, w: 40, h: 40})
+            this.objectId = this.addObject(event, {x: 0, y: 0, w: 40, h: 40})
           }
           this.$store.commit("selectObject", this.objectId)
           this.$store.commit("selectTool", "select")
@@ -140,6 +149,10 @@
         let p = this.$store.getters.getLocalPosition({x: event.x, y: event.y})
         let o = this.$store.getters.getNewObjectByType(this.$store.state.selectedTool, {x: x + p.x, y: y + p.y, w, h});
         this.$store.commit("addObject", o)
+        if (o instanceof Image) {
+          this.$store.dispatch("loadImage", {id: o.id})
+        }
+
         return o.id
       }
     }

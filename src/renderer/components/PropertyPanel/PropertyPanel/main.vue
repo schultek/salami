@@ -4,22 +4,22 @@
 
 <script>
 
-  import CPartPropertyPanel from "./CPartPropertyPanel.vue"
-  import CurvePropertyPanel from "./CurvePropertyPanel.vue"
-  import FormPropertyPanel from "./FormPropertyPanel.vue"
-  import MachinePropertyPanel from "./MachinePropertyPanel.vue"
-  import TextPropertyPanel from "./TextPropertyPanel.vue"
-  import ImagePropertyPanel from "./ImagePropertyPanel.vue"
+  import CPart from "./CPart.vue"
+  import Renderer from "./Renderer.vue"
+  import Form from "./Form.vue"
+  import Machine from "./Machine.vue"
+  import Text from "./Text.vue"
+  import Image from "./Image.vue"
 
   export default {
     props: ["type", "id"],
     components: {
-      cpartX: CPartPropertyPanel,
-      curveX: CurvePropertyPanel,
-      formX: FormPropertyPanel,
-      machineX: MachinePropertyPanel,
-      textX: TextPropertyPanel,
-      imageX: ImagePropertyPanel
+      cpartX: CPart,
+      rendererX: Renderer,
+      formX: Form,
+      machineX: Machine,
+      textX: Text,
+      imageX: Image
     }
   }
 
@@ -27,15 +27,9 @@
 
 <style>
 
-
 .linked-layer-list {
   padding-left: 0 !important;
   padding-right: 0 !important;
-  padding-top: 40px !important;
-}
-
-.linked-layer-item:first-child {
-  margin-top: 15px;
 }
 
 .linked-layer-item {
@@ -47,23 +41,39 @@
   position: relative;
 }
 
-.linked-layer-item i:first-child {
-  margin-right: 5px;
+.linked-layer-item i.icon {
+  margin-right: 12px;
 }
 
-.linked-layer-item i:last-child {
+.linked-layer-item select {
+  margin-left: -7px;
+}
+
+.linked-layer-item span:last-child {
   position: absolute;
-  top: 50%;
-  right: 10px;
-  transform: translate(0, -50%);
+  padding-right: 5px;
+  right: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
   color: #aaa;
 }
 
-.linked-layer-item:hover {
+.linked-layer-item span:last-child i {
+  margin: auto 5px;
+}
+
+.linked-layer-item:hover, .linked-layer-item.selected {
   background-color: #ededed;
 }
 
-.linked-layer-item:hover i:last-child {
+.linked-layer-item span:last-child i:hover {
+  color: #555;
+}
+
+.linked-layer-item:hover i.link {
   color: #555;
 }
 

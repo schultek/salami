@@ -17,6 +17,22 @@
         "stage-0"
       ]
     },
+    "child": {
+      "presets": [
+        ["env", {
+          "modules": false
+        }],
+        "stage-0"
+      ]
+    },
+    "settings": {
+      "presets": [
+        ["env", {
+          "modules": false
+        }],
+        "stage-0"
+      ]
+    },
     "web": {
       "presets": [
         ["env", {

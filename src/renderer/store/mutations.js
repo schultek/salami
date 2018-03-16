@@ -1,20 +1,27 @@
 
-import getters from "./getters.js"
+import gets from "./getters.js"
 import Vue from "vue"
 
-function round(n, x) {
-  return Math.round(n*x)/x
-}
+import {round} from "@/functions.js"
+import {Machine, CPart, Layer, Text, Form, Renderer, Image} from "@/models.js"
 
-function updateDeep(toUpdate, object) {
-  Object.keys(object).forEach(k => {
-    if (typeof object[k] == "object") {
-      if (!toUpdate[k]) Vue.set(toUpdate, k, {})
-      updateDeep(toUpdate[k], object[k])
-    } else
-      Vue.set(toUpdate, k, object[k])
-  })
-}
+let getters = new Proxy(gets, {
+  get(target, prop) {
+    return function(state, ...args) {
+
+      let subproxy = new Proxy(target, {
+        get: (subtarget, subprop) => subtarget[subprop](state, subproxy)
+      })
+
+      let result = target[prop](state, subproxy)
+      if (typeof result === "function") {
+        return result(...args)
+      } else {
+        return result
+      }
+    }
+  }
+})
 
 export default {
 
@@ -39,6 +46,9 @@ export default {
   },
   selectTool(state, tid) {
     state.selectedTool = tid
+    state.tools.filter(t => t.tools).forEach(t => {
+      if (t.tools.find(el => el.id == tid)) t.selected = tid
+    })
   },
   switchNavigationPanel(state, n) {
     state.navigationPanel = n
@@ -69,12 +79,18 @@ export default {
   },
   buildProject(state, project) {
     state.project = project.project
-    state.machine = project.machine
-    state.objects = project.objects
+    state.machine = new Machine(project.machine)
+    state.layers = project.layers.map(o => new Layer(o))
+    state.images = project.images.map(o => new Image(o))
+    state.renderer = project.renderer.map(o => Renderer.fromObj(o))
+    state.texts = project.texts.map(o => new Text(o))
     state.fonts = project.fonts
   },
   cleanProject(state) {
-    state.objects = []
+    state.layers = []
+    state.images = []
+    state.renderer = []
+    state.texts = []
     state.selectedObject = null
   },
 
@@ -83,53 +99,60 @@ export default {
   *****************/
 
   updateObject(state, o) {
-    if (o.id == "machine") {
-      Object.keys(o).forEach(k => state.machine[k] = o[k])
-    } else {
-      o = fixBadParameter(o)
-      let orig = getters.getObjectById(state)(o.id)
-      updateDeep(orig, o)
-    }
+    let orig = getters.getObjectById(state, o.id)
+    orig.update(o)
   },
   moveObject(state, {id, x, y}) {
-    let o = getters.getObjectById(state)(id)
+    let o = getters.getObjectById(state, id)
     o.x = round(x, 10);
     o.y = round(y, 10);
   },
   rotateObject(state, {id, rot}) {
-    let o = getters.getObjectById(state)(id)
+    let o = getters.getObjectById(state, id)
+    while (rot < 0) rot += 360
+    while (rot > 360) rot -= 360
     o.rot = round(rot, 10);
   },
   resizeObject(state, {id, x, y, w, h}) {
-    let o = getters.getObjectById(state)(id)
-    o.x = round(x,10);
-    o.y = round(y,10);
-    o.w = round(w,10);
-    o.h = round(h,10);
+    let o = getters.getObjectById(state, id)
+    o.x = round(x,10); o.y = round(y,10);
+    o.w = round(Math.max(w, 0),10); o.h = round(Math.max(h, 0),10);
   },
   updateLayerOrder(state, order) {
-    let layers = state.objects.filter(getters.isSublayer(state))
-    let rest = state.objects.filter(el => !getters.isSublayer(state)(el))
-    state.objects = order.map(el => layers.find(l => l.id == el.id)).concat(rest)
+    state.layers = order.map(el => state.layers.find(l => l.id == el.id))
   },
   addObject(state, object) {
-    if (object.id && object.is) {
-      state.objects.push(object)
+    if (object instanceof Layer) {
+      state.layers.push(object)
+    } else if (object instanceof Image) {
+      state.images.push(object)
+    } else if (object instanceof Renderer) {
+      state.renderer.push(object)
+    } else if (object instanceof Text) {
+      state.texts.push(object)
+    } else {
+      throw new Error(`Object is not supported!`, object)
     }
   },
   removeObject(state, id) {
-    let o = getters.getObjectById(state)(id)
-    state.objects.splice(state.objects.indexOf(o), 1)
-    if (o.is == "curve") {
-      let curve = state.objects.find(el => el.is == "curve") || {id: ""}
-      state.objects
-        .filter(el => getters.isSublayerById(state)(el.id) && el.render.curve == o.id)
-        .forEach(el => el.render.curve = curve.id)
-    } else if (o.is == "image") {
-      let image = state.objects.find(el => el.is == "image") || {id: ""}
-      state.objects
-        .filter(el => getters.isSublayerById(state)(el.id) && el.render.image == o.id)
-        .forEach(el => el.render.image = image.id)
+    let o = getters.getObjectById(state, id)
+    let arr = getters.getObjectArrayById(state, id)
+    arr.splice(arr.indexOf(o), 1)
+    if (o instanceof Renderer) {
+      state.layers.forEach(el => el.renderParams = el.renderParams.filter(p => p.renderer != o.id))
+    } else if (o instanceof Image) {
+      let image = state.images.length <= 1 ? {id: ""} : state.images.find(i => i.id != o.id)
+      state.layers.forEach(el => el.renderParams
+        .filter(p => p.image == o.id)
+        .forEach(p => p.image = image.id)
+      )
+    } else if (o instanceof Form) {
+      state.layers
+        .forEach(l => l.renderParams.forEach(p => {
+          if (p.ignoreForms.indexOf(o.id)) {
+            p.ignoreForms.splice(p.ignoreForms.indexOf(o.id), 1)
+          }
+        }))
     }
   },
 
@@ -158,8 +181,8 @@ export default {
   addFont(state, font) {
     state.fonts.push(font)
     if (state.selectedObject) {
-      let o = getters.getObjectById(state)(state.selectedObject)
-      if (o.is == 'text')
+      let o = getters.getObjectById(state, state.selectedObject)
+      if (o instanceof Text)
         o.font = font.id
     }
   },
@@ -168,32 +191,38 @@ export default {
   OBJECT RENDERING
   *****************/
 
-  setLineCountById(state, {id, lines}) {
-    let object = getters.getObjectById(state)(id)
-    if (getters.isSublayer(state)(object)) {
-      object.render.lines.l = lines.l;
-      object.render.lines.r = lines.r;
-    }
+  addRenderParams(state, {id, params}) {
+    let o = getters.getObjectById(state, id)
+    o.renderParams.push(params);
   },
-  setFillById(state, {id, fill}) {
-    let object = getters.getObjectById(state)(id)
-    if (getters.isSublayer(state)(object)) {
-      Vue.set(object, "fill", fill);
-    }
+  removeRenderParams(state, {id, pId}) {
+    let o = getters.getObjectById(state, id)
+    let p = o.renderParams.find(p => p.id == pId);
+    o.renderParams.splice(o.renderParams.indexOf(p), 1)
   },
-  setPathById(state, {id, path}) {
-    let o = state.paths.find(el => el.id == id)
+  updateRenderParams(state, {id, params}) {
+    let p = getters.getRenderParams(state, id, params.id)
+    p.update(params)
+  },
+  setIgnoredForms(state, {id, pId, forms}) {
+    let p = getters.getRenderParams(state, id, pId)
+    p.ignoreForms = forms
+  },
+  setRenderResult(state, {id, params}) {
+    let p = getters.getRenderParams(state, id, params.id)
+    p.update(params)
+  },
+  setSVGPathById(state, {id, path}) {
+    let o = getters.getObjectById(state, id)
     if (o)
-      o.path = path
-    else
-      state.paths.push({id, path})
+      Vue.set(o, "path", path)
+    else throw new Error("Object for Path could not be found")
   },
   setGCodeById(state, {id, gcode}) {
-    let o = state.gcodes.find(el => el.id == id)
+    let o = getters.getObjectById(state, id)
     if (o)
-      o.gcode = gcode
-    else
-      state.gcodes.push({id, gcode})
+      Vue.set(o, "gcode", gcode)
+    else throw new Error("Object for GCode could not be found")
   },
 
   /*****************
@@ -206,24 +235,4 @@ export default {
   putObject(state, id) {
     //Buffer Mutation for Plugins
   }
-}
-
-
-function fixBadParameter(o) {
-  let map = (p) => {
-    while (o[p] < 0) o[p] += 360
-    while (o[p] >= 360) o[p] -= 360
-  }
-  if (o.rot !== undefined) map("rot")
-  if (o.direction !== undefined) map("direction")
-  if (o.stretch !== undefined && o.stretch == 0) o.stretch = 1
-  if (o.steps !== undefined && o.steps == 0) o.steps = 1
-  if (o.gap !== undefined && o.gap == 0) o.gap = 1
-  if (o.render !== undefined) {
-    if (o.render.refinedEdges > 100) o.render.refinedEdges = 100
-    if (o.render.refinedEdges < 0) o.render.refinedEdges = 0
-    if (o.render.smooth > 100) o.render.smooth = 100;
-    if (o.render.smooth < 0) o.render.smooth = 0;
-  }
-  return o;
 }

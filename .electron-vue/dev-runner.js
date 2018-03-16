@@ -11,6 +11,8 @@ const webpackHotMiddleware = require('webpack-hot-middleware')
 
 const mainConfig = require('./webpack.main.config')
 const rendererConfig = require('./webpack.renderer.config')
+const childConfig = require("./webpack.child.config")
+const settingsConfig = require("./webpack.settings.config")
 
 let electronProcess = null
 let manualRestart = false
@@ -43,9 +45,9 @@ function startRenderer () {
     rendererConfig.entry.renderer = [path.join(__dirname, 'dev-client')].concat(rendererConfig.entry.renderer)
 
     const compiler = webpack(rendererConfig)
-    hotMiddleware = webpackHotMiddleware(compiler, { 
-      log: false, 
-      heartbeat: 2500 
+    hotMiddleware = webpackHotMiddleware(compiler, {
+      log: false,
+      heartbeat: 2500
     })
 
     compiler.plugin('compilation', compilation => {
@@ -74,6 +76,39 @@ function startRenderer () {
     )
 
     server.listen(9080)
+  })
+}
+
+function startSettings() {
+  return new Promise((resolve, reject) => {
+
+    const compiler = webpack(settingsConfig)
+    compiler.watch({}, (err, stats) => {
+      if (err) {
+        console.log(err)
+        return
+      }
+
+      logStats('Settings', stats)
+      resolve()
+    })
+  })
+}
+
+function startChild() {
+  return new Promise((resolve, reject) => {
+
+    const compiler = webpack(childConfig)
+
+    compiler.watch({}, (err, stats) => {
+      if (err) {
+        console.log(err)
+        return
+      }
+
+      logStats('Child', stats)
+      resolve()
+    })
   })
 }
 
@@ -117,7 +152,8 @@ function startElectron () {
   electronProcess = spawn(electron, ['--inspect=5858', path.join(__dirname, '../dist/electron/main.js')])
 
   electronProcess.stdout.on('data', data => {
-    electronLog(data, 'blue')
+    //electronLog(data, 'blue')
+    console.log(data.toString().trim())
   })
   electronProcess.stderr.on('data', data => {
     electronLog(data, 'red')
@@ -166,7 +202,7 @@ function greeting () {
 function init () {
   greeting()
 
-  Promise.all([startRenderer(), startMain()])
+  Promise.all([startChild(), startRenderer(), startMain(), startSettings()])
     .then(() => {
       startElectron()
     })

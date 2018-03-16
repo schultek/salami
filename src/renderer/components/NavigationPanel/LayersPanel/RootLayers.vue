@@ -4,14 +4,14 @@
       <i class="fa fa-fw fa-folder"></i>
       Fräsbereich
       <span>
-        <i class="fa fa-fw fa-cog" @click.stop="selectLayer('machine')"></i>
+        <i class="fa fa-fw fa-cog" @click.stop="selectObject('machine')"></i>
       </span>
     </div>
-    <div class="layer-item" v-for="layer in layers" :class="[selectedObject==layer.id?'selected':'']" @click="selectLayer(layer.id)">
-      <i class="fa fa-fw" :class="'fa-'+layer.icon"></i>
+    <div class="layer-item" v-for="layer in layers" :class="[selectedObject==layer.id?'selected':'']" @click="selectObject(layer.id)">
+      <i class="fa fa-fw" :class="layer.icon"></i>
       {{layer.title}}
       <span>
-        <i class="fa fa-fw fa-trash-alt" @click.stop="removeLayer(layer.id)"></i>
+        <i class="fa fa-fw fa-trash-alt" @click.stop="removeObject(layer.id)"></i>
       </span>
     </div>
   </div>
@@ -20,26 +20,26 @@
 
 <script>
 
+  import {HalftoneRenderer} from "@/models.js"
+  import {SelectObject, Icon} from "@/mixins.js"
+
   export default {
+    mixins: [SelectObject, Icon],
     computed: {
       selectedObject() {
         return this.$store.state.selectedObject
       },
       layers() {
-        let layers = this.$store.getters.getObjectsByType
-        return layers.curves.map(c => ({...c, icon: "leaf"}))
-          .concat(layers.images.map(i => ({...i, icon: "image"})))
-          .concat(layers.texts.map(t => ({...t, icon: "font"})))
+        return this.$store.state.renderer.map(c => ({...c, icon: this.icon(c)}))
+          .concat(this.$store.state.images.map(i => ({...i, icon: this.icon(i)})))
+          .concat(this.$store.state.texts.map(t => ({...t, icon: this.icon(t)})))
       }
     },
     methods: {
-      selectLayer(id) {
-        this.$store.commit("selectObject", id)
-      },
       openSublayers() {
         this.$store.commit("setSubLayersOpen", true);
       },
-      removeLayer(id) {
+      removeObject(id) {
         this.$store.dispatch("removeObject", id)
       }
     }

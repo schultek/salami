@@ -16,7 +16,6 @@ npm install
 npm run build
 ```
 
-
 ## TODO
 
 ### Enhancements
@@ -29,14 +28,18 @@ npm run build
   - [x] normal click on machine layer to open sublayers
   - [x] settings icon to open machine setting
 - [ ] use cloud computing
-- [ ] use Proxy for reactive object
-- [ ] property panels as modules
+- [x] use Proxy for reactive object
+- [x] property panels as modules
 - [ ] no double dialogs
 - [ ] detect unsaved changes
 - [ ] layer rotation
+- [ ] ids as symbols
+- [x] multi processing
 
 ### New Features
 
+- [x] new rendering system
+- [ ] touch bar
 - [ ] stippling mode
 - [ ] new layout system
   - [ ] scale layout to default parameters
@@ -48,7 +51,6 @@ npm run build
   - [ ] share layouts
   - [ ] live project with other users
 - [ ] shortcuts
-- [ ] property linking
 - [ ] undo / redo
 - [ ] auto leveling
 - [ ] settings page
@@ -57,5 +59,5 @@ npm run build
   - [ ] default parameters
   - [ ] color theme
   - [ ] rendering behaviors
-- [ ] notification system [vue-component](https://github.com/euvl/vue-notification)
-- [ ]
+- [ ] notification system: [vue-component](https://github.com/euvl/vue-notification)
+- [ ] form snapping

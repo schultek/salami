@@ -1,4 +1,4 @@
-import path from "path"
+import {Machine} from "@/models.js"
 
 export default {
   quickMode: false,
@@ -8,34 +8,35 @@ export default {
   selectedTool: "select",
   subLayersOpen: false,
   selectedLayout: null,
-  progress: 0,
+  progress: null,
   centered: false,
   project: {
     name: "Unbenannt",
     file: null,
     x: 0, y: 0, zoom: 1
   },
-  objects: [],
+  layers: [],
+  images: [],
+  texts: [],
+  renderer: [],
   layouts: [],
   fonts: [],
   tools: [
-    {id: "select",  icon: "mouse-pointer"},
-    {id: "image",   icon: "image"        },
-    {id: "cpart",   icon: "th-large"     },
-    {id: "rect",    icon: "square"       },
-    {id: "ellipse", icon: "circle"       },
-    {id: "curve",   icon: "leaf"         },
+    {id: "select",   icon: "mouse-pointer"},
+    {id: "cpart",    icon: "th-large"     },
+    {id: "image",    icon: "image"        },
+    {selected: "rect",     tools: [
+      {id: "rect",     icon: "square" },
+      {id: "ellipse",  icon: "circle" }
+    ]},
+    {selected: "halftone", tools: [
+      {id: "halftone", icon: "leaf"   },
+      {id: "stipple",  icon: "eye"    }
+    ]},
     {id: "text",    icon: "font"         }
   ],
-  machine: { //TODO set default values in settings
-    w: 300, h: 200,
-    bit: {width: 2.0, height: 3.2, tip: 0.1, inDepth: 1.5},
-    speed: {feedrate: 300, feedrateDot: 600, seekrate: 1000},
-    outHeight: 1
-  },
+  machine: new Machine(),
   imgDefault: {
-    url: path.join(__static, "default.png")
-  },
-  paths: [],
-  gcodes: []
+    url: __static+"/default.png"
+  }
 }

@@ -1,10 +1,23 @@
 <template>
   <div id="toolbar" class="panel">
     <div id="tools">
-      <span v-for="tool in tools" @click="selectTool(tool.id)" :class="[tool.id==selectedTool?'selected':'']">
+      <template v-for="tool in tools" >
+        <span v-if="'id' in tool" @click="selectTool(tool.id)" class="tool" :class="[tool.id == selectedTool ? 'selected':'']">
           <i class="fa fa-fw" :class="'fa-'+tool.icon"></i>
-          <i class="fa fa-plus fa-xs corner-icon" v-show="tool.id!='select'"></i>
-      </span>
+          <i class="fa fa-plus fa-xs plus-icon" v-show="tool.id!='select'"></i>
+        </span>
+        <span v-else @click="selectTool(tool.selected)" class="tool" :class="[tool.selected == selectedTool ? 'selected':'']">
+          <i class="fa fa-fw" :class="'fa-'+getSelected(tool).icon"></i>
+          <i class="fa fa-plus fa-xs plus-icon" v-show="tool.selected!='select'"></i>
+          <i class="fa fa-xs fa-caret-right more-icon"></i>
+          <div class="tool-sublist">
+            <span v-for="t in tool.tools.filter(el => el.id != tool.selected)" @click="selectTool(t.id)" class="tool" :class="[t.id == selectedTool ? 'selected':'']">
+              <i class="fa fa-fw" :class="'fa-'+t.icon"></i>
+              <i class="fa fa-plus fa-xs plus-icon" v-show="t.id!='select'"></i>
+            </span>
+          </div>
+        </span>
+      </template>
     </div>
     <div id="sidepanel-icons">
       <!-- <div @click="selectNavigationPanel(0)" :class="[navigationPanel==0?'selected':'']">
@@ -22,8 +35,8 @@
 
 <script>
 
-  // import LayersIcon from "../assets/layers.svg"
-  // import LayoutsIcon from "../assets/layouts.svg"
+  // import LayersIcon from "@/assets/layers.svg"
+  // import LayoutsIcon from "@/assets/layouts.svg"
 
   import {mapState} from "vuex"
 
@@ -33,7 +46,7 @@
     methods: {
       selectTool(t) {
         this.$store.commit("selectTool", t)
-        if (t != "select") { //TODO constant
+        if (t != "select") {
           this.$store.commit("selectObject", null)
           setTimeout(() => this.$store.dispatch("centerProject", {withSidebar: true}), 10)
           this.$store.commit("setSubLayersOpen", t == "cpart" || t == "rect" || t == "ellipse")
@@ -41,6 +54,9 @@
       },
       selectNavigationPanel(n) {
         this.$store.commit("switchNavigationPanel", n)
+      },
+      getSelected(tool) {
+        return tool.tools.find(el => el.id == tool.selected)
       }
     }
   }
@@ -50,7 +66,6 @@
 <style>
 
 #toolbar {
-  width: 50px;
   border-right-style: solid;
   padding-top: 10px;
   position: relative;
@@ -59,22 +74,55 @@
 #tools {
   display: flex;
   flex-flow: column nowrap;
-  align-items: center;
 }
 
-#tools span {
+.tool {
   position: relative;
-  margin: 10px;
+  padding: 12px 14px;
 }
 
-#tools span.selected {
+.tool:hover {
+  background: #e4e4e4
+}
+
+.tool.selected > i {
   color: #008dea;
 }
 
-#tools .corner-icon {
+.tool.selected .more-icon {
+  color: inherit;
+}
+
+.tool-sublist {
   position: absolute;
-  top: -10px;
-  left: 16px;
+  z-index: 1;
+  left: 100%;
+  top: 0;
+  display: none;
+  flex-flow: column nowrap;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  box-shadow: 0 0 5px 1px #ddd;
+  background: #f7f7f7;
+}
+
+.tool:hover .tool-sublist {
+  display: flex;
+}
+
+.tool .plus-icon {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: .6em;
+}
+
+.tool .more-icon {
+  position: absolute;
+  transform: rotate(45deg);
+  font-size: .8em;
+  bottom: 0;
+  right: 3px;
 }
 
 #sidepanel-icons {
