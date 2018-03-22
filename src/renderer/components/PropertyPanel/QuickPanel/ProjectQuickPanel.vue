@@ -1,17 +1,17 @@
 <template>
   <div class="settings-panel">
     <div class="settings-header">
-      <span>Projekt - Schnelleinstellungen</span>
+      <span>Project - QuickSettings</span>
     </div>
     <div class="settings-dimensions dimen-row">
       <div class="dimen">
-        <span>B</span><input type="number" v-model.number.lazy="project.w" v-blur/>
+        <span>W</span><input type="number" v-model.number.lazy="project.w" v-blur/>
       </div>
       <div class="dimen">
         <span>H</span><input type="number" v-model.number.lazy="project.h" v-blur/>
       </div>
       <div class="dimen">
-        <span>Detailgrad</span><input type="number" v-model.number.lazy="project.detail" v-blur/>
+        <span>Detail</span><input type="number" v-model.number.lazy="project.detail" v-blur/>
       </div>
     </div>
   </div>
