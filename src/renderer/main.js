@@ -15,6 +15,7 @@ import path from "path"
 import {ipcRenderer} from "electron"
 
 import {setNotify} from "@/functions"
+import {initSnapping} from "@/includes/Snapping.js"
 
 Vue.use(VueElectron);
 Vue.use(Notification);
@@ -26,6 +27,7 @@ new Vue({
   template: '<div><App/><Overlay ref="overlay"/></div>',
   mounted() {
     setNotify(this.$notify.bind(this))
+    initSnapping(this.$store);
     this.$store.dispatch("init").then(
       this.$refs.overlay.fadeOut
     )

@@ -1,6 +1,8 @@
 
 import {rotate} from "@/functions.js"
 
+import {snapToObjects} from "@/includes/Snapping"
+
 export default {
   bind(el, binding, vnode) {
     let id = vnode.context.id
@@ -44,25 +46,35 @@ export default {
       if (mode.includes("ex")) end.x   = p.x;
       if (mode.includes("ey")) end.y   = p.y;
 
+      if (!event.ctrlKey) {
+        let startSnap = snapToObjects(id, start)
+        let endSnap = snapToObjects(id, end)
+        if (mode.includes("sy"))
+          start.y = startSnap.y
+        if (mode.includes("sx"))
+          start.x = startSnap.x
+        if (mode.includes("ey"))
+          end.y = endSnap.y
+        if (mode.includes("ex"))
+          end.x = endSnap.x
+      }
 
       if (!proportion && event.shiftKey && (mode.length == 4)) {
         let h = (end.x-start.x)/data.pro;
-        if (mode.includes("sy")) {
-          start.y = end.y - h;
+        let w = (end.y-start.y)*data.pro;
+        if (w < end.x-start.x) {
+          if (mode.includes("sy")) {
+            start.y = end.y - h;
+          } else {
+            end.y = start.y + h
+          }
         } else {
-          end.y = start.y + h
+          if (mode.includes("sx")) {
+            start.x = end.x - w;
+          } else {
+            end.x = start.x + w
+          }
         }
-      }
-
-      if (event.altKey) {
-        if (mode.includes("sy"))
-          end.y = data.center.y + (data.center.y - start.y)
-        if (mode.includes("sx"))
-          end.x = data.center.x + (data.center.x - start.x)
-        if (mode.includes("ey"))
-          start.y = data.center.y + (data.center.y - end.y)
-        if (mode.includes("ex"))
-          start.x = data.center.x + (data.center.x - end.x)
       }
 
       if (proportion) {
@@ -76,6 +88,17 @@ export default {
           let w = proportion(undefined, end.y - start.y)
           end.x = start.x + w;
         }
+      }
+
+      if (event.altKey) {
+        if (mode.includes("sy"))
+          end.y = data.center.y + (data.center.y - start.y)
+        if (mode.includes("sx"))
+          end.x = data.center.x + (data.center.x - start.x)
+        if (mode.includes("ey"))
+          start.y = data.center.y + (data.center.y - end.y)
+        if (mode.includes("ex"))
+          start.x = data.center.x + (data.center.x - end.x)
       }
 
       start = rotate(start, data.o, true);

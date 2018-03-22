@@ -1,4 +1,6 @@
 
+import {snapToObjects} from "@/includes/Snapping.js"
+
 export default {
   bind(el, binding, vnode) {
     let id = vnode.context.id;
@@ -17,7 +19,8 @@ export default {
       let o = useObject ? object : store.getters.getObjectById(id)
       data = {
         x: o.x - p.x,
-        y: o.y - p.y
+        y: o.y - p.y,
+        o
       }
       event.stopPropagation();
     })
@@ -25,18 +28,49 @@ export default {
       if (!drag) return
       dragged = true;
       let p = store.getters.getLocalPosition(event)
+
+      let o = {x: data.x + p.x, y: data.y + p.y}
+
+      if (!event.ctrlKey) {
+        let start = snapToObjects(id, o)
+        let end = snapToObjects(id, {x: o.x + data.o.w, y: o.y + data.o.h})
+
+        if (start.x == o.x) {
+          o.x = end.x - data.o.w
+        } else if (end.x == o.x + data.o.w) {
+          o.x = start.x
+        } else {
+          if (Math.abs(start.x - o.x) < Math.abs(end.x - (o.x + data.o.w))) {
+            o.x = start.x
+          } else {
+            o.x = end.x - data.o.w
+          }
+        }
+
+        if (start.y == o.y) {
+          o.y = end.y - data.o.h
+        } else if (end.y == o.y + data.o.h) {
+          o.y = start.y
+        } else {
+          if (Math.abs(start.y - o.y) < Math.abs(end.y - (o.y + data.o.h))) {
+            o.y = start.y
+          } else {
+            o.y = end.y - data.o.h
+          }
+        }
+
+      }
+
       if (useObject) {
         if (object.update)
-          object.update({x: data.x + p.x, y: data.y + p.y})
+          object.update(o)
         else {
-          object.x = data.x + p.x
-          object.y = data.y + p.y
+          object.x = o.x
+          object.y = o.y
         }
       } else {
         store.commit("moveObject", {
-          id,
-          x: data.x + p.x,
-          y: data.y + p.y,
+          id, x: o.x, y: o.y
         })
       }
     })
