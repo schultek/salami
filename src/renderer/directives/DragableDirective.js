@@ -1,5 +1,5 @@
 
-import {snapToObjects} from "@/includes/Snapping.js"
+import Snapping from "@/includes/Snapping.js"
 
 export default {
   bind(el, binding, vnode) {
@@ -32,8 +32,7 @@ export default {
       let o = {x: data.x + p.x, y: data.y + p.y}
 
       if (!event.ctrlKey) {
-        let start = snapToObjects(id, o)
-        let end = snapToObjects(id, {x: o.x + data.o.w, y: o.y + data.o.h})
+        let {start, end} = Snapping.get(id, o, {x: o.x + data.o.w, y: o.y + data.o.h})
 
         if (start.x == o.x) {
           o.x = end.x - data.o.w
@@ -79,6 +78,7 @@ export default {
         store.commit("putObject", {id})
       dragged = false;
       drag = false;
+      Snapping.close()
     })
     el.addEventListener("click", (event) => {
       event.stopPropagation()

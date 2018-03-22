@@ -50,6 +50,8 @@ npm run build
 - [ ] layer rotation
 - [?] ids as symbols
 - [x] multi processing
+- [ ] snapping with rotation
+- [x] snapping lines
 
 ### New Features
 
@@ -78,4 +80,4 @@ npm run build
   - [ ] color theme
   - [ ] rendering behaviors
 - [ ] notification system: [vue-component](https://github.com/euvl/vue-notification)
-- [ ] form snapping
+- [x] form snapping

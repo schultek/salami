@@ -1,7 +1,7 @@
 
 import {rotate} from "@/functions.js"
 
-import {snapToObjects} from "@/includes/Snapping"
+import Snapping from "@/includes/Snapping"
 
 export default {
   bind(el, binding, vnode) {
@@ -23,7 +23,7 @@ export default {
       let o = useObject ? object : store.getters.getObjectById(id)
       data.o = {...o};
       data.center = {x: o.x+o.w/2, y: o.y+o.h/2}
-      data.pro = o.w/o.h
+      data.pro = o.w/o.h || 1
 
       event.stopPropagation();
     }
@@ -110,8 +110,8 @@ export default {
       setH(getH())
 
       if (!event.ctrlKey) {
-        let startSnap = snapToObjects(data.o.id, start)
-        let endSnap = snapToObjects(data.o.id, end)
+        let snapping = Snapping.get(data.o.id, start, end)
+        let startSnap = snapping.start, endSnap = snapping.end
         let s = {...start}, e = {...end}
         if (event.altKey) {
           if (mode.includes("x")) {
@@ -196,6 +196,7 @@ export default {
         store.commit("putObject", {id})
       dragged = false;
       drag = false;
+      Snapping.close()
     }
 
     el.addEventListener("mousedown", vnode.mousedown);

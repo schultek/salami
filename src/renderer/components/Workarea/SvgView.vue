@@ -21,6 +21,7 @@
       </g>
       <Preview v-if="object" v-model="object" :mouse="mouse" :mode="objectMode"></Preview>
     </g>
+    <SnappingView></SnappingView>
   </svg>
 </template>
 
@@ -34,7 +35,8 @@
 
   import Preview from "./Preview.vue"
 
-  import {snapToObjects} from "@/includes/Snapping"
+  import Snapping from "@/includes/Snapping"
+  import SnappingView from "./Snapping.vue"
 
   import {CPart as CPartObject, HalftoneRenderer, StippleRenderer, Image as ImageObject, Text as TextObject, Form as FormObject} from "@/models.js"
 
@@ -51,7 +53,7 @@
       rendererX: Renderer,
       imageX: Image,
       textX: Text,
-      Preview
+      Preview, SnappingView
     },
     computed: {
       layers()   { return this.$store.state.layers   },
@@ -110,9 +112,9 @@
         let p = this.$store.getters.getLocalPosition({x: event.x, y: event.y})
 
         if (!event.ctrlKey)
-          p = snapToObjects(null, p)
+          p = Snapping.getSimple(null, p)
 
-        this.object = this.$store.getters.getNewObjectByType(this.$store.state.selectedTool, {x: p.x, y: p.y, w: 1, h: 1});
+        this.object = this.$store.getters.getNewObjectByType(this.$store.state.selectedTool, {x: p.x, y: p.y, w: 0, h: 0});
         this.objectMode = ["halftone", "stipple"].indexOf(this.$store.state.selectedTool) >= 0 ? "point" : this.$store.state.selectedTool == 'ellipse' ? 'ellipse' : "rect";
         this.mouse = {x: event.x, y: event.y}
         event.stopPropagation();

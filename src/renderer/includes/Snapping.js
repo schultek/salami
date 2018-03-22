@@ -1,25 +1,55 @@
 
-let store;
+let store, callback;
 
-export function initSnapping(st) {
-  store = st;
-}
+export default {
+  init(st) {
+    store = st;
+  },
+  setDrawCallback(cb) {
+    callback = cb
+  },
+  getSimple(id, p, snap = 10) {
+    if (!store) return p
 
-export function snapToObjects(id, p, snap = 10) {
-  if (!store) return p;
+    let objects = getAllObjects(id)
 
-  let objects = getAllObjects(id)
+    if (objects.length == 0) return {start, end}
 
-  if (objects.length == 0) return p
+    let hlines = getHorizontalLines(objects)
+    let vlines = getVerticalLines(objects)
 
-  let x = getHorizontalLines(objects).reduce((x, l) => x == null || Math.abs(l - p.x) < Math.abs(x - p.x) ? l : x, null)
-  let y = getVerticalLines(objects).reduce((y, l) => y == null || Math.abs(l - p.y) < Math.abs(y - p.y) ? l : y, null)
+    let pos = {
+      x: hlines
+        .filter(x => Math.abs(x - p.x) <= snap)
+        .reduce((x, l) => x === null || Math.abs(l - p.x) < Math.abs(x - p.x) ? l : x, null),
+      y: vlines
+        .filter(y => Math.abs(y - p.y) <= snap)
+        .reduce((y, l) => y === null || Math.abs(l - p.y) < Math.abs(y - p.y) ? l : y, null)
+    }
 
-  x = Math.abs(x - p.x) <= snap ? x : p.x;
-  y = Math.abs(y - p.y) <= snap ? y : p.y;
+    if (!pos.x && pos.x !== 0) pos.x = p.x
+    if (!pos.y && pos.y !== 0) pos.y = p.y
 
-  return {x, y}
+    return pos;
 
+  },
+  get(id, start, end, snap = 10) {
+    if (!store) return {start, end};
+
+    let s = this.getSimple(id, start, snap)
+    let e = this.getSimple(id, end, snap)
+
+    if (callback) {
+      callback(s.x != start.x ? s.x : null, s.y != start.y ? s.y : null, e.x != end.x ? e.x : null, e.y != end.y ? e.y : null)
+    }
+
+    return {start: s, end: e}
+
+  },
+  close() {
+    if (callback)
+      callback()
+  }
 }
 
 function getAllObjects(id) {
