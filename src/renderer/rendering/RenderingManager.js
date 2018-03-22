@@ -28,7 +28,7 @@ export default {
       })
       rendererMap.set(id, renderer)
     }
-    console.log(`Start Renderer for Layer ${payload.layer.title} and Renderer ${payload.renderer.title}`);
+    console.log(`Start Renderer ${id}`);
     renderer.render(payload)
   },
   preloadImage(img) {
@@ -41,6 +41,10 @@ export default {
     if (rendererMap.has(id))
       rendererMap.get(id).close()
     rendererMap.delete(id)
+  },
+  clear() {
+    rendererMap.forEach(r => r.close())
+    rendererMap.clear();
   },
   sendCommand(id, cmd, payload) {
     if (rendererMap.has(id))

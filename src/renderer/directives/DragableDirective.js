@@ -7,11 +7,9 @@ export default {
     let data = {}
 
     let object = binding.value;
-
     let useObject = object && true;
 
     el.addEventListener("mousedown", event => {
-      if (store.state.selectedTool != "select") return
       if (!useObject) store.commit("selectObject", id);
       drag = true;
       dragged = false;
@@ -21,14 +19,19 @@ export default {
         x: o.x - p.x,
         y: o.y - p.y
       }
+      event.stopPropagation();
     })
     document.addEventListener("mousemove", event => {
       if (!drag) return
       dragged = true;
       let p = store.getters.getLocalPosition(event)
       if (useObject) {
-        object.x = data.x + p.x
-        object.y = data.y + p.y
+        if (object.update)
+          object.update({x: data.x + p.x, y: data.y + p.y})
+        else {
+          object.x = data.x + p.x
+          object.y = data.y + p.y
+        }
       } else {
         store.commit("moveObject", {
           id,
@@ -38,9 +41,8 @@ export default {
       }
     })
     document.addEventListener("mouseup", event => {
-      if (dragged && !useObject) {
+      if (dragged && !useObject)
         store.commit("putObject", {id})
-      }
       dragged = false;
       drag = false;
     })

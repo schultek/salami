@@ -5,17 +5,16 @@ import path from "path"
 export default class BaseRenderer {
   constructor(id, pId, store) {
     this.id = id;
-    this.partId = pId;
+    this.pId = pId;
     this.store = store;
     this.progress = 0;
     this.progressCallbacks = [];
     this.status = "ready"
 
     this.gcode = fork(path.join(__child, './gcode.js'))
-    this.gcode.on("message", (event) => store.commit("setRenderResult", {id: this.partId, params: {id: this.id, gcode: event}}))
+    this.gcode.on("message", (event) => store.commit("setRenderResult", {id: this.pId, params: {id: this.id, gcode: event}}))
   }
   startRendering(payload) {
-    // debugger;
     this.status = "rendering";
     this.progress = 0;
     this.notify();

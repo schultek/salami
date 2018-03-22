@@ -11,7 +11,7 @@ export default {
   progress: null,
   centered: false,
   project: {
-    name: "Unbenannt",
+    name: "",
     file: null,
     x: 0, y: 0, zoom: 1
   },
@@ -36,7 +36,7 @@ export default {
     {id: "text",    icon: "font"         }
   ],
   machine: new Machine(),
-  imgDefault: {
-    url: __static+"/default.png"
+  default: {
+    url: __static+"/default.png",
   }
 }

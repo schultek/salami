@@ -2,7 +2,7 @@
   <div id="navigation" class="sidepanel panel">
     <div id="layer-heading" @click="closeSublayers">
       <i v-if="subLayersOpen" class="fa fa-angle-left"></i>
-      <span>{{subLayersOpen?'Fräsbereich':'Arbeitsbereich'}}</span>
+      <span>{{subLayersOpen?'Layers':'Workarea'}}</span>
     </div>
     <SubLayers v-if="subLayersOpen"></SubLayers>
     <RootLayers v-else></RootLayers>
@@ -77,12 +77,18 @@
   margin-right: 5px;
 }
 
-.layer-item span {
-  display: block;
-  position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translate(0, -50%);
+
+.layer-item span:first-of-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layer-item .stretch {
+  flex-grow: 1;
+}
+
+.layer-item span:last-of-type {
   color: #aaa;
 }
 

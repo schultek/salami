@@ -11,6 +11,7 @@ export default {
     data = JSON.parse(data)
     data.id = getNewId()
     data.custom = custom
+    data.file = file
     commit("addLayout", data)
     console.log("Loaded Layout "+data.title)
     if (build || data.init)
@@ -47,7 +48,18 @@ export default {
 
     if (layout.template.fonts) {
       layout.template.fonts.forEach(f => {
-        commit("addFont", new Font(f))
+        commit("addObject", getters.getNewObjectByType("font", {...f, onError: err => dispatch("fontError", err)}))
+      })
+    }
+
+    if (layout.template.texts) {
+      layout.template.texts.forEach(t => {
+        if (t.font) {
+          let font = state.fonts.find(el => el.title == t.font || el.id == t.font)
+          if (font) t.font = font.id
+          else delete t.font
+        }
+        commit("addObject", getters.getNewObjectByType("text", t))
       })
     }
 
@@ -58,6 +70,8 @@ export default {
     } else {
       commit("addObject", getters.getNewObjectByType("image"))
     }
+
+
 
     if (layout.template.renderer) {
       layout.template.renderer.forEach(c => {
@@ -94,9 +108,7 @@ export default {
     console.log("Finished building Layout "+layout.title)
 
     commit("selectObject", null)
-    await timeout(10)
     await dispatch("centerProject", {withSidebar: true, preventAnimation: true})
-
     await dispatch("renderAll")
   },
   async removeLayout({commit, state}, id) {

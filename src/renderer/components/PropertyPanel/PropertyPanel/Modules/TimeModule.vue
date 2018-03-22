@@ -1,11 +1,12 @@
 <template>
   <div class="settings-panel linked-layer-list">
     <div class="settings-header">
-      <span>Zeit</span>
+      <span>Time</span>
     </div>
     <div class="linked-layer-item" v-for="time in times">
       <i class="fas fa-fw icon" :class="time.icon"></i>
-      {{time.value}}
+      <span>{{time.value}}</span>
+      <span></span>
     </div>
   </div>
 

@@ -6,7 +6,8 @@
     <RenderParams v-for="pId in params" :key="pId" :pId="pId" :id="id"></RenderParams>
     <div class="linked-layer-item" v-for="r in renderer" @click="addRenderParams(r)">
       <i class="fa fa-fw icon" :class="icon(r)"></i>
-      {{r.title}}
+      <span>{{r.title}}</span>
+      <span class="stretch"></span>
       <span>
         <i class="fa fa-xs fa-plus link">
       </i></span>

@@ -1,34 +1,34 @@
 <template>
   <div class="quickSettings">
-    <MachineQuickPanel></MachineQuickPanel>
-    <CPartQuickPanel v-for="layer in parts" :key="layer.id" :id="layer.id"></CPartQuickPanel>
-    <ImageQuickPanel v-for="image in objects.images" :key="image.id" :id="image.id"></ImageQuickPanel>
-    <CurveQuickPanel v-for="curve in objects.curves" :key="curve.id" :id="curve.id"></CurveQuickPanel>
-    <TextQuickPanel v-for="text in objects.texts" :key="text.id" :id="text.id"></TextQuickPanel>
+    <ProjectQuickPanel></ProjectQuickPanel>
+    <CPartQuickPanel v-for="layer in layers" :key="layer.id" :id="layer.id"></CPartQuickPanel>
+    <ImageQuickPanel v-for="image in images" :key="image.id" :id="image.id"></ImageQuickPanel>
+    <RendererQuickPanel v-for="renderer in renderer" :key="renderer.id" :id="renderer.id"></RendererQuickPanel>
+    <TextQuickPanel v-for="text in texts" :key="text.id" :id="text.id"></TextQuickPanel>
     <QuickActions></QuickActions>
   </div>
 </template>
 
 <script>
 
-  import MachineQuickPanel from "./MachineQuickPanel.vue"
+  import ProjectQuickPanel from "./ProjectQuickPanel.vue"
   import CPartQuickPanel from "./CPartQuickPanel.vue"
-  import CurveQuickPanel from "./CurveQuickPanel.vue"
+  import RendererQuickPanel from "./RendererQuickPanel.vue"
   import ImageQuickPanel from "./ImageQuickPanel.vue"
   import TextQuickPanel from "./TextQuickPanel.vue"
   import QuickActions from "./QuickActions.vue"
 
+  import {CPart} from "@/models.js"
+
   export default {
     components: {
-      MachineQuickPanel, CPartQuickPanel, ImageQuickPanel, CurveQuickPanel, TextQuickPanel, QuickActions
+      ProjectQuickPanel, CPartQuickPanel, ImageQuickPanel, RendererQuickPanel, TextQuickPanel, QuickActions
     },
     computed: {
-      objects() {
-        return this.$store.getters.getObjectsByType
-      },
-      parts() {
-        return this.objects.layers.filter(el => el.is == 'cpart')
-      }
+      layers()   { return this.$store.state.layers.filter(l => l instanceof CPart) },
+      images()   { return this.$store.state.images   },
+      renderer() { return this.$store.state.renderer },
+      texts()    { return this.$store.state.texts    },
     }
   }
 

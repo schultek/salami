@@ -2,14 +2,16 @@
   <div id="root-layers">
     <div class="layer-item" :class="[selectedObject=='machine'?'selected':'']" @click="openSublayers">
       <i class="fa fa-fw fa-folder"></i>
-      Fräsbereich
+      <span>Layers</span>
+      <span class="stretch"></span>
       <span>
         <i class="fa fa-fw fa-cog" @click.stop="selectObject('machine')"></i>
       </span>
     </div>
     <div class="layer-item" v-for="layer in layers" :class="[selectedObject==layer.id?'selected':'']" @click="selectObject(layer.id)">
       <i class="fa fa-fw" :class="layer.icon"></i>
-      {{layer.title}}
+      <span>{{layer.title}}</span>
+      <span class="stretch"></span>
       <span>
         <i class="fa fa-fw fa-trash-alt" @click.stop="removeObject(layer.id)"></i>
       </span>

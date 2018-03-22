@@ -3,7 +3,8 @@ import gets from "./getters.js"
 import Vue from "vue"
 
 import {round} from "@/functions.js"
-import {Machine, CPart, Layer, Text, Form, Renderer, Image} from "@/models.js"
+import {Machine, CPart, Layer, Text, Form, Renderer, Image, Font} from "@/models.js"
+import RenderingManager from "@/rendering/RenderingManager.js"
 
 let getters = new Proxy(gets, {
   get(target, prop) {
@@ -78,20 +79,28 @@ export default {
     state.project.file = file;
   },
   buildProject(state, project) {
+    RenderingManager.clear()
     state.project = project.project
     state.machine = new Machine(project.machine)
-    state.layers = project.layers.map(o => new Layer(o))
+    state.layers = project.layers.map(o => Layer.fromObj(o))
     state.images = project.images.map(o => new Image(o))
     state.renderer = project.renderer.map(o => Renderer.fromObj(o))
-    state.texts = project.texts.map(o => new Text(o))
-    state.fonts = project.fonts
+    state.fonts = state.fonts.filter(f => !f.custom).concat(project.fonts.map(o => new Font(o)))
+    state.texts = project.texts.map(t => {
+      let font = state.fonts.find(el => el.title == t.font || el.id == t.font)
+      if (font) t.font = font.id
+      else delete t.font
+      return new Text(t)
+    })
   },
   cleanProject(state) {
     state.layers = []
     state.images = []
     state.renderer = []
     state.texts = []
+    state.fonts = state.fonts.filter(f => !f.custom)
     state.selectedObject = null
+    RenderingManager.clear()
   },
 
   /*****************
@@ -102,21 +111,24 @@ export default {
     let orig = getters.getObjectById(state, o.id)
     orig.update(o)
   },
+  updateObjectSilent(state, o) {
+    let orig = getters.getObjectById(state, o.id)
+    orig.update(o)
+  },
   moveObject(state, {id, x, y}) {
     let o = getters.getObjectById(state, id)
-    o.x = round(x, 10);
-    o.y = round(y, 10);
+    o.update({x: round(x, 10), y: round(y, 10)})
   },
   rotateObject(state, {id, rot}) {
     let o = getters.getObjectById(state, id)
-    while (rot < 0) rot += 360
-    while (rot > 360) rot -= 360
-    o.rot = round(rot, 10);
+    o.update({rot: round(rot, 10)})
   },
   resizeObject(state, {id, x, y, w, h}) {
     let o = getters.getObjectById(state, id)
-    o.x = round(x,10); o.y = round(y,10);
-    o.w = round(Math.max(w, 0),10); o.h = round(Math.max(h, 0),10);
+    o.update({
+      x: round(x,10), y: round(y,10),
+      w: round(Math.max(w, 0),10), h: round(Math.max(h, 0),10)
+    })
   },
   updateLayerOrder(state, order) {
     state.layers = order.map(el => state.layers.find(l => l.id == el.id))
@@ -130,12 +142,15 @@ export default {
       state.renderer.push(object)
     } else if (object instanceof Text) {
       state.texts.push(object)
+    } else if (object instanceof Font) {
+      state.fonts.push(object)
     } else {
       throw new Error(`Object is not supported!`, object)
     }
   },
   removeObject(state, id) {
     let o = getters.getObjectById(state, id)
+    if (!o) return;
     let arr = getters.getObjectArrayById(state, id)
     arr.splice(arr.indexOf(o), 1)
     if (o instanceof Renderer) {
@@ -153,6 +168,8 @@ export default {
             p.ignoreForms.splice(p.ignoreForms.indexOf(o.id), 1)
           }
         }))
+    } else if (o instanceof Font) {
+      state.texts.filter(t => t.font == o.id).forEach(t => t.font = (state.fonts[0] || {id: null}).id)
     }
   },
 
@@ -178,14 +195,6 @@ export default {
   FONT MODIFICATION
   *****************/
 
-  addFont(state, font) {
-    state.fonts.push(font)
-    if (state.selectedObject) {
-      let o = getters.getObjectById(state, state.selectedObject)
-      if (o instanceof Text)
-        o.font = font.id
-    }
-  },
 
   /*****************
   OBJECT RENDERING
@@ -199,30 +208,26 @@ export default {
     let o = getters.getObjectById(state, id)
     let p = o.renderParams.find(p => p.id == pId);
     o.renderParams.splice(o.renderParams.indexOf(p), 1)
+    RenderingManager.remove(pId);
   },
   updateRenderParams(state, {id, params}) {
     let p = getters.getRenderParams(state, id, params.id)
     p.update(params)
   },
-  setIgnoredForms(state, {id, pId, forms}) {
+  setIgnoredForm(state, {id, pId, form}) {
     let p = getters.getRenderParams(state, id, pId)
-    p.ignoreForms = forms
+    if (form.ignore && p.ignoreForms.indexOf(form.id) == -1)
+      p.ignoreForms.push(form.id);
+    if (!form.ignore && p.ignoreForms.indexOf(form.id) >= 0)
+      p.ignoreForms.splice(p.ignoreForms.indexOf(form.id), 1)
   },
   setRenderResult(state, {id, params}) {
     let p = getters.getRenderParams(state, id, params.id)
     p.update(params)
   },
-  setSVGPathById(state, {id, path}) {
-    let o = getters.getObjectById(state, id)
-    if (o)
-      Vue.set(o, "path", path)
-    else throw new Error("Object for Path could not be found")
-  },
-  setGCodeById(state, {id, gcode}) {
-    let o = getters.getObjectById(state, id)
-    if (o)
-      Vue.set(o, "gcode", gcode)
-    else throw new Error("Object for GCode could not be found")
+  setTextRenderResult(state, o) {
+    let orig = getters.getObjectById(state, o.id)
+    orig.update(o)
   },
 
   /*****************
@@ -230,7 +235,7 @@ export default {
   *****************/
 
   setDefaultImageData(state, data) {
-    state.imgDefault.data = data;
+    state.default.data = data;
   },
   putObject(state, id) {
     //Buffer Mutation for Plugins

@@ -10,18 +10,18 @@ export default {
     if (!orig) return;
     let img = {
       id, url,
-      data: url ? await getDataURL(url) : state.imgDefault.data
+      data: url ? await getDataURL(url) : state.default.data
     }
     if (url) {
       RenderingManager.preloadImage({id, url})
       let dimens = sizeOf(url)
       let h = Math.round(dimens.height / dimens.width * orig.w);
       if (h >= orig.h) {
-        img.y = (orig.h - h) / 2;
+        img.y = orig.y + (orig.h - h) / 2;
         img.h = h;
       } else {
         let w = Math.round(dimens.width / dimens.height * orig.h);
-        img.x = (orig.w - w) / 2;
+        img.x = orig.x + (orig.w - w) / 2;
         img.w = w;
       }
     }

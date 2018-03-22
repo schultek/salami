@@ -20,12 +20,12 @@
       </template>
     </div>
     <div id="sidepanel-icons">
-      <!-- <div @click="selectNavigationPanel(0)" :class="[navigationPanel==0?'selected':'']">
-        <LayersIcon class="icon"></LayersIcon>
+      <div @click="selectNavigationPanel(0)" :class="[navigationPanel==0?'selected':'']">
+        <LayersIcon></LayersIcon>
       </div>
       <div @click="selectNavigationPanel(1)" :class="[navigationPanel==1?'selected':'']">
         <LayoutsIcon></LayoutsIcon>
-      </div> -->
+      </div>
       <!-- <div @click="selectNavigationPanel(2)" :class="[navigationPanel==2?'selected':'']">
         <i class="fa fa-users"></i>
       </div> -->
@@ -35,20 +35,20 @@
 
 <script>
 
-  // import LayersIcon from "@/assets/layers.svg"
-  // import LayoutsIcon from "@/assets/layouts.svg"
+  import LayersIcon from "@/assets/layers.svg"
+  import LayoutsIcon from "@/assets/layouts.svg"
 
   import {mapState} from "vuex"
 
   export default {
-    // components: {LayersIcon, LayoutsIcon},
+    components: {LayersIcon, LayoutsIcon},
     computed: mapState(["selectedTool", "tools", "navigationPanel"]),
     methods: {
       selectTool(t) {
         this.$store.commit("selectTool", t)
         if (t != "select") {
           this.$store.commit("selectObject", null)
-          setTimeout(() => this.$store.dispatch("centerProject", {withSidebar: true}), 10)
+          this.$store.dispatch("centerProject", {withSidebar: true})
           this.$store.commit("setSubLayersOpen", t == "cpart" || t == "rect" || t == "ellipse")
         }
       },
@@ -132,19 +132,22 @@
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
+  justify-content: flex-end;
   width: 100%;
   margin: 10px 0;
 }
 
 #sidepanel-icons div {
-  margin: 8px;
+  padding: 8px 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-#sidepanel-icons svg {
+#sidepanel-icons svg * {
   fill: #505050;
 }
 
-#sidepanel-icons .selected svg, #sidepanel-icons .selected i {
+#sidepanel-icons .selected svg * {
   fill: #008dea;
   color: #008dea;
 }

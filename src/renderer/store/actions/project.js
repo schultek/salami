@@ -12,6 +12,7 @@ export default {
     if (file.endsWith(".crv")) {
       let data = await fs.readFile(file, 'utf8')
       commit("buildProject", JSON.parse(data))
+      
       dispatch("renderAll")
     } else if (file.endsWith(".jpg") || file.endsWith(".png") || file.endsWith(".gif") || file.endsWith(".jpeg")) {
       if (state.images.length > 0) {
@@ -33,42 +34,52 @@ export default {
     commit("setProjectFile", file)
     console.log("Project saved to "+file);
   },
-  async centerProject({state, commit}, options) {
+  async centerProject({state, commit, getters}, options) {
     let size = {w: $("#workarea").width(), h: $("#workarea").height()}
 
     if (options && options.withSidebar) {
-      if ($(".sidebar").hasClass("slide-right-enter-active")) {
-        let w = parseInt($(".sidebar > div").css("width"))
-        size.w -= w - $(".sidebar").width()
-      } else if ($(".sidebar").hasClass("slide-right-leave-active")) {
+      if (getters.isSidebarOpen) {
+        size.w -= 300 - $(".sidebar").width()
+      } else {
         size.w += $(".sidebar").width()
       }
     }
 
-    let max = state.layers.concat(state.images).concat(state.texts).reduce((max, o) => ({
+    let objects;
+    if (state.subLayersOpen)
+      objects = state.layers;
+    else
+      objects = state.layers.concat(state.images).concat(state.texts)
+
+    let max = objects.reduce((max, o) => ({
         x: Math.max(max.x, o.w ? o.x+o.w : o.x),
         y: Math.max(max.y, o.h ? o.y+o.h : o.y)
       }), {x: -Number.MAX_VALUE, y: -Number.MAX_VALUE})
-    max = state.renderer.reduce((max, r) => {
-      if (r instanceof HalftoneRenderer) {
-        return {x: Math.max(max.x, r.x), y: Math.max(max.y, r.y)}
-      } else if (r instanceof StippleRenderer) {
-        let b = r.getBounds()
-        return b ? {x: Math.max(max.x, b.x2), y: Math.max(max.y, b.y2)} : max
-      }
-    }, max)
-    let min = state.layers.concat(state.images).concat(state.texts).reduce((min, o) => ({
+
+    if (!state.subLayersOpen)
+      max = state.renderer.reduce((max, r) => {
+        if (r instanceof HalftoneRenderer) {
+          return {x: Math.max(max.x, r.x), y: Math.max(max.y, r.y)}
+        } else if (r instanceof StippleRenderer) {
+          let b = r.getBounds()
+          return b ? {x: Math.max(max.x, b.x2), y: Math.max(max.y, b.y2)} : max
+        }
+      }, max)
+
+    let min = objects.reduce((min, o) => ({
         x: Math.min(min.x, o.x),
         y: Math.min(min.y, o.y)
       }), {x: Number.MAX_VALUE, y: Number.MAX_VALUE})
-    min = state.renderer.reduce((min, r) => {
-      if (r instanceof HalftoneRenderer) {
-        return {x: Math.min(min.x, r.x), y: Math.min(min.y, r.y)}
-      } else if (r instanceof StippleRenderer) {
-        let b = r.getBounds()
-        return b ? {x: Math.min(min.x, b.x1), y: Math.min(min.y, b.y1)} : min
-      }
-    }, min)
+
+    if (!state.subLayersOpen)
+      min = state.renderer.reduce((min, r) => {
+        if (r instanceof HalftoneRenderer) {
+          return {x: Math.min(min.x, r.x), y: Math.min(min.y, r.y)}
+        } else if (r instanceof StippleRenderer) {
+          let b = r.getBounds()
+          return b ? {x: Math.min(min.x, b.x1), y: Math.min(min.y, b.y1)} : min
+        }
+      }, min)
 
     let zoom = Math.min(size.w/(max.x-min.x), size.h/(max.y-min.y))*0.9
     let y = size.h/2 - (max.y+min.y)/2 * zoom
@@ -79,7 +90,7 @@ export default {
     commit("translateProject", {x, y})
     commit("setCentered", true)
     if (!options || !options.preventAnimation) {
-      await timeout(1000)
+      await timeout(900)
       $("#svg").removeClass("fade-zoom")
     }
   },
@@ -88,17 +99,16 @@ export default {
     commit("selectTool", "select")
     commit("selectObject", null)
     commit("setSubLayersOpen", state.quickMode)
-    await timeout(10)
     dispatch("centerProject", {withSidebar: true})
   },
   async setFullPreview({state, commit, dispatch}, fp) {
     commit("setFullPreview", fp)
     if (fp) {
       commit("selectObject", null)
+      commit("selectTool", "select")
       commit("setQuickMode", false)
       commit("setSubLayersOpen", true)
-      await timeout(10)
-      dispatch("centerProject")
+      dispatch("centerProject", {withSidebar: true})
     }
   },
   updateQuickProject({commit, state, getters}, {w, h, detail}) {

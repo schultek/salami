@@ -37,24 +37,43 @@
   font-size: 12px;
   height: 25px;
   display: flex;
+  flex-flow: row nowrap;
   align-items: center;
-  position: relative;
 }
 
 .linked-layer-item i.icon {
   margin-right: 12px;
 }
 
+.linked-layer-item span:first-of-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linked-layer-item .stretch {
+  flex-grow: 1;
+}
+
 .linked-layer-item select {
   margin-left: -7px;
 }
 
-.linked-layer-item span:last-child {
-  position: absolute;
-  padding-right: 5px;
-  right: 0;
-  top: 0;
+.linked-layer-item select {
   height: 100%;
+  font-size: .95em;
+}
+
+.linked-layer-item:hover select {
+  background: #ededed;
+}
+
+.linked-layer-item:hover select:hover {
+  color: #008dea;
+}
+
+.linked-layer-item span:last-of-type {
+  padding-right: 5px;
   display: flex;
   flex-flow: row nowrap;
   align-items: center;

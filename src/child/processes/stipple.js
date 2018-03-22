@@ -37,6 +37,12 @@ function resume() {
 }
 
 function start() {
+
+  if (!params || !voronoi) {
+    process.send({error: "Setup must be called first!"})
+    return;
+  };
+
   stop();
   running = true;
   let run = () => {
@@ -55,11 +61,11 @@ function setup(data) {
 
     image = prepareImage(data.image, ImageLoader.get(data.image.id));
     machine = prepareMachine(data.machine);
-    params = prepareParams(data.renderer, machine);
     layer = prepareLayer(data.layer);
+    params = prepareParams(data.renderer, layer, machine);
     forms = prepareForms(data.forms);
 
-    params.maxIterations = 50;
+    params.maxIterations = 400;
 
     voronoi = new VoronoiDiagram(image, layer, params);
     svg = new SvgBuilder(layer)
@@ -78,7 +84,7 @@ function setup(data) {
   })
 }
 
-function prepareParams(params, machine) {
+function prepareParams(params, layer, machine) {
 
   let maxSize = round(machine.bit.inDepth/machine.bit.height*machine.bit.width, 100);
   let minSize = machine.bit.tip;
@@ -91,6 +97,14 @@ function prepareParams(params, machine) {
     params.pointSize = params.pointSizeMax
     params.adaptivePointSize = false;
   }
+
+  params.accuracy = layer.renderParams.accuracy / 100;
+  let o = 0.2
+  let f = 3
+  params.upper = (1 + o + f - params.accuracy * f)
+  params.lower = (1 - o - f + params.accuracy * f)
+
+  params.quality = layer.renderParams.quality / 100;
 
   return params;
 
@@ -112,20 +126,17 @@ function* next() {
 
   stipples = [];
 
-  let quality = currentQuality();
-  status.quality = quality
-
   for (let cell of cells) {
     let totalDensity = cell.sumDensity;
     let diameter = stippleSize(cell)
 
-    if (totalDensity < splitLower(diameter, quality) || cell.area == 0 || eaten(cell)) {
+    if (totalDensity < params.lower * pointArea(diameter) || cell.area == 0 || eaten(cell)) {
       // cell too small - merge
       status.merges++;
       Path.remove(cell.id)
       continue;
     }
-    if (totalDensity < splitUpper(diameter, quality)) {
+    if (totalDensity < params.upper * pointArea(diameter)) {
       // cell size within acceptable range - keep
       let s = new Stipple(cell.centroid, diameter, cell.id)
       stipples.push(s)
@@ -189,6 +200,11 @@ function* next() {
 
   status.iteration++;
 
+  const used = process.memoryUsage();
+  for (let key in used) {
+    console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+  }
+
   console.log(`Compute time for ${stipples.length} Points: ${Date.now()-time}ms`)
 
 }
@@ -230,15 +246,6 @@ function initStipples(size) {
 
 function pointArea(pointDiameter) {
   return Math.PI * pointDiameter * pointDiameter / 4;
-  //return pointDiameter * pointDiameter;
-}
-
-function splitUpper(pointDiameter, quality) {
-  return (1 + quality / 2) * pointArea(pointDiameter);
-}
-
-function splitLower(pointDiameter, quality) {
-  return (1 - quality / 2) * pointArea(pointDiameter)
 }
 
 function eaten(cell) {
@@ -286,11 +293,6 @@ function stippleSize(cell) {
 
 function fSize(x, w) {
   return 1/(w+1) + (w)/(w+1)*x
-}
-
-function currentQuality() {
-  let delta = params.quality / Math.max(params.maxIterations - 1, 1);
-  return params.quality + status.iteration * delta;
 }
 
 function finished() {

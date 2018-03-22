@@ -1,6 +1,6 @@
 <template>
   <div class="settings-dimensions" :class="['dimen-row-'+row, fw ? 'fw' : '']">
-    <Dimen v-for="dimen in dimens_" v-model="object[dimen.prop]" :key="dimen.prop" :type="dimen.type" :title="dimen.title" :unit="dimen.unit" :options="dimen.options"></Dimen>
+    <Dimen v-for="dimen in dimens_" v-model="object[dimen.prop]" :key="dimen.prop" :type="dimen.type" :title="dimen.title" :unit="dimen.unit" :options="dimen.options" :step="dimen.step"></Dimen>
   </div>
 </template>
 
@@ -11,10 +11,10 @@ import Dimen from "../Dimen.vue"
 
 function getDefault(rot) {
   let dimens = [
-    {title: "B", prop: "w", type: "number", unit: "mm"},
     {title: "X", prop: "x", type: "number", unit: "mm"},
-    {title: "H", prop: "h", type: "number", unit: "mm"},
-    {title: "Y", prop: "y", type: "number", unit: "mm"}
+    {title: "W", prop: "w", type: "number", unit: "mm"},
+    {title: "Y", prop: "y", type: "number", unit: "mm"},
+    {title: "H", prop: "h", type: "number", unit: "mm"}
   ]
   if (rot) {
     dimens.splice(2, 0, {title: "fa-redo", prop: "rot", type: "number", unit: "deg"})

@@ -2,11 +2,11 @@
 import {getNewId, updateDeep} from "@/functions.js"
 
 class BaseObject {
-  constructor(o) {
+  constructor(o = {}) {
     this.title = o.title || "";
     this.x = o.x || 0; this.y = o.y || 0;
     this.w = o.w || 0; this.h = o.h || 0;
-    this.id = getNewId();
+    this.id = o.id || getNewId();
   }
   asObject(...props) {
     let o = {}
@@ -20,12 +20,13 @@ class BaseObject {
   update(o) {
     if ("w" in o && o.w < 0) o.w = 0;
     if ("h" in o && o.h < 0) o.h = 0;
+    if ("rot" in o) this.map360(o, "rot")
     updateDeep(this, o)
   }
 }
 
 export class Layer extends BaseObject {
-  constructor(o) {
+  constructor(o = {}) {
     super(o)
     this.renderParams = o.renderParams && o.renderParams.length > 0 ?
       o.renderParams.map(p => new RenderParams(p))
@@ -57,10 +58,14 @@ export class Layer extends BaseObject {
       renderParams: this.renderParams.map(r => r.toObj())
     }
   }
+  static fromObj(o) {
+    if (o.type) return new Form(o)
+    else return new CPart(o)
+  }
 }
 
 export class CPart extends Layer {
-  constructor(o) {
+  constructor(o = {}) {
     super(o)
     o.border = o.border || {}
     this.border = {
@@ -87,7 +92,7 @@ export class CPart extends Layer {
 }
 
 export class Form extends Layer {
-  constructor(o) {
+  constructor(o = {}) {
     super(o)
     this.rot = o.rot || 0
     this.type = o.type || "rect"
@@ -103,24 +108,22 @@ export class Form extends Layer {
     return this.ownRenderer
   }
   update(o) {
-    if ("rot" in o) super.map360(o, "rot")
     if ("type" in o && o.type != "rect" && o.type != "ellipse") delete o.type
     super.update(o)
   }
 }
 
 export class Image extends BaseObject {
-  constructor(o) {
+  constructor(o = {}) {
     super(o);
     this.rot = o.rot || 0
-    this.url = ""
-    this.data = ""
+    this.url = o.url || ""
+    this.data = o.data || ""
   }
   toObj() {
     return super.asObject("id", "x", "y", "w", "h", "rot", "title", "url", "data")
   }
   update(o) {
-    if ("rot" in o) super.map360(o, "rot")
     super.update(o)
   }
 }
@@ -142,32 +145,39 @@ export class Renderer extends BaseObject {
 }
 
 export class RenderParams {
-  constructor(o) {
-    if (!o) o = {}
-    this.id = getNewId()
+  constructor(o = {}) {
+    this.id = o.id || getNewId()
     this.image = o.image || null
     this.renderer = o.renderer || null
     this.ignoreForms = o.ignoreForms || []
     this.type = o.type || "halftone"
-    this.path = ""
-    this.gcode = {time: 0, gcode: ""}
-    this.params = o.params ||
+    this.path = o.path || ""
+    this.gcode = o.gcode || {time: 0, gcode: ""}
+    this.params = o.params ? JSON.parse(JSON.stringify(o.params)) :
       this.type == "halftone" ? {lines: {l: 10, r: 10}, dotted: false} :
-      this.type == "stipple" ? {status: {iteration: 0, points: 0, splits: 0, merges: 0, quality: 0}, voronoi: ""} : {}
+      this.type == "stipple" ? {quality: 50, accuracy: 50, status: {iteration: 0, points: 0, splits: 0, merges: 0}, voronoi: ""} : {}
   }
   update(o) {
     if ("renderer" in o || "type" in o) throw new Error("Renderer is immutable!")
+    if ("params" in o) {
+      if (this.type == "stipple") {
+        if ("quality" in o.params && o.params.quality < 1) o.params.quality = 1
+        if ("quality" in o.params && o.params.quality > 100) o.params.quality = 100
+        if ("accuracy" in o.params && o.params.accuracy < 0) o.params.accuracy = 0
+        if ("accuracy" in o.params && o.params.accuracy > 100) o.params.accuracy = 100
+      }
+    }
     updateDeep(this, o)
   }
   toObj() {
-    return {id: this.id, image: this.image, renderer: this.renderer, ignoreForms: this.ignoreForms, type: this.type, params: this.params}
+    return {id: this.id, image: this.image, renderer: this.renderer, ignoreForms: this.ignoreForms, type: this.type, params: this.params, gcode: this.gcode, path: this.path}
   }
 }
 
 export class HalftoneRenderer extends Renderer {
-  constructor(o) {
+  constructor(o = {}) {
     super(o)
-    this.curve = o.curve || "Linie"
+    this.curve = o.curve || "line"
     this.direction = o.direction || 45
     this.stretch = o.stretch || 80
     this.gap = o.gap || 2
@@ -192,15 +202,14 @@ export class HalftoneRenderer extends Renderer {
 }
 
 export class StippleRenderer extends Renderer {
-  constructor(o) {
+  constructor(o = {}) {
     super(o)
     this.pointSize = o.pointSize || 50
     this.adaptivePointSize = o.adaptivePointSize || true
     this.pointSizeMin = o.pointSizeMin || 0
     this.pointSizeMax = o.pointSizeMax || 100
-    this.quality = o.quality || 1
     this.hotspots = o.hotspots || []
-    if ("x" in o && "y" in o) {
+    if (this.hotspots.length == 0 && "x" in o && "y" in o) {
       this.hotspots.push(new Hotspot({x: o.x, y: o.y}))
     }
   }
@@ -214,8 +223,6 @@ export class StippleRenderer extends Renderer {
     if ("pointSizeMin" in o && o.pointSizeMin > 100) o.pointSizeMin = 100
     if ("pointSizeMax" in o && o.pointSizeMax < 0) o.pointSizeMax = 0
     if ("pointSizeMax" in o && o.pointSizeMax > 100) o.pointSizeMax = 100
-    if ("quality" in o && o.quality > 100) o.quality = 100
-    if ("quality" in o && o.quality < 0) o.quality = 0
     if ("hotspot" in o) {
       if ("add" in o.hotspot) this.hotspots.push(o.hotspot.add)
       if ("remove" in o.hotspot) this.hotspots.splice(o.hotspot.remove, 1)
@@ -249,7 +256,7 @@ export class StippleRenderer extends Renderer {
 
 export class Hotspot {
   constructor(o = {}) {
-    this.id = getNewId();
+    this.id = o.id || getNewId();
     this.x = o.x || 0
     this.y = o.y || 0
     this.r = o.r || 50
@@ -267,32 +274,61 @@ export class Hotspot {
 }
 
 export class Text extends BaseObject {
-  constructor(o) {
+  constructor(o = {}) {
     super(o)
     this.rot = o.rot || 0
     this.stroke = o.stroke || 1
     this.size = o.size || 12
-    this.font = o.font || null
+    this.asForm = o.asForm || true;
+    o.border = o.border || {}
+    this.border = {
+      left: o.border.left || 5, right: o.border.right || 5,
+      top: o.border.top || 5, bottom: o.border.bottom || 5
+    }
+    this.font = o.font || null;
+    this.path = this.gcode = null;
+    this._w = this.w - this.getXBorder();
+    this._h = this.h - this.getYBorder();
   }
   toObj() {
-    return super.asObject("id", "x", "y", "rot", "title", "stroke", "size", "font")
+    return super.asObject("id", "x", "y", "w", "h", "rot", "title", "stroke", "size", "font", "border")
+  }
+  getXBorder() {
+    return this.stroke/2 + this.border.left + this.border.right
+  }
+  getYBorder() {
+    return this.stroke/2 + this.border.top + this.border.bottom
   }
   update(o) {
-    if ("rot" in o) super.map360(o, "rot")
     if ("stroke" in o && o.stroke < 0.1) o.stroke = 0.1
     if ("size" in o && o.size < 1) o.size = 1
-    super.update(o)
+    if ("border" in o) {
+      if ("left" in o.border && o.border.left < 0) o.border.left = 0
+      if ("right" in o.border && o.border.right < 0) o.border.right = 0
+      if ("top" in o.border && o.border.top < 0) o.border.top = 0
+      if ("bottom" in o.border && o.border.bottom < 0) o.border.bottom = 0
+    }
+    super.update(o);
+    if ("w" in o)
+      o._w = o.w - this.getXBorder()
+    if ("h" in o)
+      o._h = o.h - this.getYBorder()
+    super.update(o);
   }
 }
 
 export class Font {
-  constructor() {
-    this.id = getNewId();
+  constructor(o = {}) {
+    this.id = o.id || getNewId();
     this.file = o.file || ""
-    this.title = o.title || ""
+    this.title = o.title || this.file.substring(this.file.lastIndexOf("/")+1, this.file.lastIndexOf("."))
+    this.custom = "custom" in o ? o.custom : true;
   }
   toObj() {
-    return {id: o.id, file: o.file, title: o.title}
+    return {id: this.id, file: this.file, title: this.title}
+  }
+  update(o) {
+    throw Error("Font is immutable!");
   }
 }
 
@@ -305,7 +341,7 @@ export class Machine extends BaseObject {
       width: o.bit.width || 2.0,
       height: o.bit.height || 3.2,
       tip: o.bit.tip || 0.1,
-      inDepth: this.bit.inDepth || 1.5
+      inDepth: o.bit.inDepth || 1.5
     } : {width: 2.0, height: 3.2, tip: 0.1, inDepth: 1.5}
     this.speed = o.speed ? {
       feedrate: o.speed.feedrate || 400,

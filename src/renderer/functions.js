@@ -19,6 +19,14 @@ export function getNewId() {
   }, "")
 }
 
+let notifyFunc = null;
+
+export function setNotify(notify) {
+  notifyFunc = notify;
+}
+export function notify(...args) {
+  if (notifyFunc) notifyFunc(...args)
+}
 
 export function rotate(p, dim, inv, m) {
   if (!dim.rot) return p;
@@ -46,7 +54,7 @@ export function map(v, s1, e1, s2, e2) {
 }
 
 export function round(data, r) {
-  r = r | 100000;
+  r = r ? r : 100000;
   return Math.round(data*r) / r;
 }
 
@@ -133,7 +141,7 @@ export function makeCurveFactory(renderer, layer, machine) {
   /*****************
         LINIE
    *****************/
-  if (renderer.curve=="Linie") {
+  if (renderer.curve=="line") {
 
     let sg = start.x*renderer.ygap-start.y*renderer.xgap;
     let ges = (renderer.xgap*(end.y-start.y)-renderer.ygap*(end.x-start.x))
@@ -175,7 +183,7 @@ export function makeCurveFactory(renderer, layer, machine) {
   /*****************
         BOGEN
    *****************/
-  } else if (renderer.curve == "Bogen") {
+ } else if (renderer.curve == "arc") {
     let mid = {x: renderer.x+renderer.dcos*renderer.stretch, y: renderer.y+renderer.dsin*renderer.stretch};
     let length = dist(start.x, start.y, mid.x, mid.y)+dist(mid.x, mid.y, end.x, end.y)
 
@@ -219,7 +227,7 @@ export function makeCurveFactory(renderer, layer, machine) {
   /*****************
         KREIS
    *****************/
-  } else if (renderer.curve == "Kreis") {
+ } else if (renderer.curve == "circle") {
     let r_ = rendererBoxSize/4
     return {
       maxlength, r: r_,
@@ -260,7 +268,7 @@ export function makeCurveFactory(renderer, layer, machine) {
   /*****************
         WELLE
    *****************/
-  } else if (renderer.curve == "Welle") {
+ } else if (renderer.curve == "wave") {
     let cotstr = renderer.dsin != 0 ? round((renderer.dcos / renderer.dsin) / renderer.stretch) : null;
     let tanstr = renderer.dcos != 0 ? round((renderer.dsin / renderer.dcos) / renderer.stretch) : null;
     let cosstr = round(renderer.dcos*renderer.stretch);
@@ -367,9 +375,9 @@ export function makeCurveFactory(renderer, layer, machine) {
 
 export function getMaxLength(renderer) {
 
-  if (renderer.curve=="Linie" || renderer.curve == "Bogen" || renderer.curve == "Welle") {
+  if (renderer.curve=="line" || renderer.curve == "arc" || renderer.curve == "wave") {
     return rendererBoxSize * Math.sqrt(2);
-  } else if (renderer.curve == "Kreis") {
+  } else if (renderer.curve == "circle") {
     return 2 * Math.PI * rendererBoxSize/4;
   } else {
     return 0

@@ -3,7 +3,8 @@
     <transition-group>
       <div class="layer-item" :key="layer.id" :class="[selectedObject==layer.id?'selected':'']" v-for="(layer, index) in layers" @click="selectObject(layer.id)">
         <i class="fa fa-fw" :class="icon(layer)"></i>
-        {{layer.title}}
+        <span>{{layer.title}}</span>
+        <span class="stretch"></span>
         <span>
           <i class="fa fa-trash-alt" @click.stop="removeLayer(layer.id)"></i>
           <i class="fa fa-fw fa-bars"></i>

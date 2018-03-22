@@ -4,10 +4,10 @@
     <DimensModule :id="id" row="3" dimens="rotation"></DimensModule>
     <div class="settings-dimensions dimen-row settings-panel">
       <div class="settings-header">
-        <span>Datei</span>
+        <span>File</span>
       </div>
       <div class="dimen">
-        <input id="imageInput" type="button" value="Datei auswählen" @click="loadImage" style="width: auto"/>
+        <input id="imageInput" type="button" value="Choose File" @click="loadImage" style="width: auto"/>
       </div>
       <div v-show="object.data" class="dimen" style="height: auto">
         <img id="preview" :src="object.data" width="100%" />

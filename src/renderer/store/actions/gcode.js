@@ -29,17 +29,5 @@ export default {
 
     await Promise.all(promises)
     console.log("GCode saved to folder "+file);
-  },
-  generateTextGCode({commit, state, getters}, {id, path}) {
-    let child = fork(path.join(__path, "./text.js"))
-    let text = getters.getObjectById(id);
-    let machine = getters.getObjectById("machine");
-    console.log("Start generating text gcode for "+id)
-    child.on("message", (event) => {
-      commit("setGCodeById", {id: id, gcode: event.gcode})
-      child.disconnect()
-      console.log("Finished generating text gcode for "+id)
-    })
-    child.send({text, path, machine})
   }
 }

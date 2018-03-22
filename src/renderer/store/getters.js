@@ -3,7 +3,7 @@ import $ from "jquery"
 
 import {getNewId, getMaxLength} from "@/functions.js"
 
-import {CPart, Form, Layer, Image, Text, Machine, Renderer, HalftoneRenderer, StippleRenderer, RenderParams} from "@/models.js"
+import {CPart, Form, Layer, Image, Text, Machine, Renderer, HalftoneRenderer, StippleRenderer, RenderParams, Font} from "@/models.js"
 
 export default {
 
@@ -34,8 +34,13 @@ export default {
       layers: state.layers.map(o => o.toObj()),
       images: state.images.map(o => o.toObj()),
       renderer: state.renderer.map(o => o.toObj()),
-      texts: state.texts.map(o => o.toObj()),
-      fonts: state.fonts.map(o => o.toObj()),
+      texts: state.texts.map(o => {
+        let text = o.toObj()
+        let font = state.fonts.find(el => el.id == text.font)
+        if (font && !font.custom) text.font = font.title
+        return text;
+      }),
+      fonts: state.fonts.filter(f => f.custom).map(o => o.toObj()),
       machine: state.machine.toObj()
     }
     return JSON.stringify(o);
@@ -60,12 +65,12 @@ export default {
     let layers = state.layers.map(o => o.toObj())
     let renderer = state.renderer.map(o => o.toObj())
     let texts = state.texts.map(o => o.toObj())
+    let fonts = state.fonts.filter(f => f.custom).map(f => f.toObj())
 
     let o = {
       title: "Layout " + (state.layouts.length + 1),
       template: {
-        layers, images, renderer, texts,
-        fonts: state.fonts.map(o => o.toObj()),
+        layers, images, renderer, texts, fonts,
         machine: state.machine.toObj()
       }
     }
@@ -90,6 +95,7 @@ export default {
       else if (state.images.find(el => el.id == id)) return state.images
       else if (state.texts.find(el => el.id == id)) return state.texts
       else if (state.renderer.find(el => el.id == id)) return state.renderer
+      else if (state.fonts.find(el => el.id == id)) return state.fonts
     }
   },
   getObjectTypeById(state, getters) {
@@ -101,6 +107,7 @@ export default {
       if (o instanceof Image)    return "image"
       if (o instanceof Machine)  return "machine"
       if (o instanceof Text)     return "text"
+      if (o instanceof Font)     return "font"
     }
   },
   isLayerById(state, getters) {
@@ -129,14 +136,25 @@ export default {
         if (!("h" in o)) o.h = state.machine.h
       }
 
-      if (!o.title) {
-        let arr = type == "cpart" || type == "rect" || type == "ellipse" ? state.layers :
+      if (type == "text") {
+        if (!("font" in o)) {
+          if (state.fonts.length == 0)
+            console.warn("Fonts should not be empty!")
+          else
+            o.font = state.fonts[0].id
+        }
+      }
+
+      if (!o.title && type != "font") {
+        let arr = type == "cpart" ? state.layers.filter(l => l instanceof CPart) :
+                  type == "rect" || type == "ellipse" ? state.layers.filter(l => l instanceof Form && l.type == type) :
                   type == "image" ? state.images :
                   type == "halftone" || type == "stipple" ? state.renderer :
                   type == "text" ? state.texts : []
 
         let n = arr.length+1
-        o.title = type.charAt(0).toUpperCase() + type.slice(1) + " " + n
+        let name = type == "cpart" ? "layer" : type;
+        o.title = name.charAt(0).toUpperCase() + name.slice(1) + " " + n
       }
 
       switch (type) {
@@ -147,6 +165,7 @@ export default {
         case "halftone": return new HalftoneRenderer(o)
         case "stipple": return new StippleRenderer(o)
         case "text": return new Text(o)
+        case "font": return new Font(o)
         default: throw new Error(`Object of type ${type} not supported!`)
       }
     }
@@ -193,7 +212,7 @@ export default {
             .forEach(p => toRender.push(p.id))
           )
       }
-      if (o instanceof Machine)
+      if (o instanceof Machine || o instanceof Text)
         state.layers
           .filter(o => o.isRendering)
           .forEach(l => l.renderParams.forEach(p =>
@@ -221,5 +240,8 @@ export default {
       if (!(renderer instanceof HalftoneRenderer)) throw new Error("Object with id "+id+" isn't a HalftoneRenderer")
       return getMaxLength(renderer)
     }
+  },
+  isSidebarOpen(state) {
+    return state.selectedObject || state.quickMode;
   }
 }

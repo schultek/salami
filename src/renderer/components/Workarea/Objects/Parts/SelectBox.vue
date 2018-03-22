@@ -5,18 +5,18 @@
     <line :x1="w" :y1="h"  x2="0" :y2="h" ></line>
     <line  x1="0" :y1="h"  x2="0"  y2="0" ></line>
 
-    <circle  cx="0"    cy="0"   :r="r" class="cursor-resize-diag-1" v-resizeable:sxsy></circle>
-    <circle :cx="w/2"  cy="0"   :r="r" class="cursor-resize-vert"   v-resizeable:sy  ></circle>
-    <circle :cx="w"    cy="0"   :r="r" class="cursor-resize-diag-2" v-resizeable:syex></circle>
-    <circle :cx="w"   :cy="h/2" :r="r" class="cursor-resize-hori"   v-resizeable:ex  ></circle>
-    <circle :cx="w"   :cy="h"   :r="r" class="cursor-resize-diag-1" v-resizeable:exey></circle>
-    <circle :cx="w/2" :cy="h"   :r="r" class="cursor-resize-vert"   v-resizeable:ey  ></circle>
-    <circle  cx="0"   :cy="h"   :r="r" class="cursor-resize-diag-2" v-resizeable:eysx></circle>
-    <circle  cx="0"   :cy="h/2" :r="r" class="cursor-resize-hori"   v-resizeable:sx  ></circle>
+    <circle  cx="0"    cy="0"   :r="r" class="cursor-resize-diag-1" v-resizeable:sxsy="{proportion}"></circle>
+    <circle :cx="w/2"  cy="0"   :r="r" class="cursor-resize-vert"   v-resizeable:sy  ="{proportion}"></circle>
+    <circle :cx="w"    cy="0"   :r="r" class="cursor-resize-diag-2" v-resizeable:syex="{proportion}"></circle>
+    <circle :cx="w"   :cy="h/2" :r="r" class="cursor-resize-hori"   v-resizeable:ex  ="{proportion}"></circle>
+    <circle :cx="w"   :cy="h"   :r="r" class="cursor-resize-diag-1" v-resizeable:exey="{proportion}"></circle>
+    <circle :cx="w/2" :cy="h"   :r="r" class="cursor-resize-vert"   v-resizeable:ey  ="{proportion}"></circle>
+    <circle  cx="0"   :cy="h"   :r="r" class="cursor-resize-diag-2" v-resizeable:eysx="{proportion}"></circle>
+    <circle  cx="0"   :cy="h/2" :r="r" class="cursor-resize-hori"   v-resizeable:sx  ="{proportion}"></circle>
 
     <template v-if="canRotate">
-      <line :x1="w/2" y1="0" :x2="w/2" y2="-15"></line>
-      <circle :cx="w/2" cy="-15" :r="r" class="cursor-rotate" v-rotateable></circle>
+      <line :x1="w/2" y1="0" :x2="w/2" :y2="-35/Math.sqrt(zoom)"></line>
+      <circle :cx="w/2" :cy="-35/Math.sqrt(zoom)" :r="r" class="cursor-rotate" v-rotateable></circle>
     </template>
   </g>
 </template>
@@ -32,6 +32,9 @@
       },
       canResize: {
         default: false
+      },
+      proportion: {
+        default: false
       }
     },
     extends: BaseObject,
@@ -45,6 +48,10 @@
 </script>
 
 <style>
+
+#selectBox {
+  z-index: 100;
+}
 
 .cursor-resize-diag-1:hover {
   cursor: nwse-resize;

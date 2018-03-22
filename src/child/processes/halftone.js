@@ -1,6 +1,6 @@
 
 import {round, makeCurveFactory, def} from "@/functions"
-import {onLoad, isCutout, toPix, prepareLayer, prepareForms, prepareImage, prepareMachine} from "../functions"
+import {onLoad, isCutout, prepareLayer, prepareForms, prepareImage, prepareMachine} from "../functions"
 import ImageLoader from "../ImageLoader"
 import SvgBuilder from "../SvgBuilder"
 import RenderScheduler from "../RenderScheduler"
@@ -9,8 +9,10 @@ let lines = [], paths = []
 var layer, image, renderer, machine, forms;
 let pixRad, factory, svg;
 
+let n = Math.round(Math.random() * 100)
+
 process.on("message", (event) => {
-  console.log("Recieved Command:", event.cmd);
+  console.log(n, "Recieved Command:", event.cmd);
   switch (event.cmd) {
     case "preload": ImageLoader.load(event.payload); break;
     case "render": runRender(event.payload, false); break;
@@ -22,7 +24,7 @@ process.on("message", (event) => {
 function runRender(data, fill) {
   onLoad(data.image.id, () => {
     RenderScheduler.run(() => render(data, fill), (result) => {
-      console.log("Rendering finished!")
+      console.log(n, "Rendering finished!")
       if (result) {
         process.send({result})
       }
@@ -43,7 +45,7 @@ function prepareHalftone(renderer) {
 
 function* render(data, fill) {
 
-  console.log("Starting Rendering")
+  console.log(n, "Starting Rendering")
 
   layer = prepareLayer(data.layer);
   image = prepareImage(data.image, ImageLoader.get(data.image.id));
@@ -107,7 +109,6 @@ function* render(data, fill) {
       process.send({progress: 100*(i-nums.min)/expectedLineCount});
       sendTime = Date.now();
     }
-    //console.log("Yield");
     yield;
   }
   if (fill) {
@@ -133,7 +134,7 @@ function* render(data, fill) {
     }
   }
 
-  console.log(`Generated ${lines.length} Lines (${Date.now()-time}ms)`);
+  console.log(n, `Generated ${lines.length} Lines (${Date.now()-time}ms)`);
 
   let result = {}
 
@@ -286,7 +287,7 @@ function getDataPoint(pos, withdata) {
 
   var sum = 0;
   var count = 0;
-  var pix = toPix(pos, image);
+  var pix = image.toPix(pos);
 
   if (!renderer.smooth) {
     if (!image.inPixArea(pix)) {

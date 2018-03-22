@@ -1,6 +1,7 @@
 <template>
   <div class="settings-title">
-    <span>{{caption}} <input type="text" v-model.lazy="title" v-blur/></span>
+    <span>{{caption}}</span>
+    <span><input type="text" v-model.lazy="title" v-blur/></span>
     <i class="fa fa-trash-alt" @click="removeObject"></i>
   </div>
 </template>
@@ -39,16 +40,24 @@ export default {
   display: flex;
   justify-content: space-between;
   height: 25px;
+  align-items: center;
   letter-spacing: 1px;
 }
 
-.settings-title span {
+.settings-title span:first-child {
   font-size: 10px;
-  margin: 6px 0;
-  margin-right: 10px;
-  display: inline-block;
   color: #9f9f9f;
   text-transform: uppercase;
+  margin-right: 6px;
+}
+
+.settings-title span:nth-child(2) {
+  flex-grow: 1;
+  margin-right: 6px;
+}
+
+.settings-title span:nth-child(2) input {
+  width: 100%;
 }
 
 .settings-title i {

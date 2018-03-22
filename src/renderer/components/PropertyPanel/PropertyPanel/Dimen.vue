@@ -9,7 +9,7 @@
       </template>
     </span>
     <span class="input">
-      <input v-if="type=='number'" type="number" v-model.number.lazy="dimen" v-blur @focus="focus(true)" @blur="focus(false)"/>
+      <input v-if="type=='number'" :step="step || 1" type="number" v-model.number.lazy="dimen" v-blur @focus="focus(true)" @blur="focus(false)"/>
       <input v-else-if="type=='checkbox'" type="checkbox" v-model="dimen" v-blur @focus="focus(true)" @blur="focus(false)" />
       <input v-else-if="type=='text'" type="text" v-model.lazy="dimen" v-blur @focus="focus(true)" @blur="focus(false)" />
       <select v-else-if="type=='select'" v-model="dimen">
@@ -25,7 +25,7 @@
 <script>
 
 export default {
-  props: ["title", "unit", "type", "value", "options"],
+  props: ["title", "unit", "type", "value", "options", "step"],
   data: () => ({
     showUnit: true
   }),

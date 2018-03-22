@@ -1,0 +1,23 @@
+{
+  "title": "Corner Text",
+  "template": {
+    "layers": [
+      {
+        "title": "Layer",
+        "w": 300,
+        "h": 200,
+        "x": 0,
+        "y": 0
+      }
+    ],
+    "texts": [
+      {
+        "title": "Edit me",
+        "x": 230,
+        "y": 165,
+        "w": 50,
+        "h": 20
+      }
+    ]
+  }
+}

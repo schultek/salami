@@ -2,10 +2,6 @@
 import Voronoi from "voronoi"
 import Canvas from "canvas"
 
-import {toPix} from "../functions"
-
-let scale = 1;
-
 class Moments {
   constructor() {
     this.moment00 = this.moment10 = this.moment01
@@ -24,9 +20,11 @@ class VoronoiCell {
 export default class VoronoiDiagram {
   constructor(image, layer, params) {
     this.voronoi = new Voronoi()
-    this.bbox = {xl: layer.x * scale, xr: (layer.x+layer.w) * scale, yt: layer.y * scale, yb: (layer.y+layer.h) * scale}
+    this.scale = params.quality
+    this.bbox = {xl: 0, xr: image.pixW * this.scale, yt: 0, yb: image.pixH * this.scale}
     this.image = image;
     this.layer = layer;
+    this.areaScale =  (this.layer.w * this.layer.h) / (this.image.pixW * this.image.pixH) / this.scale / this.scale;
   }
   checkDimens(p) {
     return [
@@ -43,7 +41,10 @@ export default class VoronoiDiagram {
       }
     }
 
-    let positions = points.map(p => ({x: p.pos.x * scale, y: p.pos.y * scale}))
+    let positions = points.map(p => {
+      let pos = this.image.toPix(p.pos)
+      return {x: pos.x * this.scale, y: pos.y * this.scale}
+    })
 
     try {
       this.diagram = this.voronoi.compute(positions, this.bbox);
@@ -83,7 +84,7 @@ export default class VoronoiDiagram {
       } else {
         return poly.concat([[edge.va.x, edge.va.y], [edge.vb.x, edge.vb.y]])
       }
-    }, []).slice(0, -1).map(c => this.checkDimens(c)))
+    }, []).slice(0, -1).map(c => this.checkDimens(c))).filter(cell => cell.length > 0)
 
     yield;
 
@@ -95,11 +96,16 @@ export default class VoronoiDiagram {
     let colors = []
     cells.forEach((cell, i) => {
 
+      if (!cell || !cell[0]) {
+        console.error(cell, i, this.diagram.cells[i]);
+      }
+
       let color = getCellColor(i);
       colors.push(color)
       ctx.fillStyle = color
       ctx.beginPath()
       ctx.moveTo(cell[0][0] - offset.x, cell[0][1] - offset.y)
+
 
       for (let i = 1; i < cell.length; i++) {
         ctx.lineTo(cell[i][0] - offset.x, cell[i][1] - offset.y)
@@ -142,17 +148,18 @@ export default class VoronoiDiagram {
     for (let x = this.bbox.xl; x < this.bbox.xr; x++) {
       for (let y = this.bbox.yt; y < this.bbox.yb; y++) {
 
-        let pix = toPix({x: x / scale, y: y / scale}, this.image)
-
-        if (!this.image.inPixArea({x: x / scale, y: y / scale})) continue;
+        let pos = this.image.toMM({x: x / this.scale, y: y / this.scale})
 
         let index = map.getIndex(x, y);
         if (cells[index] === undefined) continue;
 
-        let pixel = this.image.get(pix.x, pix.y) / 255;
-        let density = this.layer.inverted ? pixel : 1 - pixel
-
-        if (Number.isNaN(pixel)) continue;
+        let density;
+        if (!this.layer.inArea(pos)) {
+          density = this.layer.inverted ? 0 : 1
+        } else {
+          let pixel = this.image.get(x / this.scale, y / this.scale) / 255;
+          density = this.layer.inverted ? pixel : 1 - pixel
+        }
 
         let cell = cells[index]
 
@@ -187,11 +194,10 @@ export default class VoronoiDiagram {
       let z = m.moment02 / m.moment00 - cell.centroid.y * cell.centroid.y
       cell.orientation = Math.atan2(y, x - z) / 2
 
-      cell.centroid.x /= scale;
-      cell.centroid.y /= scale;
+      cell.area = cell.area * this.areaScale
+      cell.sumDensity = cell.sumDensity *  this.areaScale
 
-      cell.area /= scale;
-      cell.sumDensity /= scale * scale;
+      cell.centroid = this.image.toMM({x: cell.centroid.x / this.scale, y: cell.centroid.y / this.scale})
 
     }
 

@@ -1,12 +1,10 @@
 <template>
-  <transition name="slide-right">
-    <div class="sidebar panel" v-if="quickMode">
-      <QuickPanel></QuickPanel>
-    </div>
-    <div class="sidebar panel" v-else-if="selectedObject">
-      <PropertyPanel :type="type" :id="selectedObject"></PropertyPanel>
-    </div>
-  </transition>
+  <div class="sidebar panel" :class="quickMode || selectedObject ? 'open' : ''">
+    <transition name="delay">
+      <QuickPanel v-if="quickMode"></QuickPanel>
+      <PropertyPanel v-else-if="selectedObject" :type="type" :id="selectedObject"></PropertyPanel>
+    </transition>
+  </div>
 </template>
 <script>
 
@@ -32,18 +30,21 @@
 <style>
 
 .sidebar {
-  width: 300px;
-  transition: width 1s;
+  width: 0;
+  transition: width .8s;
   border-left-style: solid;
+  overflow: scroll;
 }
 
 .sidebar > div {
   width: 300px;
 }
 
-.slide-right-enter, .slide-right-leave-to {
-  width: 0;
+.sidebar.open {
+  width: 300px;
 }
+
+.delay-leave-active { transition: opacity 1s; }
 
 input[type="text"], input[type="number"] {
   background: none;

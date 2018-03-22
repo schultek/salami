@@ -15,7 +15,8 @@
       <template v-for="(hotspot, i) in object.hotspots">
         <div class="linked-layer-item" :class="openSettings == i ? 'selected' : ''">
           <i class="far fa-fw fa-dot-circle icon"></i>
-          Hotspot {{i+1}}
+          <span>Hotspot {{i+1}}</span>
+          <span class="stretch"></span>
           <span class="hotspot-controls">
             <i class="fas fa-cog" @click="toggleHotspotSettings(i)"></i>
             <i class="far fa-trash-alt" @click="removeHotspot(i)"></i>
@@ -50,8 +51,7 @@
         {title: "Size", prop: "pointSize", type:"number", unit:"%"},
         {title: "Min Size", prop: "pointSizeMin", type:"number", unit:"%"},
         {title: "Max Size", prop: "pointSizeMax", type:"number", unit:"%"},
-        {title: "Adaptive Size", prop: "adaptivePointSize", type:"checkbox"},
-        {title: "Quality", prop: "quality", type:"number"}
+        {title: "Adaptive Size", prop: "adaptivePointSize", type:"checkbox"}
       ],
       openSettings: null
     }),

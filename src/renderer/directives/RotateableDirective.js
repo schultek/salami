@@ -33,9 +33,14 @@ export default {
         y: object.y + (object.h || 0) / 2
       }
 
+      let rot = Math.atan2(m.y-p.y, m.x-p.x)*360/Math.PI/2-data.rot
+
+      if (event.shiftKey) {
+        rot = Math.round(rot/15)*15;
+      }
+
       store.commit("rotateObject", {
-        id,
-        rot: Math.atan2(m.y-p.y, m.x-p.x)*360/Math.PI/2-data.rot
+        id, rot
       })
     })
     document.addEventListener("mouseup", event => {

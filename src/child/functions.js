@@ -14,15 +14,9 @@ export function onLoad(id, cb) {
   }
 }
 
-export function toPix(pos, image) { //convert mm to pixel
-  let p = image.rotate(pos);
-  p = {x: p.x-image.x, y: p.y-image.y};
-  return {x: Math.round(p.x*image.pixels.shape[0]/image.w), y: Math.round(p.y*image.pixels.shape[1]/image.h)};
-}
-
 export function isCutout(p, forms) {
   let filtered = forms.filter(f => f.inArea(p))
-  return filtered.length % 2 == 1 || filtered.find(f => f.ownRenderer)
+  return filtered.length % 2 == 1 || filtered.find(f => f.ownRenderer) || filtered.find(f => f.type == "text")
 }
 
 export function prepareLayer(layer) {
@@ -63,9 +57,16 @@ export function prepareImage(image, pixels) {
                           0.7152*pixels.data[Math.round(y)*w + Math.round(x)*4 + 1] +
                           0.0722*pixels.data[Math.round(y)*w + Math.round(x)*4 + 2]
 
+    image.pixW = image.pixels.shape[0]
+    image.pixH = image.pixels.shape[1]
+
     image.inArea = makeAreaFunc(image);
-    image.inPixArea = makeAreaFunc({x: 0, y: 0, w: image.pixels.shape[0], h: image.pixels.shape[1]})
+    image.inPixArea = makeAreaFunc({x: 0, y: 0, w: image.pixW, h: image.pixH})
     image.rotate = makeRotateFunc(image);
+
+
+    image.toPix = makeToPixFunc(image)
+    image.toMM = makeToMMFunc(image);
 
     return image;
 }
@@ -113,4 +114,20 @@ function makeAreaFunc(layer) {
       pos.y<=layer.y+layer.h-border.bottom;
     return b;
   };
+}
+
+
+function makeToPixFunc(image) { //convert mm to pixel
+  return (pos) => {
+    let p = image.rotate(pos);
+    p = {x: p.x-image.x, y: p.y-image.y};
+    return {x: Math.round(p.x*image.pixW/image.w), y: Math.round(p.y*image.pixH/image.h)};
+  }
+}
+
+function makeToMMFunc(image) {
+  return (pos) => {
+    let p = {x: image.x + pos.x * image.w / image.pixW, y: image.y + pos.y * image.h / image.pixH}
+    return image.rotate(p, true);
+  }
 }

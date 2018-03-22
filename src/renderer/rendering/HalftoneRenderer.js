@@ -21,7 +21,7 @@ export default class HalftoneRenderer extends BaseRenderer {
         params.path = result.path
       if (result.filled)
         params.params = {lines: result.filled}
-      this.store.commit("setRenderResult", {id: this.partId, params})
+      this.store.commit("setRenderResult", {id: this.pId, params})
     }
   }
   execute(cmd, payload) {

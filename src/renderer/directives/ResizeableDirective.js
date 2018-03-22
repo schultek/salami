@@ -9,34 +9,43 @@ export default {
     let drag = false, dragged = false;
     let data = {}
 
-    el.addEventListener("mousedown", event => {
-      if (store.state.selectedTool != "select") return
+    let object = binding.value;
+    let proportion = object ? object.proportion : false
+    let useObject = object && object.x
+
+    vnode.mousedown = event => {
+      if (!useObject) store.commit("selectObject", id);
       drag = true;
       dragged = false;
       data = store.getters.getLocalPosition(event)
-      let obj = store.getters.getObjectById(id)
-      data.pro = obj.w/obj.h
+      let o = useObject ? object : store.getters.getObjectById(id)
+      data.o = {...o};
+      data.center = {x: o.x+o.w/2, y: o.y+o.h/2}
+      data.pro = o.w/o.h
 
       event.stopPropagation();
-    })
+    }
 
-    document.addEventListener("mousemove", event => {
+    vnode.mousemove = event => {
       if (!drag) return
       dragged = true;
       let p = store.getters.getLocalPosition(event)
-      let object = store.getters.getObjectById(id)
 
-      p = rotate(p, object, false);
+      if (!useObject)
+        object = store.getters.getObjectById(id)
 
-      let start = {x: object.x, y: object.y};
-      let end = {x: object.x+object.w, y: object.y+object.h};
+      p = rotate(p, data.o, false);
 
-      if (mode.includes("sy")) start.y = p.y;
-      if (mode.includes("ex")) end.x = p.x;
-      if (mode.includes("ey")) end.y = p.y;
+      let start = {x: data.o.x, y: data.o.y};
+      let end = {x: data.o.x+data.o.w, y: data.o.y+data.o.h};
+
       if (mode.includes("sx")) start.x = p.x;
+      if (mode.includes("sy")) start.y = p.y;
+      if (mode.includes("ex")) end.x   = p.x;
+      if (mode.includes("ey")) end.y   = p.y;
 
-      if (event.shiftKey && (mode.length == 4)) {
+
+      if (!proportion && event.shiftKey && (mode.length == 4)) {
         let h = (end.x-start.x)/data.pro;
         if (mode.includes("sy")) {
           start.y = end.y - h;
@@ -45,11 +54,35 @@ export default {
         }
       }
 
-      start = rotate(start, object, true);
-      end = rotate(end, object, true);
+      if (event.altKey) {
+        if (mode.includes("sy"))
+          end.y = data.center.y + (data.center.y - start.y)
+        if (mode.includes("sx"))
+          end.x = data.center.x + (data.center.x - start.x)
+        if (mode.includes("ey"))
+          start.y = data.center.y + (data.center.y - end.y)
+        if (mode.includes("ex"))
+          start.x = data.center.x + (data.center.x - end.x)
+      }
+
+      if (proportion) {
+        if (mode.includes("sx") || mode.includes("ex")) {
+          let h = proportion(end.x - start.x, undefined)
+          if (mode.includes("sy"))
+            start.y = end.y - h;
+          else
+            end.y = start.y + h
+        } else {
+          let w = proportion(undefined, end.y - start.y)
+          end.x = start.x + w;
+        }
+      }
+
+      start = rotate(start, data.o, true);
+      end = rotate(end, data.o, true);
       let mid = {x: (start.x+end.x)/2, y: (start.y+end.y)/2};
-      start = rotate(start, object, false, mid);
-      end = rotate(end, object, false, mid);
+      start = rotate(start, data.o, false, mid);
+      end = rotate(end, data.o, false, mid);
 
       let o = {
         id: object.id,
@@ -57,7 +90,6 @@ export default {
         w: end.x-start.x,
         h: end.y-start.y
       }
-
       if (o.w < 0) {
         o.x += o.w;
         o.w *= -1;
@@ -69,13 +101,36 @@ export default {
         mode = mode.replace(/sy/g, "ty").replace(/ey/g, "sy").replace(/ty/g, "ey");
       }
 
-      store.commit("resizeObject", o)
-    })
+      if (useObject) {
+        if (object.update)
+          object.update({
+            x: o.x, y: o.y,
+            w: o.w, h: o.h
+          })
+        else {
+          object.x = o.x; object.y = o.y;
+          object.w = o.w; object.h = o.h;
+        }
+      } else {
+        store.commit("resizeObject", o)
+      }
 
-    document.addEventListener("mouseup", event => {
-      if (dragged)
+    }
+
+    vnode.mouseup = event => {
+      if (dragged && !useObject)
         store.commit("putObject", {id})
+      dragged = false;
       drag = false;
-    })
+    }
+
+    el.addEventListener("mousedown", vnode.mousedown);
+    document.addEventListener("mousemove", vnode.mousemove);
+    document.addEventListener("mouseup", vnode.mouseup);
+  },
+  unbind(el, binding, vnode) {
+    if (vnode.mousedown) el.removeEventListener("mousedown", vnode.mousedown)
+    if (vnode.mousemove) document.removeEventListener("mousemove", vnode.mousemove)
+    if (vnode.mouseup) document.removeEventListener("mouseup", vnode.mouseup)
   }
 }

@@ -8,7 +8,7 @@
     <DimensModule :id="id" :row="2" dimens="default" :add="{title: 'fa-adjust', prop: 'inverted', type:'checkbox'}"></DimensModule>
     <div class="settings-panel">
       <div class="settings-header">
-        <span>Rand</span>
+        <span>Border</span>
       </div>
       <div class="settings-dimensions dimen-row-4">
         <Dimen v-model="object.border.left" type="number" title="fa-caret-right" unit="mm"></Dimen>
@@ -72,26 +72,8 @@
   color: #008dea;
 }
 
-.linked-layer-item select {
-  height: 100%;
-  font-size: .95em;
-}
-
-.linked-layer-item span {
-  margin-left: 8px;
-  font-size: .95em;
-}
-
-.linked-layer-item:hover select {
-  background: #ededed;
-}
-
-.linked-layer-item:hover select:hover {
-  color: #008dea;
-}
-
 .form-list-item {
-  margin-left: 5px
+  padding-left: 20px
 }
 
 .form-list-item input {

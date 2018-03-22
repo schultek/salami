@@ -1,5 +1,9 @@
 <template>
   <div>
+    <div class="settings-dimensions dimen-row-2">
+      <Dimen title="Quality" type="number" v-model="params.quality" unit="%"></Dimen>
+      <Dimen title="Accuracy" type="number" v-model="params.accuracy" unit="%"></Dimen>
+    </div>
     <div class="settings-dimensions dimen-row-4" >
       <div class="dimen">
         <input type="button" :value="running ? 'Stop' : 'Start'" @click="togglePrim()"/>
@@ -12,22 +16,25 @@
       <i class="fa fa-compass"></i>
       <span>
         <b>Iteration:</b> {{params.status.iteration}}
-        <br />
+        &nbsp;&nbsp;
         <b>Points:</b> {{params.status.points}}
-        <b>Quality:</b> {{params.status.quality.toFixed(2)}}
         <br/>
         <b>Splits:</b> {{params.status.splits}}
+        &nbsp;&nbsp;
         <b>Merges:</b> {{params.status.merges}}
       </span>
     </div>
-    <img class="voronoi" :src="params.voronoi" />
+    <!-- <img class="voronoi" :src="params.voronoi" /> -->
   </div>
 </template>
 
 <script>
 
+import Dimen from "../Dimen.vue"
+
 export default {
   props: ["params"],
+  components: {Dimen},
   data: () => ({
     running: false,
     paused: false

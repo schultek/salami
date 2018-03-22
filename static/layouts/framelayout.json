@@ -1,16 +1,12 @@
 {
-  "title": "Rahmenlayout",
+  "title": "Fancy Frame",
   "template": {
     "layers": [{
       "x": 0,
       "y": 0,
       "w": 300,
       "h": 200,
-      "title": "Ebene",
-      "render": {
-        "curve": "Linie"
-      },
-      "fill": true
+      "title": "Layer"
     }, {
       "x": -10,
       "y": -10,
@@ -67,10 +63,6 @@
       "title": "Form 7",
       "mask": true,
       "type": "ellipse"
-    }],
-    "curves": [{
-      "title": "Linie",
-      "type": "Kreis"
     }]
   }
 }

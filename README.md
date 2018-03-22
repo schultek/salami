@@ -16,6 +16,21 @@ npm install
 npm run build
 ```
 
+## Bugs
+
+- [x] constant rerendering
+- [x] ignore forms
+- [x] mouse icons
+- [x] object spanning
+- [x] text
+- [x] full preview
+- [x] navigation panels
+- [/] quick mode
+  - will be replaced by layout builder
+- [x] stipple quality as percentage
+- [x] long titlesn
+- [x] save / open project
+
 ## TODO
 
 ### Enhancements
@@ -27,20 +42,23 @@ npm run build
   - [x] mark when part is bigger than machine
   - [x] normal click on machine layer to open sublayers
   - [x] settings icon to open machine setting
-- [ ] use cloud computing
+- [/] use cloud computing
 - [x] use Proxy for reactive object
 - [x] property panels as modules
 - [ ] no double dialogs
 - [ ] detect unsaved changes
 - [ ] layer rotation
-- [ ] ids as symbols
+- [?] ids as symbols
 - [x] multi processing
 
 ### New Features
 
 - [x] new rendering system
 - [ ] touch bar
-- [ ] stippling mode
+- [ ] more forms
+  - [ ] triangle
+  - [ ] polygon
+- [x] stippling mode
 - [ ] new layout system
   - [ ] scale layout to default parameters
   - [ ] layout loader (modal)

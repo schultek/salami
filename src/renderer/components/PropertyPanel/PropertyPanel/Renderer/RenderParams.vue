@@ -2,7 +2,8 @@
   <div class="render-list-item">
     <div class="linked-layer-item" @click="selectObject(renderer.id)">
       <i class="fa fa-fw icon" :class="icon(renderer)"></i>
-      {{renderer.title}}
+      <span>{{renderer.title}}</span>
+      <span class="stretch"></span>
       <span>
         <i class="fas fa-trash-alt" @click.stop="deleteParams()"></i>
         <i class="fa fa-angle-right link"></i>
@@ -10,18 +11,22 @@
     </div>
     <div class="linked-layer-item" @click="selectObject(params.image)">
       <i class="fas fa-fw fa-image icon"></i>
-      <select v-model="params.image" @click.stop="">
-        <option :value="image.id" v-for="image in images">
-          {{image.title}}
-        </option>
-      </select>
+      <span>
+        <select v-model="params.image" @click.stop="">
+          <option :value="image.id" v-for="image in images">
+            {{image.title}}
+          </option>
+        </select>
+      </span>
+      <span class="stretch"></span>
       <span>
         <i v-show="params.image" class="fa fa-angle-right link"></i>
       </span>
     </div>
-    <div v-if="forms && forms.length > 0" class="linked-layer-item toggle" @click="toggleForms()">
+    <div v-if="forms && forms.length > 0" class="linked-layer-item toggle" :class="showForms ? 'toggled' : ''" @click="toggleForms()">
       <i class="fas fa-fw fa-object-ungroup icon"></i>
-      Forms
+      <span>Forms</span>
+      <span class="stretch"></span>
       <span>
         <i class="fa fa-angle-right toggle_icon link" :class="showForms ? 'toggled' : ''"></i>
       </span>
@@ -29,14 +34,16 @@
     <div v-if="showForms" class="linked-layer-item form-list-item" v-for="form in forms" @click="selectObject(form.id)">
       <input type="checkbox" v-model="form.checked" @click.stop />
       <i class="fas fa-fw icon" :class="form.icon"></i>
-      {{form.title}}
+      <span>{{form.title}}</span>
+      <span class="stretch"></span>
       <span>
         <i class="fa fa-angle-right link"></i>
       </span>
     </div>
     <div class="linked-layer-item toggle" :class="showSettings ? 'toggled' : ''" @click="toggleSettings()">
       <i class="fas fa-fw fa-cogs icon"></i>
-      Settings
+      <span>Settings</span>
+      <span class="stretch"></span>
       <span>
         <i class="fa fa-angle-right toggle_icon link"></i>
       </span>
@@ -72,23 +79,18 @@ export default {
     images()   { return this.$store.state.images;   },
     renderer() { return this.$store.getters.getObjectById(this.params.renderer); },
     forms() {
-      return this.$store.state.layers.filter(l => l instanceof Form).map(f => createProxy({
-        id: f.id,
-        checked: !this.params.ignoreForms.find(el => el == f.id) && true,
-        title: f.title,
-        icon: this.icon(f)
-      }, form => {
-        let forms;
-        if (this.params.ignoreForms.find(el => el.id == f.id)) {
-          if (form.checked)
-            forms = this.params.ignoreForms.slice(params.ignoreForms.indexOf(f.id), 1)
-        } else if (!form.checked) {
-          forms = this.params.ignoreForms.concat([f.id])
-        }
-        console.log(forms)
-        if (forms)
-          this.$store.commit("setIgnoredForms", {id: this.id, pId: this.pId, forms})
-      }))
+      let i = this.$store.state.layers.indexOf(this.$store.getters.getObjectById(this.id));
+      return this.$store.state.layers
+        .filter(l => l instanceof Form && this.$store.state.layers.indexOf(l) > i)
+        .concat(this.$store.state.texts.filter(t => t.asForm))
+        .map(f => createProxy({
+          id: f.id,
+          checked: !this.params.ignoreForms.find(el => el == f.id) && true,
+          title: f.title,
+          icon: this.icon(f)
+        }, form => {
+          this.$store.commit("setIgnoredForm", {id: this.id, pId: this.pId, form: {id: f.id, ignore: !form.checked}})
+        }))
     }
   },
   methods: {
@@ -99,7 +101,7 @@ export default {
       this.showSettings = !this.showSettings
     },
     deleteParams() {
-      this.$store.dispatch("removeRenderParams", {id: this.id, pId: this.params.id})
+      this.$store.commit("removeRenderParams", {id: this.id, pId: this.params.id})
     },
     sendCommand(event) {
       this.$store.dispatch("executeRenderCommand", {pId: this.pId, cmd: event.cmd, payload: event.payload})
@@ -124,11 +126,12 @@ export default {
 }
 
 .toggle .toggle_icon {
-  transition: transform .5s;
+  transform: rotate(-90deg);
+  transition: transform .8s;
 }
 
 .toggle:hover .toggle_icon, .toggle.toggled .toggle_icon {
-  transform: rotate(90deg)
+  transform: rotate(90deg);
 }
 
 .params {

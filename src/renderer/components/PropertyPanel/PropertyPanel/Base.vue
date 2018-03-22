@@ -18,7 +18,6 @@
         get() {
           let o = this.$store.getters.getObjectById(this.id);
           return createProxy(o, obj => {
-            console.log(obj);
             this.$store.commit("updateObject", {id: this.id, ...obj})
           })
         },

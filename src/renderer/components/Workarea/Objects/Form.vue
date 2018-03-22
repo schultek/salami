@@ -1,7 +1,7 @@
 <template>
   <g :id="id" v-dragable>
     <path :d="path" v-for="path in object.paths"></path>
-    <g :transform="'translate('+x+' '+y+') rotate('+rot+' '+(w/2)+' '+(h/2)+')'">
+    <g v-if="!fullPreview" :transform="'translate('+x+' '+y+') rotate('+rot+' '+(w/2)+' '+(h/2)+')'">
       <rect v-if="object.type=='rect'" x="0" y="0" :width="w" :height="h" class="form"></rect>
       <ellipse v-if="object.type=='ellipse'" :cx="w/2" :cy="h/2" :rx="w/2" :ry="h/2" class="form"></ellipse>
       <SelectBox :id="id" can-rotate="true" can-resize="true"></SelectBox>
@@ -17,6 +17,9 @@
   export default {
     components: {SelectBox},
     extends: BaseObject,
+    computed: {
+      fullPreview() { return this.$store.state.fullPreview; }
+    }
   }
 
 

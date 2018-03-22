@@ -5,7 +5,7 @@ import state from './state.js'
 import mutations from './mutations.js'
 import actions from './actions.js'
 import getters from "./getters.js"
-import plugins from "./plugins.js"
+import plugins from "./plugins/index.js"
 
 Vue.use(Vuex)
 

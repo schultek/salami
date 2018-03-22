@@ -7,13 +7,13 @@
       <Workarea></Workarea>
       <PropertyPanel></PropertyPanel>
     </div>
+    <notifications group="default" />
   </div>
 </template>
 
 <script>
 
   import $ from "jquery"
-
   import Menubar from "./components/Menubar.vue"
   import Toolbar from "./components/Toolbar.vue"
   import NavigationPanel from "./components/NavigationPanel/main.vue"
@@ -68,6 +68,11 @@ html, body, #app {
 
 .move-tool:hover {
   cursor: move;
+}
+
+.notifications .error {
+  background: #e54d42;
+  border-left-color: #b82e24
 }
 
 </style>

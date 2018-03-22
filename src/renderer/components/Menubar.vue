@@ -4,17 +4,17 @@
       {{projectName}}
     </div>
     <div class="menu">
-      <span @click="loadProject">Öffnen</span>
-      <span @click="saveProject">Speichern</span>
+      <span @click="loadProject">Open</span>
+      <span @click="saveProject">Save</span>
     </div>
     <div class="right" :class="quickMode || !objectSelected ? 'hide-settings' : ''">
       <div class="loader">
         <span></span>
         <span :style="{width: progress+'px'}"></span>
       </div>
-      <div id="quickModeSwitch" class="switch" @click="toggleQuickMode" :class="[quickMode?'active':'']">
+      <!-- <div id="quickModeSwitch" class="switch" @click="toggleQuickMode" :class="[quickMode?'active':'']">
         <div><div></div></div>
-      </div>
+      </div> -->
       <div id="fullPreview" @click="togglePreview">
         <i class="fa fa-magic fa-sm" :style="{color: fullPreview?'#008dea':'inherit'}"></i>
       </div>

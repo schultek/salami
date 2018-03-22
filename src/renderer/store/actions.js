@@ -12,22 +12,32 @@ import renderingActions from "./actions/rendering.js"
 import gcodeActions     from "./actions/gcode.js"
 import objectActions    from "./actions/object.js"
 
+import {Font} from "@/models.js"
+
 export default {
   init({commit, state, dispatch, getters}) {
     RenderingManager.init({commit, state, dispatch, getters})
-    let promises = [getDataURL(state.imgDefault.url).then(data => commit("setDefaultImageData", data))]
-    let load = (d, c) => {
-      if (!fs.existsSync(d))
-        return [fs.mkdir(d)]
+
+    let promises = [
+      getDataURL(state.default.url).then(data => commit("setDefaultImageData", data))
+    ]
+
+    let load = async (dir, cb) => {
+      if (!await fs.exists(dir))
+        return [fs.mkdir(dir)]
       else {
-        let files = fs.readdirSync(d)
-        return files.map(f =>
-          dispatch("loadLayout", {file: d+f, custom: c, build: false})
-        )
+        let files = await fs.readdir(dir)
+        return files.map(f => cb(dir+f, f, dir))
       }
     }
-    promises.concat(load(remote.app.getPath("userData")+"/layouts/", true))
-    promises.concat(load(__static+"/layouts/", false))
+    promises.concat(load(remote.app.getPath("userData")+"/layouts/", file =>
+      dispatch("loadLayout", {file, custom: true, build: false})))
+    promises.concat(load(__static+"/layouts/", file =>
+      dispatch("loadLayout", {file, custom: false, build: false})))
+    promises.concat(load(__static+"/fonts/", file => {
+      let font = getters.getNewObjectByType("font", {file, custom: false});
+      commit("addObject", font)
+    }))
     return Promise.all(promises)
   },
   ...projectActions,
