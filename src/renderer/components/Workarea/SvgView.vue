@@ -34,6 +34,8 @@
 
   import Preview from "./Preview.vue"
 
+  import {snapToObjects} from "@/includes/Snapping"
+
   import {CPart as CPartObject, HalftoneRenderer, StippleRenderer, Image as ImageObject, Text as TextObject, Form as FormObject} from "@/models.js"
 
   export default {
@@ -105,15 +107,15 @@
       },
       mouseDown(event) {
         if (!this.adding || this.object) return
-        this.createObject(event, {x: 0, y: 0, w: 1, h: 1});
-        event.stopPropagation();
-      },
-      createObject(event, {x, y, w, h}) {
-        if (!this.adding) return;
         let p = this.$store.getters.getLocalPosition({x: event.x, y: event.y})
-        this.object = this.$store.getters.getNewObjectByType(this.$store.state.selectedTool, {x: x + p.x, y: y + p.y, w, h});
+
+        if (!event.ctrlKey)
+          p = snapToObjects(null, p)
+
+        this.object = this.$store.getters.getNewObjectByType(this.$store.state.selectedTool, {x: p.x, y: p.y, w: 1, h: 1});
         this.objectMode = ["halftone", "stipple"].indexOf(this.$store.state.selectedTool) >= 0 ? "point" : this.$store.state.selectedTool == 'ellipse' ? 'ellipse' : "rect";
         this.mouse = {x: event.x, y: event.y}
+        event.stopPropagation();
       }
     }
   }

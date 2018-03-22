@@ -5,7 +5,7 @@ export function initSnapping(st) {
   store = st;
 }
 
-export function snapToObjects(id, p, snap = 5) {
+export function snapToObjects(id, p, snap = 10) {
   if (!store) return p;
 
   let objects = getAllObjects(id)
@@ -28,7 +28,7 @@ function getAllObjects(id) {
 
   let obj = store.getters.getObjectById(id)
 
-  if ("rot" in obj && obj.rot != 0) return []
+  if (obj && "rot" in obj && obj.rot != 0) return []
 
   return store.state.layers.map(mapObj)
     .concat(store.state.images.map(mapObj))

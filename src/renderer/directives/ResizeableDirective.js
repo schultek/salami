@@ -13,7 +13,7 @@ export default {
 
     let object = binding.value;
     let proportion = object ? object.proportion : false
-    let useObject = object && object.x
+    let useObject = object && object.x !== undefined
 
     vnode.mousedown = event => {
       if (!useObject) store.commit("selectObject", id);
@@ -33,9 +33,6 @@ export default {
       dragged = true;
       let p = store.getters.getLocalPosition(event)
 
-      if (!useObject)
-        object = store.getters.getObjectById(id)
-
       p = rotate(p, data.o, false);
 
       let start = {x: data.o.x, y: data.o.y};
@@ -46,59 +43,113 @@ export default {
       if (mode.includes("ex")) end.x   = p.x;
       if (mode.includes("ey")) end.y   = p.y;
 
-      if (!event.ctrlKey) {
-        let startSnap = snapToObjects(id, start)
-        let endSnap = snapToObjects(id, end)
-        if (mode.includes("sy"))
-          start.y = startSnap.y
-        if (mode.includes("sx"))
-          start.x = startSnap.x
-        if (mode.includes("ey"))
-          end.y = endSnap.y
-        if (mode.includes("ex"))
-          end.x = endSnap.x
-      }
+      let setW, setH
 
-      if (!proportion && event.shiftKey && (mode.length == 4)) {
-        let h = (end.x-start.x)/data.pro;
-        let w = (end.y-start.y)*data.pro;
-        if (w < end.x-start.x) {
-          if (mode.includes("sy")) {
-            start.y = end.y - h;
-          } else {
-            end.y = start.y + h
-          }
-        } else {
-          if (mode.includes("sx")) {
-            start.x = end.x - w;
-          } else {
-            end.x = start.x + w
-          }
+      let getW = () => end.x - start.x
+      let getH = () => end.y - start.y
+
+      if (event.altKey) {
+        setW = (w) => {
+          start.x = data.center.x - w/2
+          end.x = data.center.x + w/2
         }
+        setH = (h) => {
+          start.y = data.center.y - h/2
+          end.y = data.center.y + h/2
+        }
+        if (mode.includes("sy"))
+          getH = () => (data.center.y - start.y) * 2
+        if (mode.includes("sx"))
+          getW = () => (data.center.x - start.x) * 2
+        if (mode.includes("ey"))
+          getH = () => (end.y - data.center.y) * 2
+        if (mode.includes("ex"))
+          getW = () => (end.x - data.center.x) * 2
+      } else {
+        setW = (w) => mode.includes("sx") ? start.x = end.x - w : end.x = start.x + w
+        setH = (h) => mode.includes("sy") ? start.y = end.y - h : end.y = start.y + h
       }
 
       if (proportion) {
-        if (mode.includes("sx") || mode.includes("ex")) {
-          let h = proportion(end.x - start.x, undefined)
-          if (mode.includes("sy"))
-            start.y = end.y - h;
-          else
-            end.y = start.y + h
-        } else {
-          let w = proportion(undefined, end.y - start.y)
-          end.x = start.x + w;
+        let set_w = setW, set_h = setH
+        setW = (w) => {
+          set_w(w);
+          let h = proportion(getW(), undefined)
+          set_h(h)
+        }
+        setH = (h) => {
+          set_h(h)
+          let w = proportion(undefined, getH())
+          set_w(w)
+        }
+      } else if (event.shiftKey && (mode.length == 4)) {
+        let set_w = setW, set_h = setH
+        setW = (w, force) => {
+          let w_ = getH()*data.pro;
+          if (force || w_ < w) {
+            set_w(w)
+            let h_ = getW()/data.pro;
+            set_h(h_)
+          } else {
+            set_w(w_)
+          }
+        }
+        setH = (h, force) => {
+          let h_ = getW()/data.pro;
+          if (force || h_ < h) {
+            set_h(h)
+            let w_ = getH()*data.pro;
+            set_w(w_)
+          } else {
+            set_h(h_)
+          }
         }
       }
 
-      if (event.altKey) {
-        if (mode.includes("sy"))
-          end.y = data.center.y + (data.center.y - start.y)
-        if (mode.includes("sx"))
-          end.x = data.center.x + (data.center.x - start.x)
-        if (mode.includes("ey"))
-          start.y = data.center.y + (data.center.y - end.y)
-        if (mode.includes("ex"))
-          start.x = data.center.x + (data.center.x - end.x)
+      setW(getW())
+      setH(getH())
+
+      if (!event.ctrlKey) {
+        let startSnap = snapToObjects(data.o.id, start)
+        let endSnap = snapToObjects(data.o.id, end)
+        let s = {...start}, e = {...end}
+        if (event.altKey) {
+          if (mode.includes("x")) {
+            if (startSnap.x == s.x && endSnap.x != e.x) {
+              setW((endSnap.x - data.center.x) * 2, true)
+            } else if (endSnap.x == e.x && startSnap.x != s.x) {
+              setW((data.center.x - startSnap.x) * 2, true)
+            } else if (endSnap.x != e.x) {
+              if (Math.abs(s.x - startSnap.x) < Math.abs(e.x - endSnap.x)) {
+                setW((data.center.x - startSnap.x) * 2, true)
+              } else {
+                setW((endSnap.x - data.center.x) * 2, true)
+              }
+            }
+          }
+          if (mode.includes("y")) {
+            if (startSnap.y == s.y && endSnap.y != e.y) {
+              setH((endSnap.y - data.center.y) * 2, true)
+            } else if (endSnap.y == e.y && startSnap.y != s.y) {
+              setH((data.center.y - startSnap.y) * 2, true)
+            } else if (endSnap.y != e.y) {
+              if (Math.abs(s.y - startSnap.y) < Math.abs(e.y - endSnap.y)) {
+                setH((data.center.y - startSnap.y) * 2, true)
+              } else {
+                setH((endSnap.y - data.center.y) * 2, true)
+              }
+            }
+          }
+        } else {
+          if (mode.includes("sy") && startSnap.y != s.y)
+            setH(e.y - startSnap.y, true)
+          if (mode.includes("sx") && startSnap.x != s.x)
+            setW(e.x - startSnap.x, true)
+          if (mode.includes("ey") && endSnap.y != e.y)
+            setH(endSnap.y - s.y, true)
+          if (mode.includes("ex") && endSnap.x != e.x)
+            setW(endSnap.x - s.x, true)
+        }
       }
 
       start = rotate(start, data.o, true);
@@ -108,7 +159,7 @@ export default {
       end = rotate(end, data.o, false, mid);
 
       let o = {
-        id: object.id,
+        id: data.o.id,
         x: start.x, y: start.y,
         w: end.x-start.x,
         h: end.y-start.y
