@@ -21,12 +21,10 @@ export default {
   }),
   mounted() {
     Snapping.setDrawCallback((sx, sy, ex, ey) => {
-      console.log(sx, sy, ex, ey)
       this.sx = sx || sx === 0 ? this.p.x + sx * this.p.zoom : null;
       this.sy = sy || sy === 0 ? this.p.y + sy * this.p.zoom : null;
       this.ex = ex || ex === 0 ? this.p.x + ex * this.p.zoom : null;
       this.ey = ey || ey === 0 ? this.p.y + ey * this.p.zoom : null;
-      console.log(this.sx, this.sy, this.ex, this.ey)
     })
   },
   computed: {
