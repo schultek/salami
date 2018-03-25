@@ -7,7 +7,7 @@
     <i class="fa fa-plus fa-xs" id="add-layout" @click="addLayout"></i>
     <div>
       <div class="layer-item" v-for="layout in layouts" @click="buildLayout(layout.id)" :class="[selectedLayout==layout.id?'selected':'']">
-        <i class="fa fa-columns"></i>
+        <i class="fa fa-columns icon"></i>
         <template v-if="edit == layout.id">
           <input id="edit-title" type="text" v-model="title" @click.stop="" @blur="closeEditLayout" v-blur/>
         </template>
