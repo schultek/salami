@@ -1,7 +1,7 @@
 <template>
   <div class="render-list-item">
     <div class="linked-layer-item" @click="selectObject(renderer.id)">
-      <i class="fa fa-fw icon" :class="icon(renderer)"></i>
+      <Icon :for="renderer"></Icon>
       <span>{{renderer.title}}</span>
       <span class="stretch"></span>
       <span>
@@ -33,7 +33,7 @@
     </div>
     <div v-if="showForms" class="linked-layer-item form-list-item" v-for="form in forms" @click="selectObject(form.id)">
       <input type="checkbox" v-model="form.checked" @click.stop />
-      <i class="fas fa-fw icon" :class="form.icon"></i>
+      <Icon :for="form"></Icon>
       <span>{{form.title}}</span>
       <span class="stretch"></span>
       <span>
@@ -58,16 +58,17 @@ import HalftoneParams from "./HalftoneParams.vue"
 import StippleParams from "./StippleParams.vue"
 
 import {Form} from "@/models.js"
-import {Icon, SelectObject, createProxy} from "@/mixins.js"
+import {SelectObject, createProxy} from "@/mixins.js"
+import Icon from "@/components/Icon.vue"
 
 export default {
   props: ["id", "pId"],
-  mixins: [Icon, SelectObject],
+  mixins: [SelectObject],
   data: () => ({
     showForms: false,
     showSettings: false
   }),
-  components: {halftone: HalftoneParams, stipple: StippleParams},
+  components: {halftone: HalftoneParams, stipple: StippleParams, Icon},
   computed: {
     params() {
       let o = this.$store.getters.getObjectById(this.id);
@@ -80,16 +81,23 @@ export default {
     renderer() { return this.$store.getters.getObjectById(this.params.renderer); },
     forms() {
       let i = this.$store.state.layers.indexOf(this.$store.getters.getObjectById(this.id));
+      let ignoredForms = this.params.ignoreForms;
+      let id = this.id, pId = this.pId;
       return this.$store.state.layers
         .filter(l => l instanceof Form && this.$store.state.layers.indexOf(l) > i)
         .concat(this.$store.state.texts.filter(t => t.asForm))
-        .map(f => createProxy({
-          id: f.id,
-          checked: !this.params.ignoreForms.find(el => el == f.id) && true,
-          title: f.title,
-          icon: this.icon(f)
-        }, form => {
-          this.$store.commit("setIgnoredForm", {id: this.id, pId: this.pId, form: {id: f.id, ignore: !form.checked}})
+        .map(f => new Proxy(f, {
+          get(target, prop) {
+            if (prop == "checked")
+              return !ignoredForms.find(el => el == f.id) && true
+            else
+              return target[prop]
+          },
+          set(target, prop, v) {
+            if (prop == "checked")
+              this.$store.commit("setIgnoredForm", {id, pId, form: {id: f.id, ignore: !v}})
+            return true;
+          }
         }))
     }
   },

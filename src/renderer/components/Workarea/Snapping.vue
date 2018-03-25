@@ -1,12 +1,10 @@
 <template>
-
   <g id="snapping">
     <line v-if="sx" y1="0" :x1="sx" :y2="h()" :x2="sx"></line>
     <line v-if="sy" :y1="sy" x1="0" :y2="sy" :x2="w()"></line>
     <line v-if="ex" y1="0" :x1="ex" :y2="h()" :x2="ex"></line>
     <line v-if="ey" :y1="ey" x1="0" :y2="ey" :x2="w()"></line>
   </g>
-
 </template>
 
 <script>

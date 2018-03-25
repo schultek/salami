@@ -13,7 +13,7 @@ export default {
 
     let objects = getAllObjects(id)
 
-    if (objects.length == 0) return {start, end}
+    if (objects.length == 0) return p
 
     let hlines = getHorizontalLines(objects)
     let vlines = getVerticalLines(objects)

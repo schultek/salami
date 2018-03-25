@@ -5,13 +5,13 @@
 
   import Vue from "vue"
   import {CPart} from "@/models.js"
-  import {SelectObject, Icon, createProxy} from "@/mixins.js"
+  import {SelectObject, createProxy} from "@/mixins.js"
 
   import TitleModule from "./Modules/TitleModule.vue"
 
   export default {
     props: ["id"],
-    mixins: [SelectObject, Icon],
+    mixins: [SelectObject],
     components: {TitleModule},
     computed: {
       object: {

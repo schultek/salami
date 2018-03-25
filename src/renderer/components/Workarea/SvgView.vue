@@ -115,7 +115,12 @@
           p = Snapping.getSimple(null, p)
 
         this.object = this.$store.getters.getNewObjectByType(this.$store.state.selectedTool, {x: p.x, y: p.y, w: 0, h: 0});
-        this.objectMode = ["halftone", "stipple"].indexOf(this.$store.state.selectedTool) >= 0 ? "point" : this.$store.state.selectedTool == 'ellipse' ? 'ellipse' : "rect";
+        switch(this.$store.state.selectedTool) {
+          case "halftone": case "stipple": this.objectMode = "point"; break;
+          case "ellipse": this.objectMode = "ellipse"; break;
+          case "triangle": this.objectMode = "triangle"; break;
+          default: this.objectMode = "rect";
+        }
         this.mouse = {x: event.x, y: event.y}
         event.stopPropagation();
       }

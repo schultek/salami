@@ -73,7 +73,7 @@
   background-color: #ededed;
 }
 
-.layer-item i {
+.layer-item .icon {
   margin-right: 5px;
 }
 

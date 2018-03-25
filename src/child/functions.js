@@ -37,6 +37,24 @@ export function prepareForm(f) {
       p = this.rotate(p);
       return (((p.x-this.cx)*(p.x-this.cx))/this.r2x)+(((p.y-this.cy)*(p.y-this.cy))/this.r2y)<=1;
     }
+  } else if (f.type && f.type == "triangle") {
+    let inBBox = makeAreaFunc(f)
+
+    let halfX = f.x + (f.d * f.w)
+    let ha = f.h / (f.d * f.w)
+    let hb = f.h / (f.w * (1 - f.d))
+    let x2 = f.x + f.w
+    let y2 = f.y + f.h
+
+    f.inArea = function(p) {
+      if (!inBBox(p)) return false;
+      p = this.rotate(p)
+      if (p.x <= halfX) {
+        return y2 - p.y < (p.x - f.x) * ha
+      } else {
+        return y2 - p.y < (x2 - p.x) * hb
+      }
+    }
   } else {
     f.inArea = makeAreaFunc(f);
   }

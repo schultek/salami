@@ -15,7 +15,7 @@ class BaseObject {
   }
   map360(o, prop) {
     while (o[prop] < 0) o[prop] += 360
-    while (o[prop] > 360) o[prop] -= 360
+    while (o[prop] >= 360) o[prop] -= 360
   }
   update(o) {
     if ("w" in o && o.w < 0) o.w = 0;
@@ -97,6 +97,9 @@ export class Form extends Layer {
     this.rot = o.rot || 0
     this.type = o.type || "rect"
     this.ownRenderer = o.ownRenderer || false
+    if (this.type == "triangle") {
+      this.d = .5;
+    }
   }
   toObj() {
     return {
@@ -108,7 +111,10 @@ export class Form extends Layer {
     return this.ownRenderer
   }
   update(o) {
-    if ("type" in o && o.type != "rect" && o.type != "ellipse") delete o.type
+    if ("type" in o) {
+      console.warn("Type of Form is immutable!");
+      delete o.type
+    }
     super.update(o)
   }
 }

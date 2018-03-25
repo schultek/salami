@@ -5,7 +5,7 @@
     </div>
     <RenderParams v-for="pId in params" :key="pId" :pId="pId" :id="id"></RenderParams>
     <div class="linked-layer-item" v-for="r in renderer" @click="addRenderParams(r)">
-      <i class="fa fa-fw icon" :class="icon(r)"></i>
+      <Icon :for="r"></Icon>
       <span>{{r.title}}</span>
       <span class="stretch"></span>
       <span>
@@ -18,15 +18,15 @@
 <script>
 
 import {createProxy} from "@/mixins.js"
-import {Icon} from "@/mixins.js"
 import RenderParams from "../Renderer/RenderParams.vue"
 
 import {HalftoneRenderer, StippleRenderer, RenderParams as RenderParamsObject} from "@/models.js"
 
+import Icon from "@/components/Icon.vue"
+
 export default {
   props: ["id"],
-  components: {RenderParams},
-  mixins: [Icon],
+  components: {RenderParams, Icon},
   computed: {
     params() {
       let o = this.$store.getters.getObjectById(this.id)

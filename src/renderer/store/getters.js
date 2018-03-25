@@ -121,7 +121,7 @@ export default {
 
       if (!o) o = {}
 
-      if (["cpart", "ellipse", "rect"].indexOf(type) >= 0) {
+      if (["cpart", "form"].indexOf(type) >= 0) {
         if (!("renderParams" in o) || o.renderParams.length == 0)
           o.renderParams = [new RenderParams()]
         o.renderParams.forEach(p => {
@@ -145,22 +145,29 @@ export default {
         }
       }
 
+      if (type == "form" && !o.type) {
+        o.type = "rect"
+      }
+      if (type == "rect" || type == "ellipse" || type == "triangle") {
+        o.type = type
+        type = "form"
+      }
+
       if (!o.title && type != "font") {
         let arr = type == "cpart" ? state.layers.filter(l => l instanceof CPart) :
-                  type == "rect" || type == "ellipse" ? state.layers.filter(l => l instanceof Form && l.type == type) :
+                  type == "form" ? state.layers.filter(l => l instanceof Form && l.type == o.type) :
                   type == "image" ? state.images :
                   type == "halftone" || type == "stipple" ? state.renderer :
                   type == "text" ? state.texts : []
 
         let n = arr.length+1
-        let name = type == "cpart" ? "layer" : type;
+        let name = type == "cpart" ? "layer" : type == "form" ? o.type : type;
         o.title = name.charAt(0).toUpperCase() + name.slice(1) + " " + n
       }
 
       switch (type) {
         case "cpart": return new CPart(o)
-        case "ellipse": return new Form({...o, type: "ellipse"})
-        case "rect": return new Form({...o, type: "rect"})
+        case "form": return new Form(o)
         case "image": return new Image(o)
         case "halftone": return new HalftoneRenderer(o)
         case "stipple": return new StippleRenderer(o)

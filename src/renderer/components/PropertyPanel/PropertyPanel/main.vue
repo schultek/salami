@@ -41,7 +41,7 @@
   align-items: center;
 }
 
-.linked-layer-item i.icon {
+.linked-layer-item .icon {
   margin-right: 12px;
 }
 

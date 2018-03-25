@@ -3,16 +3,16 @@
     <div id="tools">
       <template v-for="tool in tools" >
         <span v-if="'id' in tool" @click="selectTool(tool.id)" class="tool" :class="[tool.id == selectedTool ? 'selected':'']">
-          <i class="fa fa-fw" :class="'fa-'+tool.icon"></i>
+          <Icon :icon="tool.icon"></Icon>
           <i class="fa fa-plus fa-xs plus-icon" v-show="tool.id!='select'"></i>
         </span>
         <span v-else @click="selectTool(tool.selected)" class="tool" :class="[tool.selected == selectedTool ? 'selected':'']">
-          <i class="fa fa-fw" :class="'fa-'+getSelected(tool).icon"></i>
+          <Icon :icon="getSelected(tool).icon"></Icon>
           <i class="fa fa-plus fa-xs plus-icon" v-show="tool.selected!='select'"></i>
           <i class="fa fa-xs fa-caret-right more-icon"></i>
           <div class="tool-sublist">
             <span v-for="t in tool.tools.filter(el => el.id != tool.selected)" @click="selectTool(t.id)" class="tool" :class="[t.id == selectedTool ? 'selected':'']">
-              <i class="fa fa-fw" :class="'fa-'+t.icon"></i>
+              <Icon :icon="t.icon"></Icon>
               <i class="fa fa-plus fa-xs plus-icon" v-show="t.id!='select'"></i>
             </span>
           </div>
@@ -38,10 +38,12 @@
   import LayersIcon from "@/assets/layers.svg"
   import LayoutsIcon from "@/assets/layouts.svg"
 
+  import Icon from "./Icon.vue"
+
   import {mapState} from "vuex"
 
   export default {
-    components: {LayersIcon, LayoutsIcon},
+    components: {LayersIcon, LayoutsIcon, Icon},
     computed: mapState(["selectedTool", "tools", "navigationPanel"]),
     methods: {
       selectTool(t) {
@@ -81,11 +83,15 @@
   padding: 12px 14px;
 }
 
+.tool .icon {
+  color: #505050;
+}
+
 .tool:hover {
   background: #e4e4e4
 }
 
-.tool.selected > i {
+.tool.selected > .icon {
   color: #008dea;
 }
 

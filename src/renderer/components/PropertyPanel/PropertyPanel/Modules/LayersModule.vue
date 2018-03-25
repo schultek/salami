@@ -4,7 +4,7 @@
       <span>Layers</span>
     </div>
     <div class="linked-layer-item" v-for="layer in layers" @click="selectObject(layer.id)">
-      <i class="fa fa-fw icon" :class="icon(layer)"></i>
+      <Icon :for="layer"></Icon>
       <span>{{layer.title}}</span>
       <span class="stretch"></span>
       <span>
@@ -16,11 +16,13 @@
 
 <script>
 
-import {Icon, SelectObject} from "@/mixins.js"
+import {SelectObject} from "@/mixins.js"
+import Icon from "@/components/Icon.vue"
 
 export default {
   props: ["layers"],
-  mixins: [Icon, SelectObject]
+  components: {Icon},
+  mixins: [SelectObject]
 }
 
 </script>

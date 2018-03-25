@@ -27,7 +27,8 @@ export default {
     {id: "image",    icon: "image"        },
     {selected: "rect",     tools: [
       {id: "rect",     icon: "square" },
-      {id: "ellipse",  icon: "circle" }
+      {id: "ellipse",  icon: "circle" },
+      {id: "triangle", icon: "/triangle"}
     ]},
     {selected: "halftone", tools: [
       {id: "halftone", icon: "leaf"   },

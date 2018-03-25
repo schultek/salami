@@ -2,7 +2,7 @@
   <draggable v-model="layers" :options="{class: '.layer-item'}">
     <transition-group>
       <div class="layer-item" :key="layer.id" :class="[selectedObject==layer.id?'selected':'']" v-for="(layer, index) in layers" @click="selectObject(layer.id)">
-        <i class="fa fa-fw" :class="icon(layer)"></i>
+        <Icon :for="layer"></Icon>
         <span>{{layer.title}}</span>
         <span class="stretch"></span>
         <span>
@@ -18,11 +18,12 @@
 
   import draggable from "vuedraggable"
   import {CPart} from "@/models.js"
-  import {SelectObject, Icon} from "@/mixins.js"
+  import {SelectObject} from "@/mixins.js"
+  import Icon from "@/components/Icon.vue"
 
   export default {
-    components: {draggable},
-    mixins: [SelectObject, Icon],
+    components: {draggable, Icon},
+    mixins: [SelectObject],
     computed: {
       selectedObject() {
         return this.$store.state.selectedObject

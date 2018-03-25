@@ -8,6 +8,8 @@ export default {
     let drag = false, dragged = false
     let data = {}
 
+    let snap = !binding.modifiers.nosnap
+
     let object = binding.value;
     let useObject = object && true;
 
@@ -31,7 +33,7 @@ export default {
 
       let o = {x: data.x + p.x, y: data.y + p.y}
 
-      if (!event.ctrlKey) {
+      if (snap && !event.ctrlKey) {
         let {start, end} = Snapping.get(id, o, {x: o.x + data.o.w, y: o.y + data.o.h})
 
         if (start.x == o.x) {
@@ -76,6 +78,8 @@ export default {
     document.addEventListener("mouseup", event => {
       if (dragged && !useObject)
         store.commit("putObject", {id})
+      else if (useObject && "put" in object)
+        object.put()
       dragged = false;
       drag = false;
       Snapping.close()

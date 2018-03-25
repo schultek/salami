@@ -1,46 +1,6 @@
 
 import {CPart, Form, Image, HalftoneRenderer, StippleRenderer, Text} from "@/models.js"
 
-let icons;
-function makeIcons(tools) {
-  icons = {}
-  for (let tool of tools) {
-    if (tool.id) {
-      icons[tool.id] = "fa-"+tool.icon
-    } else {
-      for (let t of tool.tools) {
-        icons[t.id] = "fa-"+t.icon;
-      }
-    }
-  }
-}
-
-export let Icon = {
-  methods: {
-    icon(payload) {
-      if (!icons) makeIcons(this.$store.state.tools);
-      let o = {};
-      if (typeof payload === "object") o = payload;
-      if (typeof payload === "string") o = this.$store.getters.getObjectById(payload);
-      if (o instanceof CPart) {
-        return icons.cpart;
-      } else if (o instanceof Form) {
-        return o.type == "rect" ? icons.rect : icons.ellipse
-      } else if (o instanceof Image) {
-        return icons.image
-      } else if (o instanceof HalftoneRenderer) {
-        return icons.halftone
-      } else if (o instanceof StippleRenderer) {
-        return icons.stipple
-      } else if (o instanceof Text) {
-        return icons.text
-      } else {
-        return "fa-exclamation-circle"
-      }
-    }
-  }
-}
-
 export let SelectObject = {
   methods: {
     selectObject(id) {
