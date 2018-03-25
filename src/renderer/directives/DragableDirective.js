@@ -86,7 +86,7 @@ export default {
     document.addEventListener("mouseup", event => {
       if (dragged && !useObject)
         store.commit("putObject", {id})
-      else if (useObject && object.put)
+      else if (dragged && object.put)
         object.put()
       dragged = false;
       drag = false;

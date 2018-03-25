@@ -8,7 +8,7 @@ export default {
   setDrawCallback(cb) {
     callback = cb
   },
-  getSimple(id, p, snap = 10) {
+  getSimple(id, p, snap = 5) {
     if (!store) return p
 
     let objects = getAllObjects(id)
@@ -33,7 +33,7 @@ export default {
     return pos;
 
   },
-  getPoint(id, p, snap = 10) {
+  getPoint(id, p, snap = 5) {
     if (!store) return p;
 
     let pos = this.getSimple(id, p, snap)
@@ -44,7 +44,7 @@ export default {
 
     return pos
   },
-  get(id, start, end, snap = 10) {
+  get(id, start, end, snap = 5) {
     if (!store) return {start, end};
 
     let s = this.getSimple(id, start, snap)
