@@ -1,6 +1,8 @@
 <template>
   <g :id="id" v-dragable>
-    <path :d="path" v-for="path in object.paths"></path>
+    <g :transform="'translate('+x+' '+y+')'">
+      <path :d="path" v-for="path in paths"></path>
+    </g>
     <g v-if="!fullPreview">
       <g :transform="'translate('+x+' '+y+') rotate('+rot+' '+(w/2)+' '+(h/2)+')'">
         <rect v-if="object.type=='rect'" x="0" y="0" :width="w" :height="h" class="form"></rect>
@@ -55,6 +57,9 @@
       zoom() { return this.$store.state.project.zoom },
       pointsStr() {
         return this.object.points ? this.object.points.map(p => (this.object.x + p.x * this.object.w)+","+(this.object.y + p.y * this.object.h)).join(" ") : ""
+      },
+      paths() {
+        return this.object.renderParams.map(p => p.path)
       }
     }
   }

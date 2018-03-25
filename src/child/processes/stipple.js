@@ -98,8 +98,10 @@ function prepareParams(params, layer, machine) {
     params.adaptivePointSize = false;
   }
 
+  params.brightness = params.brightness >= 50 ? map(params.brightness, 50, 100, 1, .1) : map(params.brightness, 0, 50, 3, 1)
+
   params.accuracy = layer.renderParams.accuracy / 100;
-  let o = 0.2
+  let o = 0.3
   let f = 3
   params.upper = (1 + o + f - params.accuracy * f)
   params.lower = (1 - o - f + params.accuracy * f)
@@ -130,13 +132,13 @@ function* next() {
     let totalDensity = cell.sumDensity;
     let diameter = stippleSize(cell)
 
-    if (totalDensity < params.lower * pointArea(diameter) || cell.area == 0 || eaten(cell)) {
+    if (totalDensity  * params.brightness < params.lower * pointArea(diameter) || cell.area == 0 || eaten(cell)) {
       // cell too small - merge
       status.merges++;
       Path.remove(cell.id)
       continue;
     }
-    if (totalDensity < params.upper * pointArea(diameter)) {
+    if (totalDensity * params.brightness < params.upper * pointArea(diameter)) {
       // cell size within acceptable range - keep
       let s = new Stipple(cell.centroid, diameter, cell.id)
       stipples.push(s)
@@ -217,7 +219,11 @@ function stop() {
 
 function init() {
   if (params && image && layer) {
-    initStipples()
+
+    stipples = [];
+    stipples.push(new Stipple({x: random(layer.x, layer.x+layer.w), y: random(layer.y, layer.y+layer.h)}, params.pointSize));
+    stipples.push(new Stipple({x: random(layer.x, layer.x+layer.w), y: random(layer.y, layer.y+layer.h)}, params.pointSize));
+
     Path.init(stipples)
   }
   status = {
@@ -235,13 +241,6 @@ class Stipple {
 
 function random(min, max) {
   return min + Math.random() * (max-min)
-}
-
-function initStipples(size) {
-
-  stipples = [];
-  stipples.push(new Stipple({x: random(layer.x, layer.x+layer.w), y: random(layer.y, layer.y+layer.h)}, params.pointSize));
-  stipples.push(new Stipple({x: random(layer.x, layer.x+layer.w), y: random(layer.y, layer.y+layer.h)}, params.pointSize));
 }
 
 function pointArea(pointDiameter) {

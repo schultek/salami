@@ -90,6 +90,7 @@
 
 .layer-item span:last-of-type {
   color: #aaa;
+  margin-right: 5px;
 }
 
 .layer-item span i:hover {

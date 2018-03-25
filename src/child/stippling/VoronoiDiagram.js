@@ -24,7 +24,7 @@ export default class VoronoiDiagram {
     this.bbox = {xl: 0, xr: image.pixW * this.scale, yt: 0, yb: image.pixH * this.scale}
     this.image = image;
     this.layer = layer;
-    this.areaScale =  (this.layer.w * this.layer.h) / (this.image.pixW * this.image.pixH) / this.scale / this.scale;
+    this.areaScale =  (this.image.w * this.image.h) / (this.image.pixW * this.image.pixH) / this.scale / this.scale;
   }
   checkDimens(p) {
     return [
@@ -195,7 +195,7 @@ export default class VoronoiDiagram {
       cell.orientation = Math.atan2(y, x - z) / 2
 
       cell.area = cell.area * this.areaScale
-      cell.sumDensity = cell.sumDensity *  this.areaScale
+      cell.sumDensity = cell.sumDensity * this.areaScale
 
       cell.centroid = this.image.toMM({x: cell.centroid.x / this.scale, y: cell.centroid.y / this.scale})
 

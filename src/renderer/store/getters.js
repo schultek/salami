@@ -122,7 +122,7 @@ export default {
       if (!o) o = {}
 
       if (["cpart", "form"].indexOf(type) >= 0) {
-        if (!("renderParams" in o) || o.renderParams.length == 0)
+        if (!("renderParams" in o))
           o.renderParams = [new RenderParams()]
         o.renderParams.forEach(p => {
           if (!p.renderer) p.renderer = (state.renderer[0] || {id: null}).id

@@ -242,6 +242,7 @@ export class StippleRenderer extends Renderer {
     this.adaptivePointSize = o.adaptivePointSize || true
     this.pointSizeMin = o.pointSizeMin || 0
     this.pointSizeMax = o.pointSizeMax || 100
+    this.brightness = o.brightness || 50
     this.hotspots = o.hotspots || []
     if (this.hotspots.length == 0 && "x" in o && "y" in o) {
       this.hotspots.push(new Hotspot({x: o.x, y: o.y}))
@@ -257,6 +258,8 @@ export class StippleRenderer extends Renderer {
     if ("pointSizeMin" in o && o.pointSizeMin > 100) o.pointSizeMin = 100
     if ("pointSizeMax" in o && o.pointSizeMax < 0) o.pointSizeMax = 0
     if ("pointSizeMax" in o && o.pointSizeMax > 100) o.pointSizeMax = 100
+    if ("brightness" in o && o.brightness < 0) o.brightness = 0
+    if ("brightness" in o && o.brightness > 100) o.brightness = 100
     if ("hotspot" in o) {
       if ("add" in o.hotspot) this.hotspots.push(o.hotspot.add)
       if ("remove" in o.hotspot) this.hotspots.splice(o.hotspot.remove, 1)

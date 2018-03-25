@@ -51,7 +51,8 @@
         {title: "Size", prop: "pointSize", type:"number", unit:"%"},
         {title: "Min Size", prop: "pointSizeMin", type:"number", unit:"%"},
         {title: "Max Size", prop: "pointSizeMax", type:"number", unit:"%"},
-        {title: "Adaptive Size", prop: "adaptivePointSize", type:"checkbox"}
+        {title: "Adaptive Size", prop: "adaptivePointSize", type:"checkbox"},
+        {title: "Bright", prop: "brightness", type:"number", unit:"%"}
       ],
       openSettings: null
     }),
