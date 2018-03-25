@@ -1,4 +1,4 @@
 Hello Docs
 
 
-[./about.html](about)
+[about](./about.html)
