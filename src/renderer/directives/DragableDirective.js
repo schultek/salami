@@ -9,6 +9,7 @@ export default {
     let data = {}
 
     let snap = !binding.modifiers.nosnap
+    let pointSnap = binding.modifiers.point
 
     let object = binding.value;
     let useObject = object && true;
@@ -34,31 +35,38 @@ export default {
       let o = {x: data.x + p.x, y: data.y + p.y}
 
       if (snap && !event.ctrlKey) {
-        let {start, end} = Snapping.get(id, o, {x: o.x + data.o.w, y: o.y + data.o.h})
-
-        if (start.x == o.x) {
-          o.x = end.x - data.o.w
-        } else if (end.x == o.x + data.o.w) {
-          o.x = start.x
+        if (pointSnap) {
+          let point = Snapping.getPoint(id, o)
+          o.x = point.x
+          o.y = point.y
         } else {
-          if (Math.abs(start.x - o.x) < Math.abs(end.x - (o.x + data.o.w))) {
+          let {start, end} = Snapping.get(id, o, {x: o.x + data.o.w, y: o.y + data.o.h})
+
+          if (start.x == o.x) {
+            o.x = end.x - data.o.w
+          } else if (end.x == o.x + data.o.w) {
             o.x = start.x
           } else {
-            o.x = end.x - data.o.w
+            if (Math.abs(start.x - o.x) < Math.abs(end.x - (o.x + data.o.w))) {
+              o.x = start.x
+            } else {
+              o.x = end.x - data.o.w
+            }
+          }
+
+          if (start.y == o.y) {
+            o.y = end.y - data.o.h
+          } else if (end.y == o.y + data.o.h) {
+            o.y = start.y
+          } else {
+            if (Math.abs(start.y - o.y) < Math.abs(end.y - (o.y + data.o.h))) {
+              o.y = start.y
+            } else {
+              o.y = end.y - data.o.h
+            }
           }
         }
 
-        if (start.y == o.y) {
-          o.y = end.y - data.o.h
-        } else if (end.y == o.y + data.o.h) {
-          o.y = start.y
-        } else {
-          if (Math.abs(start.y - o.y) < Math.abs(end.y - (o.y + data.o.h))) {
-            o.y = start.y
-          } else {
-            o.y = end.y - data.o.h
-          }
-        }
 
       }
 
@@ -78,7 +86,7 @@ export default {
     document.addEventListener("mouseup", event => {
       if (dragged && !useObject)
         store.commit("putObject", {id})
-      else if (useObject && "put" in object)
+      else if (useObject && object.put)
         object.put()
       dragged = false;
       drag = false;

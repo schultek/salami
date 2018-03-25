@@ -148,7 +148,7 @@ export default {
       if (type == "form" && !o.type) {
         o.type = "rect"
       }
-      if (type == "rect" || type == "ellipse" || type == "triangle") {
+      if (type == "rect" || type == "ellipse" || type == "triangle" || type == "polygon") {
         o.type = type
         type = "form"
       }

@@ -98,17 +98,45 @@ export class Form extends Layer {
     this.type = o.type || "rect"
     this.ownRenderer = o.ownRenderer || false
     if (this.type == "triangle") {
-      this.d = .5;
+      this.d = o.d || .5;
+    } else if (this.type == "polygon") {
+      this.points = o.points || [{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}, {x: 0, y: 1}]
     }
   }
   toObj() {
-    return {
+    let o = {
       ...super.toObj(),
       ...super.asObject("rot", "type", "renderer", "ownRenderer")
     }
+    if (this.type == "triangle" && this.d) o.d = this.d;
+    if (this.type == "polygon" && this.points) o.points = this.points;
+    return o;
   }
   isRendering() {
-    return this.ownRenderer
+    return this.ownRenderer && true;
+  }
+  getSnapping(hori) {
+    if (hori) {
+      let h = [this.x, this.x + this.w]
+      if (this.type == "triangle" && this.d != 0 && this.d != 1)
+        h.push(this.x + this.d * this.w)
+      if (this.type == "polygon") {
+        this.points.forEach(p => {
+          if (p.x != 0 && p.x != 1)
+            h.push(this.x + p.x * this.w)
+        })
+      }
+      return h
+    } else {
+      let v = [this.y, this.y + this.h]
+      if (this.type == "polygon") {
+        this.points.forEach(p => {
+          if (p.y != 0 && p.y != 1)
+            v.push(this.y + p.y * this.h)
+        })
+      }
+      return v;
+    }
   }
   update(o) {
     if ("type" in o) {

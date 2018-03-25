@@ -28,11 +28,12 @@ export default {
     {selected: "rect",     tools: [
       {id: "rect",     icon: "square" },
       {id: "ellipse",  icon: "circle" },
-      {id: "triangle", icon: "/triangle"}
+      {id: "triangle", icon: "/triangle"},
+      {id: "polygon", icon: "/poly"}
     ]},
     {selected: "halftone", tools: [
-      {id: "halftone", icon: "leaf"   },
-      {id: "stipple",  icon: "eye"    }
+      {id: "halftone", icon: "/halftone"   },
+      {id: "stipple",  icon: "/stipple"    }
     ]},
     {id: "text",    icon: "font"         }
   ],

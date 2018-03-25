@@ -8,12 +8,15 @@
 <script>
 
 import TriangleIcon from "@/assets/icons/triangle.svg"
+import HalftoneIcon from "@/assets/icons/halftone.svg"
+import StippleIcon from "@/assets/icons/stipple.svg"
+import PolygonIcon from "@/assets/icons/polygon.svg"
 
 import {CPart, Form, Image, HalftoneRenderer, StippleRenderer, Text} from "@/models.js"
 
 export default {
   props: ["icon", "for"],
-  components: {triangle: TriangleIcon},
+  components: {triangle: TriangleIcon, halftone: HalftoneIcon, stipple: StippleIcon, poly: PolygonIcon},
   computed: {
     compIcon() {
       return this.icon ? this.icon : this.getIconFor(this.for)

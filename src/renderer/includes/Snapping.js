@@ -33,6 +33,17 @@ export default {
     return pos;
 
   },
+  getPoint(id, p, snap = 10) {
+    if (!store) return p;
+
+    let pos = this.getSimple(id, p, snap)
+
+    if (callback) {
+      callback(pos.x != p.x ? pos.x : null, pos.y != p.y ? pos.y : null)
+    }
+
+    return pos
+  },
   get(id, start, end, snap = 10) {
     if (!store) return {start, end};
 
@@ -54,24 +65,22 @@ export default {
 
 function getAllObjects(id) {
 
-  let mapObj = o => ({id: o.id, x: o.x, y: o.y, w: o.w, h: o.h, rot: o.rot || 0})
-
   let obj = store.getters.getObjectById(id)
 
   if (obj && "rot" in obj && obj.rot != 0) return []
 
-  return store.state.layers.map(mapObj)
-    .concat(store.state.images.map(mapObj))
-    .concat(store.state.texts.map(mapObj))
-    .filter(o => o.rot == 0)
+  return store.state.layers
+    .concat(store.state.images)
+    .concat(store.state.texts)
+    .filter(o => !o.rot || o.rot == 0)
     .filter(o => o.id != id)
 
 }
 
 function getHorizontalLines(objects) {
-  return objects.reduce((lines, o) => lines.concat([o.x, o.x+o.w]), [])
+  return objects.reduce((lines, o) => lines.concat(o.getSnapping ? o.getSnapping(true) : [o.x, o.x+o.w]), [])
 }
 
 function getVerticalLines(objects) {
-  return objects.reduce((lines, o) => lines.concat([o.y, o.y+o.h]), [])
+  return objects.reduce((lines, o) => lines.concat(o.getSnapping ? o.getSnapping(false) : [o.y, o.y+o.h]), [])
 }

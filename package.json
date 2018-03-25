@@ -65,6 +65,7 @@
     "mz": "^2.7.0",
     "node-fetch": "^2.0.0",
     "opentype.js": "^0.7.3",
+    "point-in-polygon": "^1.0.1",
     "voronoi": "^1.0.0",
     "vue": "^2.3.3",
     "vue-awesome": "^2.3.4",

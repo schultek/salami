@@ -2,6 +2,8 @@
 import ImageLoader from "./ImageLoader"
 import Console from "./ConsoleBuffer"
 
+import insidePoly from "point-in-polygon"
+
 export function onLoad(id, cb) {
   if (!ImageLoader.has(id)) {
     if (ImageLoader.isLoading(id)) {
@@ -54,6 +56,14 @@ export function prepareForm(f) {
       } else {
         return y2 - p.y < (x2 - p.x) * hb
       }
+    }
+  } else if (f.type && f.type == "polygon") {
+    let inBBox = makeAreaFunc(f)
+    let polygon = f.points.map(p => [f.x + f.w * p.x, f.y + f.h * p.y])
+    f.inArea = function(p) {
+      if (!inBBox(p)) return false;
+      p = this.rotate(p)
+      return insidePoly([p.x, p.y], polygon)
     }
   } else {
     f.inArea = makeAreaFunc(f);
