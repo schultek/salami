@@ -30,6 +30,7 @@ npm run build
 - [x] stipple quality as percentage
 - [x] long titlesn
 - [x] save / open project
+- [ ] inverted
 
 ## TODO
 
