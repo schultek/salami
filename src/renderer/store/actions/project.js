@@ -51,6 +51,8 @@ export default {
     else
       objects = state.layers.concat(state.images).concat(state.texts)
 
+    if (objects.length == 0) return;
+
     let max = objects.reduce((max, o) => ({
         x: Math.max(max.x, o.w ? o.x+o.w : o.x),
         y: Math.max(max.y, o.h ? o.y+o.h : o.y)

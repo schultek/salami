@@ -54,6 +54,8 @@ npm run build
 - [x] multi processing
 - [ ] snapping with rotation
 - [x] snapping lines
+- [ ] ctrl-c / ctrl-v / delete key commands
+- [ ] spinner instead progress bar
 
 ### New Features
 
@@ -72,7 +74,7 @@ npm run build
   - [ ] save projects online
   - [ ] share layouts
   - [ ] live project with other users
-- [ ] shortcuts
+- [x] shortcuts
 - [ ] undo / redo
 - [ ] auto leveling
 - [ ] settings page
