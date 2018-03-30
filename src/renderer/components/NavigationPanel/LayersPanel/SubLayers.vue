@@ -17,7 +17,7 @@
 <script>
 
   import draggable from "vuedraggable"
-  import {CPart} from "@/models.js"
+  import {Artboard} from "@/models.js"
   import {SelectObject} from "@/mixins.js"
   import Icon from "@/components/Icon.vue"
 

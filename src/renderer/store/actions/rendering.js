@@ -1,7 +1,7 @@
 
 import RenderingManager from "@/rendering/RenderingManager.js"
 
-import {CPart, Text, Form} from "@/models.js"
+import {Artboard, Text, Form} from "@/models.js"
 
 export default {
   async renderAll({state, dispatch, commit, getters}) {

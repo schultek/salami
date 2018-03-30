@@ -60,11 +60,11 @@ export class Layer extends BaseObject {
   }
   static fromObj(o) {
     if (o.type) return new Form(o)
-    else return new CPart(o)
+    else return new Artboard(o)
   }
 }
 
-export class CPart extends Layer {
+export class Artboard extends Layer {
   constructor(o = {}) {
     super(o)
     o.border = o.border || {}

@@ -1,5 +1,5 @@
 
-import {CPart, Form, Image, HalftoneRenderer, StippleRenderer, Text} from "@/models.js"
+import {Artboard, Form, Image, HalftoneRenderer, StippleRenderer, Text} from "@/models.js"
 
 export let SelectObject = {
   methods: {

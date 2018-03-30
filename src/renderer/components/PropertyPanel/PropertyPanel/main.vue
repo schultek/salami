@@ -4,7 +4,7 @@
 
 <script>
 
-  import CPart from "./CPart.vue"
+  import Artboard from "./Artboard.vue"
   import Renderer from "./Renderer.vue"
   import Form from "./Form.vue"
   import Machine from "./Machine.vue"
@@ -14,7 +14,7 @@
   export default {
     props: ["type", "id"],
     components: {
-      cpartX: CPart,
+      artboardX: Artboard,
       rendererX: Renderer,
       formX: Form,
       machineX: Machine,

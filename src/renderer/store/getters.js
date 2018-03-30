@@ -3,7 +3,7 @@ import $ from "jquery"
 
 import {getNewId, getMaxLength} from "@/functions.js"
 
-import {CPart, Form, Layer, Image, Text, Machine, Renderer, HalftoneRenderer, StippleRenderer, RenderParams, Font} from "@/models.js"
+import {Artboard, Form, Layer, Image, Text, Machine, Renderer, HalftoneRenderer, StippleRenderer, RenderParams, Font} from "@/models.js"
 
 export default {
 
@@ -101,7 +101,7 @@ export default {
   getObjectTypeById(state, getters) {
     return (id) => {
       let o = getters.getObjectById(id);
-      if (o instanceof CPart)    return "cpart"
+      if (o instanceof Artboard)    return "artboard"
       if (o instanceof Form)     return "form"
       if (o instanceof Renderer) return "renderer"
       if (o instanceof Image)    return "image"
@@ -121,7 +121,7 @@ export default {
 
       if (!o) o = {}
 
-      if (["cpart", "form"].indexOf(type) >= 0) {
+      if (["artboard", "form"].indexOf(type) >= 0) {
         if (!("renderParams" in o))
           o.renderParams = [new RenderParams()]
         o.renderParams.forEach(p => {
@@ -131,7 +131,7 @@ export default {
         })
       }
 
-      if (["cpart", "image"].indexOf(type) >= 0) {
+      if (["artboard", "image"].indexOf(type) >= 0) {
         if (!("w" in o)) o.w = state.machine.w
         if (!("h" in o)) o.h = state.machine.h
       }
@@ -154,19 +154,19 @@ export default {
       }
 
       if (!o.title && type != "font") {
-        let arr = type == "cpart" ? state.layers.filter(l => l instanceof CPart) :
+        let arr = type == "artboard" ? state.layers.filter(l => l instanceof Artboard) :
                   type == "form" ? state.layers.filter(l => l instanceof Form && l.type == o.type) :
                   type == "image" ? state.images :
                   type == "halftone" || type == "stipple" ? state.renderer :
                   type == "text" ? state.texts : []
 
         let n = arr.length+1
-        let name = type == "cpart" ? "layer" : type == "form" ? o.type : type;
+        let name = type == "form" ? o.type : type;
         o.title = name.charAt(0).toUpperCase() + name.slice(1) + " " + n
       }
 
       switch (type) {
-        case "cpart": return new CPart(o)
+        case "artboard": return new Artboard(o)
         case "form": return new Form(o)
         case "image": return new Image(o)
         case "halftone": return new HalftoneRenderer(o)

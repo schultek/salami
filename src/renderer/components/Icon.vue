@@ -12,7 +12,7 @@ import HalftoneIcon from "@/assets/icons/halftone.svg"
 import StippleIcon from "@/assets/icons/stipple.svg"
 import PolygonIcon from "@/assets/icons/polygon.svg"
 
-import {CPart, Form, Image, HalftoneRenderer, StippleRenderer, Text} from "@/models.js"
+import {Artboard, Form, Image, HalftoneRenderer, StippleRenderer, Text} from "@/models.js"
 
 export default {
   props: ["icon", "for"],
@@ -43,8 +43,8 @@ export default {
       let o = {};
       if (typeof payload === "object") o = payload;
       if (typeof payload === "string") o = this.$store.getters.getObjectById(payload);
-      if (o instanceof CPart) {
-        return this.icons.cpart;
+      if (o instanceof Artboard) {
+        return this.icons.artboard;
       } else if (o instanceof Form) {
         return this.icons[o.type];
       } else if (o instanceof Image) {

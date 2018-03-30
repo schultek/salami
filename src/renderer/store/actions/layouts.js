@@ -102,7 +102,7 @@ export default {
             else delete p.image
           }
         })
-      commit("addObject", getters.getNewObjectByType(l.type ? "form" : "cpart", l))
+      commit("addObject", getters.getNewObjectByType(l.type ? "form" : "artboard", l))
     })
 
     console.log("Finished building Layout "+layout.title)

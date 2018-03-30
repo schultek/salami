@@ -4,7 +4,7 @@
 <script>
 
   import Vue from "vue"
-  import {CPart} from "@/models.js"
+  import {Artboard} from "@/models.js"
   import {SelectObject, createProxy} from "@/mixins.js"
 
   import TitleModule from "./Modules/TitleModule.vue"

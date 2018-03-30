@@ -3,7 +3,7 @@ import gets from "./getters.js"
 import Vue from "vue"
 
 import {round} from "@/functions.js"
-import {Machine, CPart, Layer, Text, Form, Renderer, Image, Font} from "@/models.js"
+import {Machine, Artboard, Layer, Text, Form, Renderer, Image, Font} from "@/models.js"
 import RenderingManager from "@/rendering/RenderingManager.js"
 
 let getters = new Proxy(gets, {

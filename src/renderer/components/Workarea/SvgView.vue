@@ -27,7 +27,7 @@
 
 <script>
 
-  import CPart from "./Objects/CPart.vue"
+  import Artboard from "./Objects/Artboard.vue"
   import Renderer from "./Objects/Renderer.vue"
   import Image from "./Objects/Image.vue"
   import Form from "./Objects/Form.vue"
@@ -38,7 +38,7 @@
   import Snapping from "@/includes/Snapping"
   import SnappingView from "./Snapping.vue"
 
-  import {CPart as CPartObject, HalftoneRenderer, StippleRenderer, Image as ImageObject, Text as TextObject, Form as FormObject} from "@/models.js"
+  import {Artboard as ArtboardObject, HalftoneRenderer, StippleRenderer, Image as ImageObject, Text as TextObject, Form as FormObject} from "@/models.js"
 
   export default {
     data: () => ({
@@ -48,7 +48,7 @@
       mouse: null
     }),
     components: {
-      cpartX: CPart,
+      artboardX: Artboard,
       formX: Form,
       rendererX: Renderer,
       imageX: Image,
@@ -78,7 +78,7 @@
         return renderer instanceof HalftoneRenderer ? "halftone" : renderer instanceof StippleRenderer ? "stipple" : ""
       },
       compType(layer) {
-        return layer instanceof CPartObject ? "cpart" : "form"
+        return layer instanceof ArtboardObject ? "artboard" : "form"
       },
       mouseUp(event) {
         if (this.adding) {
@@ -88,7 +88,7 @@
             delete this.object.x;
             delete this.object.y;
           }
-          if (this.object instanceof ImageObject || this.object instanceof CPartObject || this.object instanceof FormObject) {
+          if (this.object instanceof ImageObject || this.object instanceof ArtboardObject || this.object instanceof FormObject) {
             if (this.object.w == 1 && this.object.h == 1) {
               this.object.x -= 20;
               this.object.y -= 20;

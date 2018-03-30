@@ -3,14 +3,14 @@
   "template": {
     "layers": [
       {
-        "title": "Right Layer",
+        "title": "Right",
         "w": 150,
         "h": 200,
         "x": 150,
         "y": 0
       },
       {
-        "title": "Left Layer",
+        "title": "Left",
         "w": 150,
         "h": 200,
         "x": 0,

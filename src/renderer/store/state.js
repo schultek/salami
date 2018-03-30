@@ -23,7 +23,7 @@ export default {
   fonts: [],
   tools: [
     {id: "select",   icon: "mouse-pointer"},
-    {id: "cpart",    icon: "th-large"     },
+    {id: "artboard",    icon: "th-large"     },
     {id: "image",    icon: "image"        },
     {selected: "rect",     tools: [
       {id: "rect",     icon: "square" },

@@ -3,9 +3,7 @@
   "title": "Standard",
   "template": {
     "layers": [
-      {
-        "title": "Layer"
-      }
+      {}
     ]
   }
 }

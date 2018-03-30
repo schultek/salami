@@ -12,7 +12,7 @@ export default {
     if (file.endsWith(".crv")) {
       let data = await fs.readFile(file, 'utf8')
       commit("buildProject", JSON.parse(data))
-      
+
       dispatch("renderAll")
     } else if (file.endsWith(".jpg") || file.endsWith(".png") || file.endsWith(".gif") || file.endsWith(".jpeg")) {
       if (state.images.length > 0) {
@@ -26,8 +26,8 @@ export default {
     commit("setProjectFile", file)
     console.log("Project loaded from "+file)
   },
-  async saveProject({commit, state, getters}) {
-    let file = state.project.file || await showSaveDialog({filters: [{name: 'Carve', extensions: ['crv']}]})
+  async saveProject({commit, state, getters}, showDialog) {
+    let file = showDialog || !state.project.file ? await showSaveDialog({filters: [{name: 'Carve', extensions: ['crv']}]}) : state.project.file
     if (!file) return
     let json = getters.getJsonFromProject
     await fs.writeFile(file, json)

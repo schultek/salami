@@ -30,6 +30,8 @@ npm run build
 - [x] stipple quality as percentage
 - [x] long titlesn
 - [x] save / open project
+- [x] hotspot verschieben
+- [ ] inverted
 
 ## TODO
 
@@ -57,9 +59,9 @@ npm run build
 
 - [x] new rendering system
 - [ ] touch bar
-- [ ] more forms
-  - [ ] triangle
-  - [ ] polygon
+- [x] more forms
+  - [x] triangle
+  - [x] polygon
 - [x] stippling mode
 - [ ] new layout system
   - [ ] scale layout to default parameters

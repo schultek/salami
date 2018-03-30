@@ -12,7 +12,7 @@ export default {
     await dispatch("setFullPreview", true)
 
     let promises = []
-    for (let layer of state.layers.filter(el => el instanceof CPart)) {
+    for (let layer of state.layers.filter(el => el instanceof Artboard)) {
       let gcode = (layer.gcode || {cmds: []}).cmds.slice()
       state.layers
         .filter(el => el instanceof Form && el.isRendering() && el.gcode)
