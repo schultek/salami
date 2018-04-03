@@ -31,7 +31,7 @@ npm run build
 - [x] long titlesn
 - [x] save / open project
 - [x] hotspot verschieben
-- [ ] inverted
+- [x] inverted
 
 ## TODO
 
@@ -54,8 +54,11 @@ npm run build
 - [x] multi processing
 - [ ] snapping with rotation
 - [x] snapping lines
-- [ ] ctrl-c / ctrl-v / delete key commands
+- [x] ctrl-c / ctrl-v / delete key commands
 - [ ] spinner instead progress bar
+- [ ] hotspot drag controls
+- [ ] rotate resize mouse icon
+- [ ] texts in sublayers
 
 ### New Features
 

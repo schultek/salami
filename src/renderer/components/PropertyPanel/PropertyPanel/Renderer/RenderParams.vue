@@ -66,7 +66,7 @@ export default {
   mixins: [SelectObject],
   data: () => ({
     showForms: false,
-    showSettings: false
+    showSettings: true
   }),
   components: {halftone: HalftoneParams, stipple: StippleParams, Icon},
   computed: {
@@ -127,19 +127,6 @@ export default {
   height: 2px;
   margin: 5px 0 5px 10px;
   background: #e4e4e4;
-}
-
-.linked-layer-item.toggled {
-  background: #ededed;
-}
-
-.toggle .toggle_icon {
-  transform: rotate(-90deg);
-  transition: transform .8s;
-}
-
-.toggle:hover .toggle_icon, .toggle.toggled .toggle_icon {
-  transform: rotate(90deg);
 }
 
 .params {

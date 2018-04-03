@@ -54,12 +54,4 @@
 
 <style>
 
-.fa-cog {
-  transition: transform 4s;
-}
-
-.fa-cog:hover {
-  transform: rotate(180deg)
-}
-
 </style>

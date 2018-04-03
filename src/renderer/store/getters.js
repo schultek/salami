@@ -103,7 +103,8 @@ export default {
       let o = getters.getObjectById(id);
       if (o instanceof Artboard)    return "artboard"
       if (o instanceof Form)     return "form"
-      if (o instanceof Renderer) return "renderer"
+      if (o instanceof HalftoneRenderer) return "halftone"
+      if (o instanceof StippleRenderer) return "stipple"
       if (o instanceof Image)    return "image"
       if (o instanceof Machine)  return "machine"
       if (o instanceof Text)     return "text"

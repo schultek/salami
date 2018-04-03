@@ -17,6 +17,7 @@ import {ipcRenderer} from "electron"
 import {setNotify} from "@/functions"
 import Snapping from "@/includes/Snapping.js"
 import MenuCommands from "@/includes/MenuCommands.js"
+import Cache from "@/includes/Cache.js"
 
 Vue.use(VueElectron);
 Vue.use(Notification);
@@ -30,6 +31,7 @@ new Vue({
     setNotify(this.$notify.bind(this))
     Snapping.init(this.$store);
     MenuCommands.init(this.$store);
+    Cache.init(this.$store);
     this.$store.dispatch("init").then(
       this.$refs.overlay.fadeOut
     )

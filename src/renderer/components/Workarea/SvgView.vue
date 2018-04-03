@@ -108,21 +108,23 @@
         }
       },
       mouseDown(event) {
-        if (!this.adding || this.object) return
-        let p = this.$store.getters.getLocalPosition({x: event.x, y: event.y})
+        if (this.adding) {
+          if (this.object) return
+          let p = this.$store.getters.getLocalPosition({x: event.x, y: event.y})
 
-        if (!event.ctrlKey)
-          p = Snapping.getSimple(null, p)
+          if (!event.ctrlKey)
+            p = Snapping.getSimple(null, p)
 
-        this.object = this.$store.getters.getNewObjectByType(this.$store.state.selectedTool, {x: p.x, y: p.y, w: 0, h: 0});
-        switch(this.$store.state.selectedTool) {
-          case "halftone": case "stipple": this.objectMode = "point"; break;
-          case "ellipse": this.objectMode = "ellipse"; break;
-          case "triangle": this.objectMode = "triangle"; break;
-          default: this.objectMode = "rect";
+          this.object = this.$store.getters.getNewObjectByType(this.$store.state.selectedTool, {x: p.x, y: p.y, w: 0, h: 0});
+          switch(this.$store.state.selectedTool) {
+            case "halftone": case "stipple": this.objectMode = "point"; break;
+            case "ellipse": this.objectMode = "ellipse"; break;
+            case "triangle": this.objectMode = "triangle"; break;
+            default: this.objectMode = "rect";
+          }
+          this.mouse = {x: event.x, y: event.y}
+          event.stopPropagation();
         }
-        this.mouse = {x: event.x, y: event.y}
-        event.stopPropagation();
       }
     }
   }

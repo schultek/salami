@@ -13,13 +13,13 @@
         <span class="add-hotspot" @click="addHotspot"><i class="fa fa-plus"></i></span>
       </div>
       <template v-for="(hotspot, i) in object.hotspots">
-        <div class="linked-layer-item" :class="openSettings == i ? 'selected' : ''">
+        <div class="linked-layer-item toggle" :class="openSettings == i ? 'toggled' : ''" @click="toggleHotspotSettings(i)">
           <i class="far fa-fw fa-dot-circle icon"></i>
           <span>Hotspot {{i+1}}</span>
           <span class="stretch"></span>
           <span class="hotspot-controls">
-            <i class="fas fa-cog" @click="toggleHotspotSettings(i)"></i>
             <i class="far fa-trash-alt" @click="removeHotspot(i)"></i>
+            <i class="fa fa-angle-right toggle_icon link" :class="openSettings == i ? 'toggled' : ''"></i>
           </span>
         </div>
         <div class="params hotspot-settings" v-if="openSettings == i">

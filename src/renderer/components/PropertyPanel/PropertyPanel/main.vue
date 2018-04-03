@@ -5,17 +5,20 @@
 <script>
 
   import Artboard from "./Artboard.vue"
-  import Renderer from "./Renderer.vue"
   import Form from "./Form.vue"
   import Machine from "./Machine.vue"
   import Text from "./Text.vue"
   import Image from "./Image.vue"
+  import HalftoneRenderer from "./Renderer/HalftoneRenderer.vue"
+  import StippleRenderer from "./Renderer/StippleRenderer.vue"
+
 
   export default {
     props: ["type", "id"],
     components: {
       artboardX: Artboard,
-      rendererX: Renderer,
+      halftoneX: HalftoneRenderer,
+      stippleX: StippleRenderer,
       formX: Form,
       machineX: Machine,
       textX: Text,
@@ -81,7 +84,7 @@
 }
 
 .linked-layer-item span:last-child i {
-  margin: auto 5px;
+  padding: 5px;
 }
 
 .linked-layer-item:hover, .linked-layer-item.selected {
@@ -94,6 +97,19 @@
 
 .linked-layer-item:hover i.link {
   color: #555;
+}
+
+.linked-layer-item.toggled {
+  background: #ededed;
+}
+
+.toggle .toggle_icon {
+  transform: rotate(-90deg);
+  transition: transform .8s;
+}
+
+.toggle:hover .toggle_icon, .toggle.toggled .toggle_icon {
+  transform: rotate(90deg);
 }
 
 </style>

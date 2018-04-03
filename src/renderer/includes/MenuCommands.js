@@ -1,5 +1,7 @@
 import {ipcRenderer} from 'electron'
 
+import Cache from "./Cache.js"
+
 export default {
   init(store) {
 
@@ -12,6 +14,16 @@ export default {
         case "export-layout": /*TODO*/ break;
         case "export-gcode": /*TODO*/ break;
         case "settings": /*TODO*/ break;
+      }
+    });
+
+    ipcRenderer.on("edit", (event, arg) => {
+      console.log(arg);
+      switch (arg) {
+        case "copy": Cache.copy(); break;
+        case "paste": Cache.paste(); break;
+        case "cut": Cache.cut(); break;
+        case "delete": Cache.delete(); break;
       }
     });
 

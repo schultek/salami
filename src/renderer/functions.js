@@ -124,7 +124,7 @@ export function makeCurveFactory(renderer, layer, machine) {
   if (includePath) {
     maxRad = round(machine.bit.inDepth/machine.bit.height*machine.bit.width/2, 100);
     rad = (p) => {
-      let r = (layer.inverted ? p.data : (1-p.data)) * maxRad
+      let r = (1-p.data) * maxRad
       return r < machine.bit.tiprad ? machine.bit.tiprad : r
     }
     if (layer && layer.renderParams.dotted)

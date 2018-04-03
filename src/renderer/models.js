@@ -301,7 +301,7 @@ export class Hotspot {
     this.reduce = o.reduce || 0
   }
   update(o) {
-    if ("r" in o && o.r < 0) o.r = 0;
+    if ("r" in o && o.r < 10) o.r = 10;
     if ("weight" in o && o.weight < 0) o.weight = 0;
     if ("weight" in o && o.weight > 100) o.weight = 100;
     if ("reduce" in o && o.reduce < 0) o.reduce = 0;
