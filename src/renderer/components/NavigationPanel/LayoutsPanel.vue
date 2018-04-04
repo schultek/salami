@@ -29,11 +29,22 @@
   import {mapState} from "vuex"
 
   export default {
-    computed: mapState(["subLayersOpen", "selectedLayout", "layouts"]),
     data: () => ({
       edit: null,
       title: ""
     }),
+    computed: {
+      ...mapState(["subLayersOpen", "selectedLayout"]),
+      layouts() {
+        return this.$store.state.layouts
+          .filter(l => !l.custom)
+          .sort((a, b) => (a.order || 100) - (b.order || 100))
+          .concat(this.$store.state.layouts
+            .filter(l => l.custom)
+            .sort((a, b) => a.title > b.title)
+          )
+      }
+    },
     methods: {
       toggleSublayers() {
         this.$store.commit("setSubLayersOpen", !this.subLayersOpen)

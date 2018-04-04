@@ -1,5 +1,6 @@
 {
   "title": "Fancy Frame",
+  "order": 4,
   "template": {
     "layers": [{
       "x": 0,

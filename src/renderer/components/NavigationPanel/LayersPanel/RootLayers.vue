@@ -37,7 +37,6 @@
       layers() {
         return this.$store.state.renderer
           .concat(this.$store.state.images)
-          .concat(this.$store.state.texts)
       }
     },
     methods: {

@@ -16,9 +16,6 @@
       <g id="svgRenderer" :style="{display: subLayersOpen ? 'none' : 'inherit'}">
         <rendererX v-for="renderer in renderer" :key="renderer.id" :ref="renderer.id" :id="renderer.id" :type="rendererType(renderer)"></rendererX>
       </g>
-      <g id="svgTexts" :style="{display: subLayersOpen && !fullPreview ? 'none' : 'inherit'}">
-        <textX v-for="text in texts" :key="text.id" :ref="text.id" :id="text.id"></textX>
-      </g>
       <Preview v-if="object" v-model="object" :mouse="mouse" :mode="objectMode"></Preview>
     </g>
     <SnappingView></SnappingView>
@@ -59,7 +56,6 @@
       layers()   { return this.$store.state.layers   },
       images()   { return this.$store.state.images   },
       renderer() { return this.$store.state.renderer },
-      texts()    { return this.$store.state.texts    },
       p() {
         return this.$store.state.project
       },
@@ -78,7 +74,7 @@
         return renderer instanceof HalftoneRenderer ? "halftone" : renderer instanceof StippleRenderer ? "stipple" : ""
       },
       compType(layer) {
-        return layer instanceof ArtboardObject ? "artboard" : "form"
+        return layer instanceof ArtboardObject ? "artboard" : layer instanceof TextObject ? "text" : "form"
       },
       mouseUp(event) {
         if (this.adding) {

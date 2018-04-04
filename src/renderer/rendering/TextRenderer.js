@@ -4,6 +4,9 @@ import {fork} from "child_process"
 import path from "path"
 var opentype = require("opentype.js")
 
+import {Form, Text} from "@/models.js"
+import {prepareForms, isCutout} from "§/functions.js"
+
 import {round} from "@/functions"
 
 let fontMap = new Map();
@@ -68,6 +71,15 @@ export class TextRenderer {
   }
   getPath(size) {
     let path = this.getRawPath(size)
+
+    // let i = this.store.state.layers.indexOf(this.text);
+    // let forms = this.store.state.layers
+    //   .filter(el => el instanceof Form || (el instanceof Text && el.asForm))
+    //   .filter(el => this.store.state.layers.indexOf(el) > i)
+    //   .map(el => el instanceof Text ? {id: el.id, x: el.x, y: el.y, w: el.w, h: el.h, rot: el.rot, type: "text"} : el)
+    //
+    // forms = prepareForms(forms)
+
     return {raw: path.raw, pathData: path.raw.toPathData(3), w: path.bbox.x2 + this.text.getXBorder(), h: -path.bbox.y1 + this.text.getYBorder()}
   }
   getSize() {

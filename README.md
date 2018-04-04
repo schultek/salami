@@ -58,7 +58,11 @@ npm run build
 - [ ] spinner instead progress bar
 - [ ] hotspot drag controls
 - [ ] rotate resize mouse icon
-- [ ] texts in sublayers
+- [x] texts in sublayers
+- [ ] text react to forms
+- [x] sort layouts
+- [ ] polygon edit mode
+- [ ] polygon add remove points
 
 ### New Features
 

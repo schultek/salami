@@ -31,15 +31,16 @@ export default {
 
     let o = {
       project: state.project,
-      layers: state.layers.map(o => o.toObj()),
+      layers: state.layers.map(o => {
+        let obj = o.toObj()
+        if (o instanceof Text) {
+          let font = state.fonts.find(el => el.id == obj.font)
+          if (font && !font.custom) obj.font = font.title
+        }
+        return obj
+      }),
       images: state.images.map(o => o.toObj()),
       renderer: state.renderer.map(o => o.toObj()),
-      texts: state.texts.map(o => {
-        let text = o.toObj()
-        let font = state.fonts.find(el => el.id == text.font)
-        if (font && !font.custom) text.font = font.title
-        return text;
-      }),
       fonts: state.fonts.filter(f => f.custom).map(o => o.toObj()),
       machine: state.machine.toObj()
     }
@@ -62,15 +63,21 @@ export default {
 
   getLayoutFromProject(state) {
     let images = state.images.map(o => o.toObj())
-    let layers = state.layers.map(o => o.toObj())
+    let layers = state.layers.map(o => {
+      let obj = o.toObj()
+      if (o instanceof Text) {
+        let font = state.fonts.find(el => el.id == obj.font)
+        if (font && !font.custom) obj.font = font.title
+      }
+      return obj
+    })
     let renderer = state.renderer.map(o => o.toObj())
-    let texts = state.texts.map(o => o.toObj())
     let fonts = state.fonts.filter(f => f.custom).map(f => f.toObj())
 
     let o = {
       title: "Layout " + (state.layouts.length + 1),
       template: {
-        layers, images, renderer, texts, fonts,
+        layers, images, renderer, fonts,
         machine: state.machine.toObj()
       }
     }
@@ -93,7 +100,6 @@ export default {
     return (id) => {
       if (state.layers.find(el => el.id == id)) return state.layers
       else if (state.images.find(el => el.id == id)) return state.images
-      else if (state.texts.find(el => el.id == id)) return state.texts
       else if (state.renderer.find(el => el.id == id)) return state.renderer
       else if (state.fonts.find(el => el.id == id)) return state.fonts
     }
@@ -114,7 +120,7 @@ export default {
   isLayerById(state, getters) {
     return (id) => {
       let o = getters.getObjectById(id)
-      return o instanceof Layer
+      return o instanceof Layer || o instanceof Text
     }
   },
   getNewObjectByType(state, getters) {
@@ -159,7 +165,7 @@ export default {
                   type == "form" ? state.layers.filter(l => l instanceof Form && l.type == o.type) :
                   type == "image" ? state.images :
                   type == "halftone" || type == "stipple" ? state.renderer :
-                  type == "text" ? state.texts : []
+                  type == "text" ? state.layers.filter(t => t instanceof Text) : []
 
         let n = arr.length+1
         let name = type == "form" ? o.type : type;
@@ -181,11 +187,9 @@ export default {
   getRenderingPairById(state, getters) {
     return (pId) => {
       for (let layer of state.layers) {
+        if (!layer.isRendering()) continue;
         let params = layer.renderParams.find(p => p.id == pId)
-        if (params) {
-          if (layer instanceof Form && !layer.ownRenderer) return {};
-          return {object: layer, renderParams: params}
-        }
+        if (params) return {object: layer, renderParams: params}
       }
       return {}
     }
@@ -222,7 +226,7 @@ export default {
       }
       if (o instanceof Machine || o instanceof Text)
         state.layers
-          .filter(o => o.isRendering)
+          .filter(o => o.isRendering())
           .forEach(l => l.renderParams.forEach(p =>
             toRender.push(p.id)
           ))

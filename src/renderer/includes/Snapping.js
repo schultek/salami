@@ -71,7 +71,6 @@ function getAllObjects(id) {
 
   return store.state.layers
     .concat(store.state.images)
-    .concat(store.state.texts)
     .filter(o => !o.rot || o.rot == 0)
     .filter(o => o.id != id)
 

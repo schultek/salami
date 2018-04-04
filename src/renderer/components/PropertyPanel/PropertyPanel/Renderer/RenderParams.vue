@@ -57,7 +57,7 @@
 import HalftoneParams from "./HalftoneParams.vue"
 import StippleParams from "./StippleParams.vue"
 
-import {Form} from "@/models.js"
+import {Form, Text} from "@/models.js"
 import {SelectObject, createProxy} from "@/mixins.js"
 import Icon from "@/components/Icon.vue"
 
@@ -84,8 +84,8 @@ export default {
       let ignoredForms = this.params.ignoreForms;
       let id = this.id, pId = this.pId;
       return this.$store.state.layers
-        .filter(l => l instanceof Form && this.$store.state.layers.indexOf(l) > i)
-        .concat(this.$store.state.texts.filter(t => t.asForm))
+        .filter(l => l instanceof Form || (l instanceof Text && l.asForm))
+        .filter(l => this.$store.state.layers.indexOf(l) > i)
         .map(f => new Proxy(f, {
           get(target, prop) {
             if (prop == "checked")

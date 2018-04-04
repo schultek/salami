@@ -49,7 +49,7 @@ export default {
     if (state.subLayersOpen)
       objects = state.layers;
     else
-      objects = state.layers.concat(state.images).concat(state.texts)
+      objects = state.layers.concat(state.images)
 
     if (objects.length == 0) return;
 

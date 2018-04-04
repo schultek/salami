@@ -1,5 +1,6 @@
 {
   "init": true,
+  "order": 1,
   "title": "Standard",
   "template": {
     "layers": [

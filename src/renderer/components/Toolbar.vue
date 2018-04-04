@@ -51,7 +51,7 @@
         if (t != "select") {
           this.$store.commit("selectObject", null)
           this.$store.dispatch("centerProject", {withSidebar: true})
-          this.$store.commit("setSubLayersOpen", t == "artboard" || t == "rect" || t == "ellipse")
+          this.$store.commit("setSubLayersOpen", !(t == "image" || t == "halftone" || t == "stipple"))
         }
       },
       selectNavigationPanel(n) {

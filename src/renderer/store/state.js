@@ -17,25 +17,24 @@ export default {
   },
   layers: [],
   images: [],
-  texts: [],
   renderer: [],
   layouts: [],
   fonts: [],
   tools: [
     {id: "select",   icon: "mouse-pointer"},
-    {id: "artboard",    icon: "th-large"     },
+    {id: "artboard", icon: "pen-square"   },
     {id: "image",    icon: "image"        },
     {selected: "rect",     tools: [
-      {id: "rect",     icon: "square" },
-      {id: "ellipse",  icon: "circle" },
-      {id: "triangle", icon: "/triangle"},
-      {id: "polygon", icon: "/poly"}
+      {id: "rect",     icon: "square"     },
+      {id: "ellipse",  icon: "circle"     },
+      {id: "triangle", icon: "/triangle"  },
+      {id: "polygon", icon: "/poly"       }
     ]},
     {selected: "halftone", tools: [
-      {id: "halftone", icon: "/halftone"   },
-      {id: "stipple",  icon: "/stipple"    }
+      {id: "halftone", icon: "/halftone"  },
+      {id: "stipple",  icon: "/stipple"   }
     ]},
-    {id: "text",    icon: "font"         }
+    {id: "text",    icon: "font"          }
   ],
   machine: new Machine(),
   default: {

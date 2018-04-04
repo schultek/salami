@@ -17,7 +17,8 @@ export default {
       state.layers
         .filter(el => el instanceof Form && el.isRendering() && el.gcode)
         .forEach(f => gcode = gcode.concat(f.gcode.cmds))
-      state.texts
+      state.layers
+        .filter(el => el instanceof Text)
         .filter(el => el.gcode && el.x > layer.x && el.y > layer.y && el.x < layer.x+layer.w && el.y < layer.y+layer.h)
         .forEach(t => gcode = gcode.concat(t.gcode.cmds))
       let f = file + "/" + layer.title+".gcode"

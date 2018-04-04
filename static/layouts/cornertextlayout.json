@@ -1,5 +1,6 @@
 {
   "title": "Corner Text",
+  "order": 3,
   "template": {
     "layers": [
       {
@@ -7,13 +8,12 @@
         "h": 200,
         "x": 0,
         "y": 0
-      }
-    ],
-    "texts": [
+      },
       {
         "title": "Edit me",
+        "type": "text",
         "x": 230,
-        "y": 165,
+        "y": 175,
         "w": 50,
         "h": 20
       }

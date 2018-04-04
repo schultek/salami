@@ -52,17 +52,6 @@ export default {
       })
     }
 
-    if (layout.template.texts) {
-      layout.template.texts.forEach(t => {
-        if (t.font) {
-          let font = state.fonts.find(el => el.title == t.font || el.id == t.font)
-          if (font) t.font = font.id
-          else delete t.font
-        }
-        commit("addObject", getters.getNewObjectByType("text", t))
-      })
-    }
-
     if (layout.template.images) {
       layout.template.images.forEach(i => {
         commit("addObject", getters.getNewObjectByType("image", i))
@@ -70,8 +59,6 @@ export default {
     } else {
       commit("addObject", getters.getNewObjectByType("image"))
     }
-
-
 
     if (layout.template.renderer) {
       layout.template.renderer.forEach(c => {
@@ -102,7 +89,12 @@ export default {
             else delete p.image
           }
         })
-      commit("addObject", getters.getNewObjectByType(l.type ? "form" : "artboard", l))
+      if (l.font) {
+        let font = state.fonts.find(el => el.title == l.font || el.id == l.font)
+        if (font) l.font = font.id
+        else delete l.font
+      }
+      commit("addObject", getters.getNewObjectByType(l.type == "text" ? "text" : l.type ? "form" : "artboard", l))
     })
 
     console.log("Finished building Layout "+layout.title)

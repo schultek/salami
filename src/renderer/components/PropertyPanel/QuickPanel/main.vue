@@ -28,7 +28,7 @@
       layers()   { return this.$store.state.layers.filter(l => l instanceof Artboard) },
       images()   { return this.$store.state.images   },
       renderer() { return this.$store.state.renderer },
-      texts()    { return this.$store.state.texts    },
+      texts()    { return this.$store.state.layers.filter(l => l instanceof Text)    },
     }
   }
 

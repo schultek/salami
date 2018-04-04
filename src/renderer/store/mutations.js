@@ -82,22 +82,22 @@ export default {
     RenderingManager.clear()
     state.project = project.project
     state.machine = new Machine(project.machine)
-    state.layers = project.layers.map(o => Layer.fromObj(o))
+    state.layers = project.layers.map(o => {
+      if (o.font) {
+        let font = state.fonts.find(el => el.title == o.font || el.id == o.font)
+        if (font) o.font = font.id
+        else delete o.font
+      }
+      Layer.fromObj(o)
+    })
     state.images = project.images.map(o => new Image(o))
     state.renderer = project.renderer.map(o => Renderer.fromObj(o))
     state.fonts = state.fonts.filter(f => !f.custom).concat(project.fonts.map(o => new Font(o)))
-    state.texts = project.texts.map(t => {
-      let font = state.fonts.find(el => el.title == t.font || el.id == t.font)
-      if (font) t.font = font.id
-      else delete t.font
-      return new Text(t)
-    })
   },
   cleanProject(state) {
     state.layers = []
     state.images = []
     state.renderer = []
-    state.texts = []
     state.fonts = state.fonts.filter(f => !f.custom)
     state.selectedObject = null
     RenderingManager.clear()
@@ -134,14 +134,12 @@ export default {
     state.layers = order.map(el => state.layers.find(l => l.id == el.id))
   },
   addObject(state, object) {
-    if (object instanceof Layer) {
+    if (object instanceof Layer || object instanceof Text) {
       state.layers.push(object)
     } else if (object instanceof Image) {
       state.images.push(object)
     } else if (object instanceof Renderer) {
       state.renderer.push(object)
-    } else if (object instanceof Text) {
-      state.texts.push(object)
     } else if (object instanceof Font) {
       state.fonts.push(object)
     } else {
@@ -169,7 +167,10 @@ export default {
           }
         }))
     } else if (o instanceof Font) {
-      state.texts.filter(t => t.font == o.id).forEach(t => t.font = (state.fonts[0] || {id: null}).id)
+      state.layers
+        .filter(t => t instanceof Text)
+        .filter(t => t.font == o.id)
+        .forEach(t => t.font = (state.fonts[0] || {id: null}).id)
     }
   },
 

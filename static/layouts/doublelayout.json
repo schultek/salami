@@ -1,5 +1,6 @@
 {
   "title": "Double",
+  "order": 2,
   "template": {
     "layers": [
       {

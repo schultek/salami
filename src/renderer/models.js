@@ -59,7 +59,8 @@ export class Layer extends BaseObject {
     }
   }
   static fromObj(o) {
-    if (o.type) return new Form(o)
+    if (o.type == "text") return new Text(o)
+    else if (o.type) return new Form(o)
     else return new Artboard(o)
   }
 }
@@ -328,7 +329,10 @@ export class Text extends BaseObject {
     this._h = this.h - this.getYBorder();
   }
   toObj() {
-    return super.asObject("id", "x", "y", "w", "h", "rot", "title", "stroke", "size", "font", "border")
+    return {
+      type: "text",
+      ...super.asObject("id", "x", "y", "w", "h", "rot", "title", "stroke", "size", "font", "border")
+    }
   }
   getXBorder() {
     return this.stroke/2 + this.border.left + this.border.right
@@ -351,6 +355,9 @@ export class Text extends BaseObject {
     if ("h" in o)
       o._h = o.h - this.getYBorder()
     super.update(o);
+  }
+  isRendering() {
+    return false;
   }
 }
 
