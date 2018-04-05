@@ -65,6 +65,10 @@ npm run build
 - [ ] image doubleclick for file loading
 - [ ] naming modal
 - [ ] hide layer panel when no layers assigned
+- [ ] delete confirmation
+- [ ] form default dimensions
+- [?] keep selected tool in submenu
+- [ ] rename layers with enter
 
 ### New Features
 
@@ -94,3 +98,4 @@ npm run build
   - [ ] auto leveling
 - [ ] notification system: [vue-component](https://github.com/euvl/vue-notification)
 - [x] form snapping
+- [ ] context menu

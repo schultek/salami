@@ -161,6 +161,7 @@ export default {
       )
     } else if (o instanceof Form) {
       state.layers
+        .filter(l => l.renderParams)
         .forEach(l => l.renderParams.forEach(p => {
           if (p.ignoreForms.indexOf(o.id)) {
             p.ignoreForms.splice(p.ignoreForms.indexOf(o.id), 1)
