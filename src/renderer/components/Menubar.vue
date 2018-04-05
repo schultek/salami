@@ -8,10 +8,7 @@
       <span @click="saveProject">Save</span>
     </div>
     <div class="right" :class="quickMode || !objectSelected ? 'hide-settings' : ''">
-      <div class="loader">
-        <span></span>
-        <span :style="{width: progress+'px'}"></span>
-      </div>
+      <Spinner></Spinner>
       <!-- <div id="quickModeSwitch" class="switch" @click="toggleQuickMode" :class="[quickMode?'active':'']">
         <div><div></div></div>
       </div> -->
@@ -30,7 +27,10 @@
 
   import $ from "jquery"
 
+  import Spinner from "./Spinner.vue"
+
   export default {
+    components: {Spinner},
     computed: {
       projectName() {
         return this.$store.state.project.name

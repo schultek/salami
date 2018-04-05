@@ -46,6 +46,7 @@
 
 .linked-layer-item .icon {
   margin-right: 12px;
+  flex-shrink: 0;
 }
 
 .linked-layer-item span:first-of-type {

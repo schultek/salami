@@ -5,6 +5,7 @@ import Vuex from 'vuex'
 import VueElectron from 'vue-electron'
 
 import Notification from "vue-notification"
+import VModal from 'vue-js-modal'
 
 import {store} from "./store/index.js"
 import directives from "./directives/index.js"
@@ -18,9 +19,11 @@ import {setNotify} from "@/functions"
 import Snapping from "@/includes/Snapping.js"
 import MenuCommands from "@/includes/MenuCommands.js"
 import Cache from "@/includes/Cache.js"
+import Modal from "@/includes/Modal.js"
 
 Vue.use(VueElectron);
 Vue.use(Notification);
+Vue.use(VModal, {dialog: true})
 
 // Vue.config.productionTip = false
 
@@ -29,6 +32,7 @@ new Vue({
   template: '<div><App/><Overlay ref="overlay"/></div>',
   mounted() {
     setNotify(this.$notify.bind(this))
+    Modal.init(this.$store, this.$modal)
     Snapping.init(this.$store);
     MenuCommands.init(this.$store);
     Cache.init(this.$store);

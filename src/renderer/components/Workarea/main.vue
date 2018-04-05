@@ -15,6 +15,9 @@
     computed: {
       selectedTool() {
         return this.$store.state.selectedTool
+      },
+      selectedObject() {
+        return this.$store.state.selectedObject
       }
     }
   }

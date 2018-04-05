@@ -1,5 +1,5 @@
 <template>
-  <div id="root-layers">
+  <div id="root-layers" class="layer-list">
     <div class="layer-item" :class="[selectedObject=='machine'?'selected':'']" @click="openSublayers">
       <i class="fa fa-fw fa-folder icon"></i>
       <span>Layers</span>

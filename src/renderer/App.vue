@@ -8,6 +8,11 @@
       <PropertyPanel></PropertyPanel>
     </div>
     <notifications group="default" />
+    <modal :classes="'v--modal naming-modal'" :width="'50%'" :height="55" :pivotY="0.2" name="name-layer" @before-open="setModalId" @opened="focusInput" @before-close="updateTitle" >
+      <i class="fa fa-pencil-alt fa-md"></i>
+      <input v-model="modalTitle" @blur="$modal.hide('name-layer')" v-blur/>
+    </modal>
+    <v-dialog></v-dialog>
   </div>
 </template>
 
@@ -24,7 +29,26 @@
 
   export default {
     components: {Menubar, Toolbar, NavigationPanel, Workarea, PropertyPanel},
-    computed: mapState(["quickMode"])
+    computed: mapState(["quickMode"]),
+    data: () => ({
+      modalId: null,
+      modalTitle: null
+    }),
+    methods: {
+      setModalId(event) {
+        this.modalId = event.params.id
+        this.modalTitle = (this.$store.getters.getObjectById(this.modalId) || {title: ""}).title
+      },
+      focusInput(event) {
+        event.ref.children[1].select()
+        event.ref.children[1].focus()
+      },
+      updateTitle(event) {
+        if (this.modalTitle && this.modalId) {
+          this.$store.commit("updateObject", {id: this.modalId, title: this.modalTitle})
+        }
+      }
+    }
   }
 </script>
 
@@ -73,6 +97,40 @@ html, body, #app {
 .notifications .error {
   background: #e54d42;
   border-left-color: #b82e24
+}
+
+.naming-modal {
+  padding: 0px;
+  box-sizing: border-box;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+.naming-modal input {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: none;
+  font-size: 18px;
+  color: #505050;
+  outline: none;
+}
+
+.v--modal {
+  border-radius: 10px;
+}
+
+.naming-modal i {
+  margin: 15px;
+}
+
+.dialog-button-error {
+  background: #e54d42;
+  color: white;
+}
+.dialog-button-error:hover {
+  background: #d2453b;
 }
 
 </style>

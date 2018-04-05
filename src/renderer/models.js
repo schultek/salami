@@ -248,6 +248,7 @@ export class StippleRenderer extends Renderer {
     if (this.hotspots.length == 0 && "x" in o && "y" in o) {
       this.hotspots.push(new Hotspot({x: o.x, y: o.y}))
     }
+    this.selectedHotspot = null;
   }
   toObj() {
     return {...super.asObject("id", "title", "pointSize", "adaptivePointSize", "pointSizeMin", "pointSizeMax", "quality", "hotspots"), type: "stipple"}
@@ -299,7 +300,7 @@ export class Hotspot {
     this.y = o.y || 0
     this.r = o.r || 50
     this.weight = o.weight || 50
-    this.reduce = o.reduce || 0
+    this.reduce = o.reduce || 50
   }
   update(o) {
     if ("r" in o && o.r < 10) o.r = 10;

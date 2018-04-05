@@ -13,16 +13,16 @@
         <span class="add-hotspot" @click="addHotspot"><i class="fa fa-plus"></i></span>
       </div>
       <template v-for="(hotspot, i) in object.hotspots">
-        <div class="linked-layer-item toggle" :class="openSettings == i ? 'toggled' : ''" @click="toggleHotspotSettings(i)">
+        <div class="linked-layer-item toggle" :class="object.selectedHotspot == hotspot.id ? 'toggled' : ''" @click="toggleHotspotSettings(hotspot.id)">
           <i class="far fa-fw fa-dot-circle icon"></i>
           <span>Hotspot {{i+1}}</span>
           <span class="stretch"></span>
           <span class="hotspot-controls">
             <i class="far fa-trash-alt" @click="removeHotspot(i)"></i>
-            <i class="fa fa-angle-right toggle_icon link" :class="openSettings == i ? 'toggled' : ''"></i>
+            <i class="fa fa-angle-right toggle_icon link" :class="object.selectedHotspot == hotspot.id ? 'toggled' : ''"></i>
           </span>
         </div>
-        <div class="params hotspot-settings" v-if="openSettings == i">
+        <div class="params hotspot-settings" v-if="object.selectedHotspot == hotspot.id">
           <div class="settings-dimensions dimen-row-2">
             <Dimen v-model="hotspot.r" type="number" title="Radius" unit="mm"></Dimen>
             <Dimen v-model="hotspot.weight" type="number" title="Weight" unit="%"></Dimen>
@@ -53,12 +53,11 @@
         {title: "Max Size", prop: "pointSizeMax", type:"number", unit:"%"},
         {title: "Adaptive Size", prop: "adaptivePointSize", type:"checkbox"},
         {title: "Bright", prop: "brightness", type:"number", unit:"%"}
-      ],
-      openSettings: null
+      ]
     }),
     methods: {
-      toggleHotspotSettings(i) {
-        this.openSettings = this.openSettings == i ? null : i;
+      toggleHotspotSettings(id) {
+        this.object.selectedHotspot = this.object.selectedHotspot == id ? null : id;
       },
       addHotspot() {
         this.$store.commit("updateObject", {

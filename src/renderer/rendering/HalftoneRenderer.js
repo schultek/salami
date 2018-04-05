@@ -2,6 +2,7 @@
 import {fork} from "child_process"
 import path from "path"
 import BaseRenderer from "./BaseRenderer.js"
+import {Spinner} from "@/components/Spinner.vue"
 
 export default class HalftoneRenderer extends BaseRenderer {
   constructor(id, pId, store) {
@@ -10,11 +11,12 @@ export default class HalftoneRenderer extends BaseRenderer {
     this.child.on("message", (event) => super.handleRenderEvent(event))
   }
   render(payload) {
-    super.startRendering(payload)
+    Spinner.start(this.id)
     this.child.send({cmd: this.fill ? "fill" : "render", payload})
     this.fill = false;
   }
   handleRenderResult(result) {
+    Spinner.stop(this.id)
     if (result.path || result.filled) {
       let params = {id: this.id}
       if (result.path)

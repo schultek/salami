@@ -35,7 +35,8 @@ export default {
           {label: 'Paste', accelerator: c+"+V", click: send('edit', 'paste')},
           {label: 'Cut', accelerator: c+"+X", click: send('edit', 'cut')},
           {type: "separator"},
-          {label: "Delete", accelerator: c+"+Backspace", click: send("edit", "delete")}
+          {label: "Delete", accelerator: c+"+Backspace", click: send("edit", "delete")},
+          {label: "Rename", accelerator: c+"+Enter", click: send("edit", "rename")}
         ]
       },
       {
@@ -65,8 +66,7 @@ export default {
       {
         label: 'View',
         submenu: [
-          {role: 'reload'},
-          {label: 'Center', click: send('view', 'center')},
+          {label: 'Center', accelerator: c+"+Alt+C", click: send('view', 'center')},
           {type: 'separator'},
           {role: 'togglefullscreen'}
         ]
@@ -95,15 +95,6 @@ export default {
           {role: 'quit'}
         ]
       })
-
-      // Window menu
-      template[5].submenu = [
-        {role: 'close'},
-        {role: 'minimize'},
-        {role: 'zoom'},
-        {type: 'separator'},
-        {role: 'front'}
-      ]
     }
 
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));

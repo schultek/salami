@@ -168,7 +168,7 @@ export default {
                   type == "text" ? state.layers.filter(t => t instanceof Text) : []
 
         let n = arr.length+1
-        let name = type == "form" ? o.type : type;
+        let name = type == "form" ? o.type == "rect" ? "rectangle" : o.type : type;
         o.title = name.charAt(0).toUpperCase() + name.slice(1) + " " + n
       }
 

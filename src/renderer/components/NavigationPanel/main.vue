@@ -25,6 +25,8 @@
   width: 200px;
   border-right-style: solid;
   position: relative;
+  display: flex;
+  flex-flow: column nowrap;
 }
 
 </style>

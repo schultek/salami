@@ -1,6 +1,6 @@
 <template>
   <g :id="id" :class="selected ? 'selected' : ''">
-    <Hotspot v-for="hotspot in object.hotspots" :key="hotspot.id" :id="id" :hotspot="hotspot"></Hotspot>
+    <Hotspot v-for="hotspot in object.hotspots" :key="hotspot.id" :id="id" :hotspot="hotspot" :selected="hotspot.id == object.selectedHotspot" @select="selectHotspot(hotspot.id)"></Hotspot>
   </g>
 </template>
 
@@ -17,6 +17,16 @@ export default {
     },
     selected() {
       return this.$store.state.selectedObject == this.id
+    }
+  },
+  methods: {
+    selectHotspot(hotspot) {
+      this.$store.commit("updateObject", {id: this.id, selectedHotspot: hotspot});
+    }
+  },
+  watch: {
+    selected(s) {
+      if (!s) this.$store.commit("updateObject", {id: this.id, selectedHotspot: null});
     }
   }
 }

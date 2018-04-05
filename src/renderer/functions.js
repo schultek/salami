@@ -2,7 +2,7 @@ import Vue from "vue"
 
 export function updateDeep(toUpdate, object) {
   Object.keys(object).forEach(k => {
-    if (typeof object[k] == "object") {
+    if (object[k] != null && typeof object[k] == "object") {
       if (!toUpdate[k]) {
         if (object[k] instanceof Array) Vue.set(toUpdate, k, [])
         else                            Vue.set(toUpdate, k, {})

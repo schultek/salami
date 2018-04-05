@@ -45,7 +45,7 @@
 
           let x = e.x-(p.x*zoom)-pos.x;
           let y = e.y-(p.y*zoom)-pos.y;
-          
+
           this.$store.commit("translateProject", {x, y})
           this.$store.commit("zoomProject", zoom)
 

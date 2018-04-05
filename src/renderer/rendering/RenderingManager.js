@@ -22,7 +22,6 @@ export default {
       } else if (payload.renderer instanceof StippleRendererObject){
         renderer = new StippleRenderer(id, payload.layer.id, store)
       }
-      renderer.onProgress(updateProgress)
       images.forEach(img => {
         renderer.execute("preload", img)
       })
@@ -49,25 +48,5 @@ export default {
   sendCommand(id, cmd, payload) {
     if (rendererMap.has(id))
       rendererMap.get(id).execute(cmd, payload)
-  }
-}
-
-function updateProgress() {
-  let rendering = 0, error = false, progress = 0;
-  for (let r of rendererMap.values()) {
-    if (r.status == "ready") continue;
-    rendering++;
-    if (r.status == "rendering") {
-      progress += r.progress
-    } else if (r.status == "finished") {
-      progress += 100;
-      r.status = "ready"
-    }
-  }
-  if (rendering > 0)
-    store.commit("setProgress", progress / rendering)
-  else {
-    store.commit("setProgress", null)
-    debugger;
   }
 }

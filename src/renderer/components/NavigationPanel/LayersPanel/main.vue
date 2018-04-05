@@ -60,6 +60,11 @@
   color: #008dea;
 }
 
+.layer-list {
+  overflow: scroll;
+  padding-bottom: 20px;
+}
+
 .layer-item {
   padding-left: 15px;
   font-size: 12px;
@@ -75,6 +80,7 @@
 
 .layer-item .icon {
   margin-right: 5px;
+  flex-shrink: 0;
 }
 
 
@@ -91,6 +97,13 @@
 .layer-item span:last-of-type {
   color: #aaa;
   margin-right: 5px;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+.layer-item span:last-of-type i {
+  margin: 0 2px;
 }
 
 .layer-item span i:hover {

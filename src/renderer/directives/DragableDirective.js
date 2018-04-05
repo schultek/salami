@@ -82,14 +82,17 @@ export default {
       }
     })
     document.addEventListener("mouseup", event => {
-      if (dragged && !useObject)
-        store.commit("putObject", {id})
-      else if (dragged && object.put)
-        object.put()
+      if (dragged) {
+        if (!useObject)
+          store.commit("putObject", {id})
+        else if (object.put)
+          object.put()
+        event.stopPropagation()
+      }
       dragged = false;
       drag = false;
       Snapping.close()
-    })
+    }, true)
     el.addEventListener("click", (event) => {
       event.stopPropagation()
     })

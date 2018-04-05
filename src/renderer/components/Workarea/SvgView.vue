@@ -84,8 +84,16 @@
             delete this.object.x;
             delete this.object.y;
           }
-          if (this.object instanceof ImageObject || this.object instanceof ArtboardObject || this.object instanceof FormObject) {
-            if (this.object.w == 1 && this.object.h == 1) {
+          if (this.object instanceof ImageObject || this.object instanceof ArtboardObject) {
+            if (this.object.w == 0 && this.object.h == 0) {
+              this.object.x -= this.$store.state.machine.w/2;
+              this.object.y -= this.$store.state.machine.h/2;
+              this.object.w = this.$store.state.machine.w;
+              this.object.h = this.$store.state.machine.h;
+            }
+          }
+          if(this.object instanceof FormObject) {
+            if (this.object.w == 0 && this.object.h == 0) {
               this.object.x -= 20;
               this.object.y -= 20;
               this.object.w = this.object.h = 40;
@@ -95,8 +103,19 @@
             this.object.data = this.$store.state.default.data;
           }
           this.$store.commit("addObject", this.object);
+
+
+          if (this.object instanceof TextObject) {
+            if (this.object.size == 1) {
+               this.$store.commit("updateObject", {id: this.object.id, size: 12});
+            }
+          }
+
           this.$store.commit("selectObject", this.object.id);
           this.$store.commit("selectTool", "select");
+
+          this.$modal.show('name-layer', {id: this.object.id});
+
           this.object = null;
 
         } else if (event.target == this.$el) {

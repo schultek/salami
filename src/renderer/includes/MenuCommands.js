@@ -1,10 +1,12 @@
 import {ipcRenderer} from 'electron'
 
 import Cache from "./Cache.js"
+import Modal from "./Modal.js"
+
+let keysEnabled = true;
 
 export default {
   init(store) {
-
 
     ipcRenderer.on('file', (event, arg) => {
       switch (arg) {
@@ -24,10 +26,15 @@ export default {
         case "paste": Cache.paste(); break;
         case "cut": Cache.cut(); break;
         case "delete": Cache.delete(); break;
+        case "rename":
+          if (keysEnabled && store.state.selectedObject)
+            Modal.show("name-layer", {id: store.state.selectedObject})
+          break;
       }
     });
 
     ipcRenderer.on("insert", (event, arg) => {
+      if (!keysEnabled) return;
       switch (arg) {
         case "artboard": store.commit("selectTool", "artboard"); break;
         case "image": store.commit("selectTool", "image"); break;
@@ -53,5 +60,18 @@ export default {
       }
     })
 
+    document.addEventListener("keyup", event => {
+      if (keysEnabled && event.key == "Escape") {
+        store.commit("selectTool", "select")
+        store.commit("selectObject", null)
+      }
+    })
+
+  },
+  disableKeys() {
+    keysEnabled = false;
+  },
+  enableKeys() {
+    keysEnabled = true;
   }
 }

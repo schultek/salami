@@ -1,5 +1,5 @@
 <template>
-  <div class="settings-panel linked-layer-list">
+  <div v-if="times && times.length > 0" class="settings-panel linked-layer-list">
     <div class="settings-header">
       <span>Time</span>
     </div>

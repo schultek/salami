@@ -1,5 +1,5 @@
 <template>
-  <draggable v-model="layers" :options="{class: '.layer-item'}">
+  <draggable v-model="layers" :options="{class: '.layer-item'}" class="layer-list">
     <transition-group>
       <div class="layer-item" :key="layer.id" :class="[selectedObject==layer.id?'selected':'']" v-for="(layer, index) in layers" @click="selectObject(layer.id)">
         <Icon :for="layer"></Icon>

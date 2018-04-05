@@ -7,7 +7,7 @@
       <Dimen title="L" type="number" v-model="params.lines.l"></Dimen>
       <Dimen title="R" type="number" v-model="params.lines.r"></Dimen>
       <div class="dimen">
-        <input type="button" value="Fill" @click="fillLines"/>
+        <input type="button" value=" Fill " @click="fillLines"/>
       </div>
     </div>
     <Dimen title="Dots" type="checkbox" v-model="params.dotted"></Dimen>

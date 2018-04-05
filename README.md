@@ -32,6 +32,9 @@ npm run build
 - [x] save / open project
 - [x] hotspot verschieben
 - [x] inverted
+- [x] disable shortcuts when input focused
+- [x] hide layer panel when no layers assigned
+- [x] form default dimensions
 
 ## TODO
 
@@ -54,21 +57,19 @@ npm run build
 - [ ] snapping with rotation
 - [x] snapping lines
 - [x] ctrl-c / ctrl-v / delete key commands
-- [ ] spinner instead progress bar
-- [ ] hotspot drag controls
+- [x] spinner instead progress bar
+- [x] hotspot drag controls
 - [ ] rotate resize mouse icon
 - [x] texts in sublayers
 - [ ] text react to forms
 - [x] sort layouts
 - [ ] polygon edit mode
 - [ ] polygon add remove points
-- [ ] image doubleclick for file loading
-- [ ] naming modal
-- [ ] hide layer panel when no layers assigned
-- [ ] delete confirmation
-- [ ] form default dimensions
+- [x] image doubleclick for file loading
+- [x] naming modal
+- [x] delete confirmation
 - [?] keep selected tool in submenu
-- [ ] rename layers with enter
+- [x] rename layers with enter
 
 ### New Features
 
