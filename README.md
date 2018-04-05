@@ -47,7 +47,6 @@ npm run build
 - [/] use cloud computing
 - [x] use Proxy for reactive object
 - [x] property panels as modules
-- [ ] no double dialogs
 - [ ] detect unsaved changes
 - [ ] layer rotation
 - [?] ids as symbols
@@ -63,6 +62,9 @@ npm run build
 - [x] sort layouts
 - [ ] polygon edit mode
 - [ ] polygon add remove points
+- [ ] image doubleclick for file loading
+- [ ] naming modal
+- [ ] hide layer panel when no layers assigned
 
 ### New Features
 
@@ -83,12 +85,12 @@ npm run build
   - [ ] live project with other users
 - [x] shortcuts
 - [ ] undo / redo
-- [ ] auto leveling
 - [ ] settings page
   - [ ] [vue-component](https://github.com/euvl/vue-js-modal)
   - [ ] overall machine settings
   - [ ] default parameters
   - [ ] color theme
   - [ ] rendering behaviors
+  - [ ] auto leveling
 - [ ] notification system: [vue-component](https://github.com/euvl/vue-notification)
 - [x] form snapping
