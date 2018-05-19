@@ -3,7 +3,6 @@ import {Machine} from "@/models.js"
 export default {
   quickMode: false,
   fullPreview: false,
-  navigationPanel: 0,
   selectedObject: null,
   selectedTool: "select",
   subLayersOpen: false,

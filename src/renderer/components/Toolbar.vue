@@ -19,32 +19,18 @@
         </span>
       </template>
     </div>
-    <div id="sidepanel-icons">
-      <div @click="selectNavigationPanel(0)" :class="[navigationPanel==0?'selected':'']">
-        <LayersIcon></LayersIcon>
-      </div>
-      <div @click="selectNavigationPanel(1)" :class="[navigationPanel==1?'selected':'']">
-        <LayoutsIcon></LayoutsIcon>
-      </div>
-      <!-- <div @click="selectNavigationPanel(2)" :class="[navigationPanel==2?'selected':'']">
-        <i class="fa fa-users"></i>
-      </div> -->
-    </div>
   </div>
 </template>
 
 <script>
-
-  import LayersIcon from "@/assets/layers.svg"
-  import LayoutsIcon from "@/assets/layouts.svg"
 
   import Icon from "./Icon.vue"
 
   import {mapState} from "vuex"
 
   export default {
-    components: {LayersIcon, LayoutsIcon, Icon},
-    computed: mapState(["selectedTool", "tools", "navigationPanel"]),
+    components: {Icon},
+    computed: mapState(["selectedTool", "tools"]),
     methods: {
       selectTool(t) {
         this.$store.commit("selectTool", t)
@@ -53,9 +39,6 @@
           this.$store.dispatch("centerProject", {withSidebar: true})
           this.$store.commit("setSubLayersOpen", !(t == "image" || t == "halftone" || t == "stipple"))
         }
-      },
-      selectNavigationPanel(n) {
-        this.$store.commit("switchNavigationPanel", n)
       },
       getSelected(tool) {
         return tool.tools.find(el => el.id == tool.selected)

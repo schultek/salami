@@ -51,9 +51,6 @@ export default {
       if (t.tools.find(el => el.id == tid)) t.selected = tid
     })
   },
-  switchNavigationPanel(state, n) {
-    state.navigationPanel = n
-  },
   setProgress(state, p) {
     state.progress = p;
   },

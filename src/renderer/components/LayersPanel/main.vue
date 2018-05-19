@@ -1,5 +1,5 @@
 <template>
-  <div id="navigation" class="sidepanel panel">
+  <div class="sidepanel panel">
     <div id="layer-heading" @click="closeSublayers">
       <i v-if="subLayersOpen" class="fa fa-angle-left"></i>
       <span>{{subLayersOpen?'Layers':'Workarea'}}</span>
@@ -35,6 +35,14 @@
 </script>
 
 <style>
+
+.sidepanel {
+  width: 200px;
+  border-right-style: solid;
+  position: relative;
+  display: flex;
+  flex-flow: column nowrap;
+}
 
 #layer-heading {
   height: 40px;

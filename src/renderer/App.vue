@@ -3,7 +3,7 @@
     <Menubar></Menubar>
     <div id="panels">
       <Toolbar v-show="!quickMode"></Toolbar>
-      <NavigationPanel></NavigationPanel>
+      <LayersPanel></LayersPanel>
       <Workarea></Workarea>
       <PropertyPanel></PropertyPanel>
     </div>
@@ -21,14 +21,14 @@
   import $ from "jquery"
   import Menubar from "./components/Menubar.vue"
   import Toolbar from "./components/Toolbar.vue"
-  import NavigationPanel from "./components/NavigationPanel/main.vue"
+  import LayersPanel from "./components/LayersPanel/main.vue"
   import Workarea from "./components/Workarea/main.vue"
   import PropertyPanel from "./components/PropertyPanel/main.vue"
 
   import {mapState} from "vuex"
 
   export default {
-    components: {Menubar, Toolbar, NavigationPanel, Workarea, PropertyPanel},
+    components: {Menubar, Toolbar, LayersPanel, Workarea, PropertyPanel},
     computed: mapState(["quickMode"]),
     data: () => ({
       modalId: null,
