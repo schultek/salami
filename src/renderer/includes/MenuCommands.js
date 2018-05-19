@@ -10,7 +10,7 @@ export default {
 
     ipcRenderer.on('file', (event, arg) => {
       switch (arg) {
-        case "load-project": store.dispatch("loadProject"); break;
+        case "load-project": Modal.show("open-project"); break;
         case "save-project": store.dispatch("saveProject"); break;
         case "save-project-as": store.dispatch("saveProject", true); break;
         case "export-layout": /*TODO*/ break;

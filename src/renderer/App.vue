@@ -7,12 +7,13 @@
       <Workarea></Workarea>
       <PropertyPanel></PropertyPanel>
     </div>
-    <notifications group="default" />
+    <ProjectModal></ProjectModal>
     <modal :classes="'v--modal naming-modal'" :width="'50%'" :height="55" :pivotY="0.2" name="name-layer" @before-open="setModalId" @opened="focusInput" @before-close="updateTitle" >
       <i class="fa fa-pencil-alt fa-md"></i>
       <input v-model="modalTitle" @blur="$modal.hide('name-layer')" v-blur/>
     </modal>
     <v-dialog></v-dialog>
+    <notifications group="default" />
   </div>
 </template>
 
@@ -25,10 +26,12 @@
   import Workarea from "./components/Workarea/main.vue"
   import PropertyPanel from "./components/PropertyPanel/main.vue"
 
+  import ProjectModal from "./components/ProjectModal/main.vue"
+
   import {mapState} from "vuex"
 
   export default {
-    components: {Menubar, Toolbar, NavigationPanel, Workarea, PropertyPanel},
+    components: {Menubar, Toolbar, NavigationPanel, Workarea, PropertyPanel, ProjectModal},
     computed: mapState(["quickMode"]),
     data: () => ({
       modalId: null,

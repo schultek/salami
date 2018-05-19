@@ -59,7 +59,7 @@
     },
     methods: {
       loadProject() {
-        this.$store.dispatch("loadProject")
+        this.$modal.show("open-project")
       },
       saveProject() {
         this.$store.dispatch("saveProject")

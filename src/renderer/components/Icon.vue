@@ -11,12 +11,13 @@ import TriangleIcon from "@/assets/icons/triangle.svg"
 import HalftoneIcon from "@/assets/icons/halftone.svg"
 import StippleIcon from "@/assets/icons/stipple.svg"
 import PolygonIcon from "@/assets/icons/polygon.svg"
+import LayoutsIcon from "@/assets/icons/layouts.svg"
 
 import {Artboard, Form, Image, HalftoneRenderer, StippleRenderer, Text} from "@/models.js"
 
 export default {
   props: ["icon", "for"],
-  components: {triangle: TriangleIcon, halftone: HalftoneIcon, stipple: StippleIcon, poly: PolygonIcon},
+  components: {triangle: TriangleIcon, halftone: HalftoneIcon, stipple: StippleIcon, poly: PolygonIcon, layouts: LayoutsIcon},
   computed: {
     compIcon() {
       return this.icon ? this.icon : this.getIconFor(this.for)
