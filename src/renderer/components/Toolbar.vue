@@ -35,8 +35,8 @@
 
 <script>
 
-  import LayersIcon from "@/assets/layers.svg"
-  import LayoutsIcon from "@/assets/layouts.svg"
+  import LayersIcon from "@/assets/icons/layers.svg"
+  import LayoutsIcon from "@/assets/icons/layouts.svg"
 
   import Icon from "./Icon.vue"
 
