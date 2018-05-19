@@ -6,10 +6,10 @@
     </div>
     <div class="settings-dimensions dimen-row-4" >
       <div class="dimen">
-        <input type="button" :value="running ? 'Stop' : 'Start'" @click="togglePrim()"/>
+        <input type="button" :value="params.running ? 'Stop' : 'Start'" @click="togglePrim()"/>
       </div>
       <div class="dimen">
-        <input type="button" :value="running ? paused ? 'Resume' : 'Pause' : 'Next'" @click="toggleSnd()" />
+        <input type="button" :value="params.running ? params.paused ? 'Resume' : 'Pause' : 'Next'" @click="toggleSnd()" />
       </div>
     </div>
     <div class="stipple-status" v-if="params.status">
@@ -35,23 +35,19 @@ import Dimen from "../Dimen.vue"
 export default {
   props: ["params"],
   components: {Dimen},
-  data: () => ({
-    running: false,
-    paused: false
-  }),
   methods: {
     cmd(cmd) {
       this.$emit("cmd", {cmd})
     },
     togglePrim() {
-      this.running = !this.running;
-      if (!this.running) this.paused = false;
-      this.cmd(this.running ? "start" : "stop")
+      this.params.running = !this.params.running;
+      if (!this.params.running) this.params.paused = false;
+      this.cmd(this.params.running ? "start" : "stop")
     },
     toggleSnd() {
-      if (this.running) {
-        this.paused = !this.paused;
-        this.cmd(this.paused ? "pause" : "resume")
+      if (this.params.running) {
+        this.params.paused = !this.params.paused;
+        this.cmd(this.params.paused ? "pause" : "resume")
       } else {
         this.cmd("next")
       }

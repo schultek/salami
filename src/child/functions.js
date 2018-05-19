@@ -89,7 +89,7 @@ export function prepareImage(image, pixels) {
     image.pixH = image.pixels.shape[1]
 
     image.inArea = makeAreaFunc(image);
-    image.inPixArea = makeAreaFunc({x: 0, y: 0, w: image.pixW, h: image.pixH})
+    image.inPixArea = makeAreaFunc({x: 0, y: 0, w: image.pixW, h: image.pixH}, true)
     image.rotate = makeRotateFunc(image);
 
 
@@ -128,7 +128,7 @@ function makeRotateFunc(dim) {
   }
 }
 
-function makeAreaFunc(layer) {
+function makeAreaFunc(layer, strict) {
   let border = layer.border || {left: 0, right: 0, top: 0, bottom: 0}
   return function(pos) {
     if (!pos) return false;
@@ -136,10 +136,16 @@ function makeAreaFunc(layer) {
       pos = layer.rotate(pos);
     }
     let b =
-      pos.x>=layer.x+        border.left   &&
-      pos.x<=layer.x+layer.w-border.right  &&
-      pos.y>=layer.y+        border.top    &&
-      pos.y<=layer.y+layer.h-border.bottom;
+      pos.x>=layer.x+border.left  &&
+      pos.y>=layer.y+border.top;
+    if (strict)
+      b = b &&
+        pos.x<layer.x+layer.w-border.right  &&
+        pos.y<layer.y+layer.h-border.bottom;
+    else
+      b = b &&
+        pos.x<=layer.x+layer.w-border.right  &&
+        pos.y<=layer.y+layer.h-border.bottom;
     return b;
   };
 }

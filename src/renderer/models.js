@@ -190,7 +190,7 @@ export class RenderParams {
     this.gcode = o.gcode || {time: 0, gcode: ""}
     this.params = o.params ? JSON.parse(JSON.stringify(o.params)) :
       this.type == "halftone" ? {lines: {l: 10, r: 10}, dotted: false} :
-      this.type == "stipple" ? {quality: 50, accuracy: 50, status: {iteration: 0, points: 0, splits: 0, merges: 0}, voronoi: ""} : {}
+      this.type == "stipple" ? {quality: 50, accuracy: 50, running: false, paused: false, status: {iteration: 0, points: 0, splits: 0, merges: 0}, voronoi: ""} : {}
   }
   update(o) {
     if ("renderer" in o || "type" in o) throw new Error("Renderer is immutable!")

@@ -5,14 +5,15 @@ import fs from "mz/fs"
 import {showOpenDialog, showSaveDialog, timeout} from "../helpers.js"
 import {HalftoneRenderer, StippleRenderer} from "@/models.js"
 
+import UserStore from "@/includes/UserStore.js"
+
 export default {
-  async loadProject({dispatch, commit, state, getters}) {
-    let file = await showOpenDialog({filters: [{name: "Carve", extensions: ['crv']}, {name: "Image", extensions: ['jpg', 'png', 'gif', 'jpeg']}, {name: "Layout", extensions: ['json']}]})
+  async loadProject({dispatch, commit, state, getters}, url) {
+    let file = url || await showOpenDialog({filters: [{name: "Carve", extensions: ['crv']}, {name: "Image", extensions: ['jpg', 'png', 'gif', 'jpeg']}, {name: "Layout", extensions: ['json']}]})
     if (!file) return
     if (file.endsWith(".crv")) {
       let data = await fs.readFile(file, 'utf8')
       commit("buildProject", JSON.parse(data))
-
       dispatch("renderAll")
     } else if (file.endsWith(".jpg") || file.endsWith(".png") || file.endsWith(".gif") || file.endsWith(".jpeg")) {
       if (state.images.length > 0) {
@@ -24,6 +25,8 @@ export default {
     }
     await dispatch("centerProject")
     commit("setProjectFile", file)
+    if (file.endsWith(".crv"))
+      UserStore.addToRecentProjects({title: state.project.name, url: file, thumbnail: null}) //TODO thumbnail generation
     console.log("Project loaded from "+file)
   },
   async saveProject({commit, state, getters}, showDialog) {
@@ -32,6 +35,7 @@ export default {
     let json = getters.getJsonFromProject
     await fs.writeFile(file, json)
     commit("setProjectFile", file)
+    UserStore.addToRecentProjects({title: state.project.name, url: file, thumbnail: null}) //TODO thumbnail generation
     console.log("Project saved to "+file);
   },
   async centerProject({state, commit, getters}, options) {

@@ -266,7 +266,7 @@ function findEdgePoint(pnt, ilow, ihigh, cdata, n) {
   }
 }
 
-function getPoint(step, cdata, widthdata) {
+function getPoint(step, cdata) {
   var cp = cdata.point(step);
 
   if (cp && layer.inArea(cp)) {
@@ -275,7 +275,7 @@ function getPoint(step, cdata, widthdata) {
       return {inLayer: true}
     }
 
-    let p = getDataPoint(cp, widthdata)
+    let p = getDataPoint(cp)
 
     return {inLayer: true, path: p ? cdata.path(p, step) : null, data: p};
   } else {
@@ -283,7 +283,7 @@ function getPoint(step, cdata, widthdata) {
   }
 }
 
-function getDataPoint(pos, withdata) {
+function getDataPoint(pos) {
 
   var sum = 0;
   var count = 0;

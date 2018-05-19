@@ -20,6 +20,7 @@ import Snapping from "@/includes/Snapping.js"
 import MenuCommands from "@/includes/MenuCommands.js"
 import Cache from "@/includes/Cache.js"
 import Modal from "@/includes/Modal.js"
+import UserStore from "@/includes/UserStore.js"
 
 Vue.use(VueElectron);
 Vue.use(Notification);
@@ -35,6 +36,7 @@ new Vue({
     Modal.init(this.$store, this.$modal)
     Snapping.init(this.$store);
     MenuCommands.init(this.$store);
+    UserStore.init(this.$store);
     Cache.init(this.$store);
     this.$store.dispatch("init").then(
       this.$refs.overlay.fadeOut
