@@ -10,11 +10,13 @@ export default {
 
     ipcRenderer.on('file', (event, arg) => {
       switch (arg) {
+        case "new": /*TODO*/ break;
+        case "new-template": /*TODO*/ break;
         case "load-project": store.dispatch("loadProject"); break;
         case "save-project": store.dispatch("saveProject"); break;
         case "save-project-as": store.dispatch("saveProject", true); break;
-        case "export-layout": /*TODO*/ break;
-        case "export-gcode": /*TODO*/ break;
+        case "export-png": /*TODO*/ break;
+        case "export-svg": /*TODO*/ break;
         case "settings": /*TODO*/ break;
       }
     });
@@ -45,12 +47,6 @@ export default {
         case "halftone": store.commit("selectTool", "halftone"); break;
         case "stipple": store.commit("selectTool", "stipple"); break;
         case "text": store.commit("selectTool", "text"); break;
-      }
-    })
-
-    ipcRenderer.on("layout", (event, arg) => {
-      switch (arg) {
-        case "create": store.dispatch("createNewLayout"); break;
       }
     })
 

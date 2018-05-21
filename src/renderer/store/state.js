@@ -6,7 +6,6 @@ export default {
   selectedObject: null,
   selectedTool: "select",
   subLayersOpen: false,
-  selectedLayout: null,
   progress: null,
   centered: false,
   project: {
@@ -17,7 +16,6 @@ export default {
   layers: [],
   images: [],
   renderer: [],
-  layouts: [],
   fonts: [],
   tools: [
     {id: "select",   icon: "mouse-pointer"},

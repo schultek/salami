@@ -42,9 +42,6 @@ export default {
   setSubLayersOpen(state, open) {
     state.subLayersOpen = open
   },
-  selectLayout(state, id) {
-    state.selectedLayout = id
-  },
   selectTool(state, tid) {
     state.selectedTool = tid
     state.tools.filter(t => t.tools).forEach(t => {
@@ -170,24 +167,6 @@ export default {
         .filter(t => t.font == o.id)
         .forEach(t => t.font = (state.fonts[0] || {id: null}).id)
     }
-  },
-
-  /*****************
-  LAYOUT MODIFICATION
-  *****************/
-
-  addLayout(state, l) {
-    if (l.id) state.layouts.push(l);
-  },
-  removeLayout(state, id) {
-    let layout = state.layouts.find(el => el.id == id)
-    if (!layout) return
-    state.layouts.splice(state.layouts.indexOf(layout), 1)
-  },
-  setLayoutTitle(state, {id, title}) {
-    let layout = state.layouts.find(l => l.id == id)
-    if (!layout) return
-    layout.title = title;
   },
 
   /*****************

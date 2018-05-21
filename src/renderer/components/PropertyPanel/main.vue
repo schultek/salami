@@ -1,22 +1,35 @@
 <template>
-  <div class="sidebar panel" :class="quickMode || selectedObject ? 'open' : ''">
-    <transition name="delay">
-      <QuickPanel v-if="quickMode"></QuickPanel>
-      <PropertyPanel v-else-if="selectedObject" :type="type" :id="selectedObject"></PropertyPanel>
-    </transition>
+  <div class="sidebar panel" :class="selectedObject ? 'open' : ''">
+    <component class="settings" :is="type+'X'" :id="selectedObject"></component>
   </div>
+
 </template>
+
 <script>
 
-  import QuickPanel from "./QuickPanel/main.vue"
-  import PropertyPanel from "./PropertyPanel/main.vue"
+  import Artboard from "./Artboard.vue"
+  import Form from "./Form.vue"
+  import Machine from "./Machine.vue"
+  import Text from "./Text.vue"
+  import Image from "./Image.vue"
+  import HalftoneRenderer from "./Renderer/HalftoneRenderer.vue"
+  import StippleRenderer from "./Renderer/StippleRenderer.vue"
 
-  import {mapState} from "vuex"
 
   export default {
-    components: {QuickPanel, PropertyPanel},
+    components: {
+      artboardX: Artboard,
+      halftoneX: HalftoneRenderer,
+      stippleX: StippleRenderer,
+      formX: Form,
+      machineX: Machine,
+      textX: Text,
+      imageX: Image
+    },
     computed: {
-      ...mapState(["quickMode", "selectedObject"]),
+      selectedObject() {
+        return this.$store.state.selectedObject;
+      },
       type() {
         if (!this.selectedObject) return
         if (this.selectedObject == "machine") return "machine";
@@ -28,6 +41,7 @@
 </script>
 
 <style>
+
 
 .sidebar {
   width: 0;
@@ -43,8 +57,6 @@
 .sidebar.open {
   width: 300px;
 }
-
-.delay-leave-active { transition: opacity 1s; }
 
 input[type="text"], input[type="number"] {
   background: none;
@@ -65,7 +77,7 @@ input[type="text"]:focus, input[type="number"]:focus {
   color: #505050;
 }
 
-.settings > div, .quickSettings > div {
+.settings > div {
   border-bottom: 2px solid #e4e4e4;
   padding: 10px;
 }
@@ -139,5 +151,89 @@ input[type="text"]:focus, input[type="number"]:focus {
   background-color: blue;
 }
 
+
+
+.linked-layer-list {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.linked-layer-item {
+  padding-left: 15px;
+  font-size: 12px;
+  height: 25px;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+.linked-layer-item .icon {
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.linked-layer-item span:first-of-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linked-layer-item .stretch {
+  flex-grow: 1;
+}
+
+.linked-layer-item select {
+  margin-left: -7px;
+}
+
+.linked-layer-item select {
+  height: 100%;
+  font-size: .95em;
+}
+
+.linked-layer-item:hover select {
+  background: #ededed;
+}
+
+.linked-layer-item:hover select:hover {
+  color: #008dea;
+}
+
+.linked-layer-item span:last-of-type {
+  padding-right: 5px;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  color: #aaa;
+}
+
+.linked-layer-item span:last-child i {
+  padding: 5px;
+}
+
+.linked-layer-item:hover, .linked-layer-item.selected {
+  background-color: #ededed;
+}
+
+.linked-layer-item span:last-child i:hover {
+  color: #555;
+}
+
+.linked-layer-item:hover i.link {
+  color: #555;
+}
+
+.linked-layer-item.toggled {
+  background: #ededed;
+}
+
+.toggle .toggle_icon {
+  transform: rotate(-90deg);
+  transition: transform .8s;
+}
+
+.toggle:hover .toggle_icon, .toggle.toggled .toggle_icon {
+  transform: rotate(90deg);
+}
 
 </style>

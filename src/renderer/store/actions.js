@@ -5,7 +5,6 @@ import {getDataURL} from "./helpers.js"
 import RenderingManager from "../rendering/RenderingManager.js"
 
 import projectActions   from "./actions/project.js"
-import layoutActions    from "./actions/layouts.js"
 import imageActions     from "./actions/image.js"
 import fontActions      from "./actions/font.js"
 import renderingActions from "./actions/rendering.js"
@@ -30,10 +29,6 @@ export default {
         return files.map(f => cb(dir+f, f, dir))
       }
     }
-    promises.concat(load(remote.app.getPath("userData")+"/layouts/", file =>
-      dispatch("loadLayout", {file, custom: true, build: false})))
-    promises.concat(load(__static+"/layouts/", file =>
-      dispatch("loadLayout", {file, custom: false, build: false})))
     promises.concat(load(__static+"/fonts/", file => {
       let font = getters.getNewObjectByType("font", {file, custom: false});
       commit("addObject", font)
@@ -41,7 +36,6 @@ export default {
     return Promise.all(promises)
   },
   ...projectActions,
-  ...layoutActions,
   ...imageActions,
   ...fontActions,
   ...renderingActions,

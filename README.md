@@ -25,8 +25,6 @@ npm run build
 - [x] text
 - [x] full preview
 - [x] navigation panels
-- [/] quick mode
-  - will be replaced by layout builder
 - [x] stipple quality as percentage
 - [x] long titlesn
 - [x] save / open project
@@ -62,7 +60,6 @@ npm run build
 - [ ] rotate resize mouse icon
 - [x] texts in sublayers
 - [ ] text react to forms
-- [x] sort layouts
 - [ ] polygon edit mode
 - [ ] polygon add remove points
 - [x] image doubleclick for file loading
@@ -74,20 +71,14 @@ npm run build
 ### New Features
 
 - [x] new rendering system
+- [ ] unlink forms from rerendering
 - [ ] touch bar
 - [x] more forms
   - [x] triangle
   - [x] polygon
 - [x] stippling mode
-- [ ] new layout system
-  - [ ] scale layout to default parameters
-  - [ ] layout loader (modal)
-  - [ ] layout creator
-  - [ ] layout user library
 - [ ] user account
   - [ ] save projects online
-  - [ ] share layouts
-  - [ ] live project with other users
 - [x] shortcuts
 - [ ] undo / redo
 - [ ] settings page

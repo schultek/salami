@@ -14,13 +14,20 @@ export default {
       {
         label: 'File',
         submenu: [
+          {
+            label: 'New',
+            submenu: [
+              {label: 'Empty Project', accelerator: c+"+N", click: send('file', 'new')},
+              {label: 'From Template', accelerator: c+"+Shift+N", click: send('file', 'new-template')}
+            ]
+          },
           {label: 'Open', accelerator: c+"+O", click: send('file', 'load-project')},
           {label: 'Save', accelerator: c+"+S", click: send('file', 'save-project')},
           {label: 'Save As', accelerator: c+"+Shift+S", click: send('file', 'save-project-as')},
           {type: 'separator'},
           {label: 'Export', submenu: [
-            {label: 'Layout', click: send('file', 'export-layout')},
-            {label: 'GCode', click: send('file', 'export-gcode')},
+            {label: 'Export as PNG', click: send('file', 'export-png')},
+            {label: 'Export as SVG', click: send('file', 'export-svg')},
           ]},
           {type: 'separator'},
           {label: "Settings", click: () => {
@@ -55,12 +62,6 @@ export default {
             {label: 'Stippling', accelerator: "S", click: send('insert', 'stipple')}
           ]},
           {label: 'Text', accelerator: "X", click: send('insert', 'text')}
-        ]
-      },
-      {
-        label: 'Layout',
-        submenu: [
-          {label: 'Create from Project', accelerator: c+"+L", click: send('layout', 'create')}
         ]
       },
       {

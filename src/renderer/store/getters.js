@@ -56,34 +56,7 @@ export default {
       //TODO fix all display bugs
     }
   },
-
-  /*****************
-      LAYOUT
-  *****************/
-
-  getLayoutFromProject(state) {
-    let images = state.images.map(o => o.toObj())
-    let layers = state.layers.map(o => {
-      let obj = o.toObj()
-      if (o instanceof Text) {
-        let font = state.fonts.find(el => el.id == obj.font)
-        if (font && !font.custom) obj.font = font.title
-      }
-      return obj
-    })
-    let renderer = state.renderer.map(o => o.toObj())
-    let fonts = state.fonts.filter(f => f.custom).map(f => f.toObj())
-
-    let o = {
-      title: "Layout " + (state.layouts.length + 1),
-      template: {
-        layers, images, renderer, fonts,
-        machine: state.machine.toObj()
-      }
-    }
-    return o;
-  },
-
+  
   /*****************
       OBJECTS
   *****************/

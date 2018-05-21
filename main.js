@@ -32,20 +32,13 @@ function createWindow () {
       submenu: [
         {label: 'Öffnen', click: () => mainWindow.webContents.send('file', 'load-project')},
         {label: 'Speichern', click: () => mainWindow.webContents.send('file', 'save-project')},
-        {label: 'Speichern Als', submenu: [
-          {label: 'Projekt', click: () => mainWindow.webContents.send('file', 'save-project')},
-          {label: 'Layout', click: () => mainWindow.webContents.send('file', 'save-layout')},
-          {label: 'GCode', click: () => mainWindow.webContents.send('file', 'save-gcode')},
-        ]}
+        {label: 'Speichern Als', click: () => mainWindow.webContents.send('file', 'save-as')}
       ]
     },
     {
       label: 'Erweitert',
       submenu: [
-        {label: 'Tour ansehen', click: () => mainWindow.webContents.send('file', 'tour')},
-        {label: 'Pre-Gcode', click: () => mainWindow.webContents.send('file', 'pregcode')},
-        {label: 'Post-Gcode', click: () => mainWindow.webContents.send('file', 'postgcode')},
-        {label: 'Auto-Leveling', click: () => mainWindow.webContents.send('file', 'autoleveling')}
+        {label: 'Tour ansehen', click: () => mainWindow.webContents.send('file', 'tour')}
       ]
     },
     {

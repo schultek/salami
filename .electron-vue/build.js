@@ -15,6 +15,7 @@ const rendererConfig = require('./webpack.renderer.config')
 const childConfig = require("./webpack.child.config")
 const webConfig = require('./webpack.web.config')
 const settingsConfig = require("./webpack.settings.config")
+const launcherConfig = require("./webpack.launcher.config")
 
 const doneLog = chalk.bgGreen.white(' DONE ') + ' '
 const errorLog = chalk.bgRed.white(' ERROR ') + ' '
@@ -36,7 +37,7 @@ function build () {
 
   del.sync(['dist/electron/*', '!.gitkeep'])
 
-  const tasks = ['main', 'child', 'renderer', "settings"]
+  const tasks = ['main', 'child', 'renderer', "settings", "launcher"]
   const m = new Multispinner(tasks, {
     preText: 'building',
     postText: 'process'
@@ -87,6 +88,16 @@ function build () {
   }).catch(err => {
     m.error('renderer')
     console.log(`\n  ${errorLog}failed to build renderer process`)
+    console.error(`\n${err}\n`)
+    process.exit(1)
+  })
+
+  pack(launcherConfig).then(result => {
+    results += result + '\n\n'
+    m.success('launcher')
+  }).catch(err => {
+    m.error('launcher')
+    console.log(`\n  ${errorLog}failed to build launcher process`)
     console.error(`\n${err}\n`)
     process.exit(1)
   })

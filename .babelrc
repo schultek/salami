@@ -33,6 +33,14 @@
         "stage-0"
       ]
     },
+    "launcher": {
+      "presets": [
+        ["env", {
+          "modules": false
+        }],
+        "stage-0"
+      ]
+    },
     "web": {
       "presets": [
         ["env", {

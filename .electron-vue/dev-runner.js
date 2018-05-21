@@ -13,6 +13,7 @@ const mainConfig = require('./webpack.main.config')
 const rendererConfig = require('./webpack.renderer.config')
 const childConfig = require("./webpack.child.config")
 const settingsConfig = require("./webpack.settings.config")
+const launcherConfig = require("./webpack.launcher.config")
 
 let electronProcess = null
 let manualRestart = false
@@ -90,6 +91,22 @@ function startSettings() {
       }
 
       logStats('Settings', stats)
+      resolve()
+    })
+  })
+}
+
+function startLauncher() {
+  return new Promise((resolve, reject) => {
+
+    const compiler = webpack(launcherConfig)
+    compiler.watch({}, (err, stats) => {
+      if (err) {
+        console.log(err)
+        return
+      }
+
+      logStats('Launcher', stats)
       resolve()
     })
   })
@@ -201,7 +218,7 @@ function greeting () {
 function init () {
   greeting()
 
-  Promise.all([startChild(), startRenderer(), startMain(), startSettings()])
+  Promise.all([startChild(), startRenderer(), startMain(), startSettings(), startLauncher()])
     .then(() => {
       startElectron()
     })

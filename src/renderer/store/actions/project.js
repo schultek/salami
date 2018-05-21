@@ -9,7 +9,7 @@ import UserStore from "@/includes/UserStore.js"
 
 export default {
   async loadProject({dispatch, commit, state, getters}, url) {
-    let file = url || await showOpenDialog({filters: [{name: "Carve", extensions: ['crv']}, {name: "Image", extensions: ['jpg', 'png', 'gif', 'jpeg']}, {name: "Layout", extensions: ['json']}]})
+    let file = url || await showOpenDialog({filters: [{name: "Carve", extensions: ['crv']}, {name: "Image", extensions: ['jpg', 'png', 'gif', 'jpeg']}]})
     if (!file) return
     if (file.endsWith(".crv")) {
       let data = await fs.readFile(file, 'utf8')
@@ -20,8 +20,6 @@ export default {
         let id = state.images[state.images.length - 1].id
         await dispatch("loadImage", {id, url: file})
       }
-    } else if (file.endsWith(".json")) {
-      await dispatch("loadLayout", {file, custom: true, build: true})
     }
     await dispatch("centerProject")
     commit("setProjectFile", file)
