@@ -21,6 +21,7 @@ export default class StippleRenderer extends BaseRenderer {
     let params = {id: this.id}
     if (result.path) params.path = result.path
     if (result.status) params.params = {status: result.status}
+    if (result.finished) params.params = {...params.params, running: false};
     if (result.voronoi) params.params = {...params.params, voronoi: result.voronoi}
     this.store.commit("setRenderResult", {id: this.pId, params})
   }

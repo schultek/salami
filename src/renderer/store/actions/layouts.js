@@ -69,7 +69,7 @@ export default {
         }))
       })
     } else {
-      commit("addObject", getters.getNewObjectByType("halftone", {
+      commit("addObject", getters.getNewObjectByType("stipple", {
         x: state.machine.w/2,
         y: state.machine.h/2
       }))

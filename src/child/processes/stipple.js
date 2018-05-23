@@ -11,7 +11,7 @@ import Path from "../stippling/StipplePath"
 var running = false;
 
 var image, params, layer, forms, machine;
-var voronoi, stipples, status
+var voronoi, stipples, status, dots;
 var checkx, checky, jitter, svg;
 
 process.on("message", (event) => {
@@ -46,8 +46,12 @@ function start() {
   stop();
   running = true;
   let run = () => {
-    if (running && !finished())
+    if (running && !finished()) {
       RenderScheduler.run(next, run)
+    } else {
+      stop();
+      process.send({result: {finished: true}})
+    }
   }
   run()
 }
@@ -65,15 +69,12 @@ function setup(data) {
     params = prepareParams(data.renderer, layer, machine);
     forms = prepareForms(data.forms);
 
-    params.maxIterations = 400;
+    sendResult();
 
     voronoi = new VoronoiDiagram(image, layer, params);
     svg = new SvgBuilder(layer)
 
     init();
-
-    checkx = (n) => Math.max(layer.x, Math.min(n, layer.x+layer.w))
-    checky = (n) => Math.max(layer.y, Math.min(n, layer.y+layer.h))
 
     let jit = {x: 0.001 * layer.w, y: 0.001 * layer.h};
     jitter = (s) => ({
@@ -86,27 +87,20 @@ function setup(data) {
 
 function prepareParams(params, layer, machine) {
 
-  let maxSize = round(machine.bit.inDepth/machine.bit.height*machine.bit.width, 100);
-  let minSize = machine.bit.tip;
+  params.maxSize = round(machine.bit.inDepth/machine.bit.height*machine.bit.width, 100);
+  params.minSize = machine.bit.tip;
 
-  params.pointSize = map(params.pointSize, 0, 100, minSize, maxSize)
-  params.pointSizeMin = map(params.pointSizeMin, 0, 100, minSize, maxSize)
-  params.pointSizeMax = map(params.pointSizeMax, 0, 100, minSize, maxSize)
+  params.pointSizeMin = map(params.pointSizeMin, 0, 100, params.minSize, params.maxSize)
+  params.pointSizeMax = map(params.pointSizeMax, 0, 100, params.minSize, params.maxSize)
 
-  if (params.pointSizeMin > params.pointSizeMax) {
-    params.pointSize = params.pointSizeMax
-    params.adaptivePointSize = false;
-  }
+  params.initialPoints = 100;
 
-  params.brightness = params.brightness >= 50 ? map(params.brightness, 50, 100, 1, .1) : map(params.brightness, 0, 50, 3, 1)
+  params.preview = layer.renderParams.preview;
 
-  params.accuracy = layer.renderParams.accuracy / 100;
-  let o = 0.3
-  let f = 3
-  params.upper = (1 + o + f - params.accuracy * f)
-  params.lower = (1 - o - f + params.accuracy * f)
+  params.upper = params.preview ? 3 : 1.5;
+  params.lower = params.preview ? 0.01 : 0.4;
 
-  params.quality = layer.renderParams.quality / 100;
+  params.maxIterations = params.preview ? 30 : 50;
 
   return params;
 
@@ -132,15 +126,15 @@ function* next() {
     let totalDensity = cell.sumDensity;
     let diameter = stippleSize(cell)
 
-    if (totalDensity  * params.brightness < params.lower * pointArea(diameter) || cell.area == 0 || eaten(cell)) {
+    if (totalDensity < map(status.iteration, 0, params.maxIterations, 1, params.lower) * pointArea(diameter) || cell.area == 0 || eaten(cell)) {
       // cell too small - merge
       status.merges++;
       Path.remove(cell.id)
       continue;
     }
-    if (totalDensity * params.brightness < params.upper * pointArea(diameter)) {
+    if (totalDensity < map(status.iteration, 0, params.maxIterations, 1, params.upper) * pointArea(diameter)) {
       // cell size within acceptable range - keep
-      let s = new Stipple(cell.centroid, diameter, cell.id)
+      let s = new Stipple(cell.centroid, cell.size, cell.id)
       stipples.push(s)
       Path.update(cell.id, s)
       continue;
@@ -168,12 +162,6 @@ function* next() {
     }
 
 
-    splitSeed1.x = checkx(splitSeed1.x)
-    splitSeed1.y = checky(splitSeed1.y)
-
-    splitSeed2.x = checkx(splitSeed2.x)
-    splitSeed2.y = checky(splitSeed2.y)
-
     let s1 = new Stipple(jitter(splitSeed1), diameter)
     let s2 = new Stipple(jitter(splitSeed2), diameter)
 
@@ -188,26 +176,59 @@ function* next() {
   }
 
   let arr = Path.toArray();
-  let filtered = arr.filter(s => layer.inArea(s.pos) && !isCutout(s.pos, forms))
+  dots = arr.map(scaleToEdge).filter(s => s.size >= params.pointSizeMin)
+
+  status.points = stipples.length;
+  status.iteration++;
+
+  sendResult();
+}
+
+function sendResult() {
+
+  if (!dots || dots.length == 0) return;
+
+  let filtered = dots.filter(s => layer.inArea(s.pos) && !isCutout(s.pos, forms))
 
   let lines = filtered.map(s => [{...s.pos, data: s.size/2}])
   let path = filtered.map(s => svg.c({...s.pos, r: s.size/2})).join("\n")
 
   //path = svg.m(filtered[0].pos) + filtered.slice(1).map(s => " " + svg.l(s.pos)).join("\n")
 
-  status.points = stipples.length;
-
   process.send({result: {lines, path, status}})
-  process.send({progress: (status.iteration / params.maxIterations) * 100})
+}
 
-  status.iteration++;
+function scaleToEdge(s) {
 
-  const used = process.memoryUsage();
-  for (let key in used) {
-    console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+  if (!layer.inArea(s.pos)) {
+    return new Stipple(s.pos, 0, s.id);
   }
 
-  console.log(`Compute time for ${stipples.length} Points: ${Date.now()-time}ms`)
+  let dot = {x: s.pos.x, y: s.pos.y, r: s.size};
+  let edge = layer.onEdge(dot);
+
+  if (edge.length == 0) {
+    return s;
+  }
+
+  if (edge.indexOf("1") >= 0) {
+    dot.r = (dot.x + dot.r - (layer.x + layer.border.left)) / 2;
+    dot.x = (layer.x + layer.border.left) + dot.r;
+  }
+  if (edge.indexOf("2") >= 0) {
+    dot.r = ((layer.x + layer.w - layer.border.right) - (dot.x - dot.r)) / 2;
+    dot.x = (layer.x + layer.w - layer.border.right) - dot.r;
+  }
+  if (edge.indexOf("3") >= 0) {
+    dot.r = (dot.y + dot.r - (layer.y + layer.border.top)) / 2;
+    dot.y = (layer.y + layer.border.top) + dot.r;
+  }
+  if (edge.indexOf("4") >= 0) {
+    dot.r = ((layer.y + layer.h - layer.border.bottom) - (dot.y - dot.r)) / 2;
+    dot.y = (layer.y + layer.h - layer.border.bottom) - dot.r;
+  }
+
+  return new Stipple({x: dot.x, y: dot.y}, dot.r, s.id);
 
 }
 
@@ -221,8 +242,17 @@ function init() {
   if (params && image && layer) {
 
     stipples = [];
-    stipples.push(new Stipple({x: random(layer.x, layer.x+layer.w), y: random(layer.y, layer.y+layer.h)}, params.pointSize));
-    stipples.push(new Stipple({x: random(layer.x, layer.x+layer.w), y: random(layer.y, layer.y+layer.h)}, params.pointSize));
+    if (params.hotspots.length == 0) {
+      for (let i=0; i < params.initialPoints; i++) {
+         stipples.push(new Stipple({x: random(layer.x, layer.x+layer.w), y: random(layer.y, layer.y+layer.h)}, params.pointSizeMax));
+      }
+    } else {
+      for (let h of params.hotspots) {
+        for (let i=0; i < params.initialPoints; i++) {
+           stipples.push(new Stipple({x: random(h.x - h.r, h.x + h.r), y: random(h.y - h.r, h.y + h.r)}, params.pointSizeMax));
+        }
+      }
+    }
 
     Path.init(stipples)
   }
@@ -271,20 +301,15 @@ function getMinHotspot(p) {
 }
 
 function stippleSize(cell) {
-  let diam;
-  if (params.adaptivePointSize) {
-    let avgIntensitySqrt = Math.sqrt(cell.sumDensity / cell.area);
-    diam = params.pointSizeMin * (1 - avgIntensitySqrt) +
-      params.pointSizeMax * avgIntensitySqrt;
-  } else {
-    diam = params.pointSize;
-  }
+  let avg = cell.sumDensity / cell.area;
+  let diam = params.pointSizeMin + avg * (params.pointSizeMax - params.pointSizeMin);
+
   if (params.hotspots.length > 0) {
     let hotspot = getMinHotspot(cell.centroid)
     let a = cell.centroid.x - hotspot.x
     let b = cell.centroid.y - hotspot.y
     let x = Math.sqrt(a*a+b*b) / hotspot.r
-    return diam * fSize(x, hotspot.weight/100);
+    return Math.min(params.maxSize, Math.max(params.minSize, diam * fSize(x, hotspot.weight/100)));
   } else {
     return diam;
   }
@@ -295,5 +320,5 @@ function fSize(x, w) {
 }
 
 function finished() {
-  return (status.splits == 0 && status.merges == 0) || (status.iteration == params.maxIterations)
+  return (status.splits == 0 && status.merges == 0) || (status.iteration >= params.maxIterations)
 }

@@ -190,18 +190,10 @@ export class RenderParams {
     this.gcode = o.gcode || {time: 0, gcode: ""}
     this.params = o.params ? JSON.parse(JSON.stringify(o.params)) :
       this.type == "halftone" ? {lines: {l: 10, r: 10}, dotted: false} :
-      this.type == "stipple" ? {quality: 50, accuracy: 50, running: false, paused: false, status: {iteration: 0, points: 0, splits: 0, merges: 0}, voronoi: ""} : {}
+      this.type == "stipple" ? {preview: true, running: false, paused: false, status: {iteration: 0, points: 0, splits: 0, merges: 0}, voronoi: ""} : {}
   }
   update(o) {
     if ("renderer" in o || "type" in o) throw new Error("Renderer is immutable!")
-    if ("params" in o) {
-      if (this.type == "stipple") {
-        if ("quality" in o.params && o.params.quality < 1) o.params.quality = 1
-        if ("quality" in o.params && o.params.quality > 100) o.params.quality = 100
-        if ("accuracy" in o.params && o.params.accuracy < 0) o.params.accuracy = 0
-        if ("accuracy" in o.params && o.params.accuracy > 100) o.params.accuracy = 100
-      }
-    }
     updateDeep(this, o)
   }
   toObj() {
@@ -239,11 +231,8 @@ export class HalftoneRenderer extends Renderer {
 export class StippleRenderer extends Renderer {
   constructor(o = {}) {
     super(o)
-    this.pointSize = o.pointSize || 50
-    this.adaptivePointSize = o.adaptivePointSize || true
     this.pointSizeMin = o.pointSizeMin || 0
     this.pointSizeMax = o.pointSizeMax || 100
-    this.brightness = o.brightness || 50
     this.hotspots = o.hotspots || []
     if (this.hotspots.length == 0 && "x" in o && "y" in o) {
       this.hotspots.push(new Hotspot({x: o.x, y: o.y}))
@@ -254,14 +243,10 @@ export class StippleRenderer extends Renderer {
     return {...super.asObject("id", "title", "pointSize", "adaptivePointSize", "pointSizeMin", "pointSizeMax", "quality", "hotspots"), type: "stipple"}
   }
   update(o) {
-    if ("pointSize" in o && o.pointSize < 0) o.pointSize = 0
-    if ("pointSize" in o && o.pointSize > 100) o.pointSize = 100
     if ("pointSizeMin" in o && o.pointSizeMin < 0) o.pointSizeMin = 0
     if ("pointSizeMin" in o && o.pointSizeMin > 100) o.pointSizeMin = 100
     if ("pointSizeMax" in o && o.pointSizeMax < 0) o.pointSizeMax = 0
     if ("pointSizeMax" in o && o.pointSizeMax > 100) o.pointSizeMax = 100
-    if ("brightness" in o && o.brightness < 0) o.brightness = 0
-    if ("brightness" in o && o.brightness > 100) o.brightness = 100
     if ("hotspot" in o) {
       if ("add" in o.hotspot) this.hotspots.push(o.hotspot.add)
       if ("remove" in o.hotspot) this.hotspots.splice(o.hotspot.remove, 1)

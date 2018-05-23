@@ -67,6 +67,7 @@ export function prepareForm(f) {
     }
   } else {
     f.inArea = makeAreaFunc(f);
+    f.onEdge = makeOnEdgeFunc(f);
   }
 
   return f;
@@ -81,9 +82,9 @@ export function prepareImage(image, pixels) {
     image.pixels = pixels;
 
     let w = pixels.stride[1]
-    image.get = (x, y) => 0.2126*pixels.data[Math.round(y)*w + Math.round(x)*4] +
-                          0.7152*pixels.data[Math.round(y)*w + Math.round(x)*4 + 1] +
-                          0.0722*pixels.data[Math.round(y)*w + Math.round(x)*4 + 2]
+    image.get = (x, y) => 0.2126*pixels.data[Math.floor(y)*w + Math.floor(x)*4] +
+                          0.7152*pixels.data[Math.floor(y)*w + Math.floor(x)*4 + 1] +
+                          0.0722*pixels.data[Math.floor(y)*w + Math.floor(x)*4 + 2]
 
     image.pixW = image.pixels.shape[0]
     image.pixH = image.pixels.shape[1]
@@ -150,18 +151,40 @@ function makeAreaFunc(layer, strict) {
   };
 }
 
+function makeOnEdgeFunc(layer) {
+  let border = layer.border || {left: 0, right: 0, top: 0, bottom: 0}
+  return function(circ) {
+    if (!circ) return false;
+    if (layer.rotate) {
+      let p = layer.rotate(circ)
+      circ.x = p.x;
+      circ.y = p.y;
+    }
+    let out = "";
+    if (Math.abs(circ.x - (layer.x + border.left)) <= circ.r)
+      out += "1"
+    if (Math.abs(circ.x - (layer.x + layer.w - border.right)) <= circ.r)
+      out += "2"
+    if (Math.abs(circ.y - (layer.y + border.top)) <= circ.r)
+      out += "3"
+    if (Math.abs(circ.y - (layer.y + layer.h - border.bottom)) <= circ.r)
+      out += "4"
+    return out;
+  }
+}
+
 
 function makeToPixFunc(image) { //convert mm to pixel
   return (pos) => {
     let p = image.rotate(pos);
     p = {x: p.x-image.x, y: p.y-image.y};
-    return {x: Math.round(p.x*image.pixW/image.w), y: Math.round(p.y*image.pixH/image.h)};
+    return {x: Math.floor(p.x*image.pixW/image.w), y: Math.floor(p.y*image.pixH/image.h)};
   }
 }
 
 function makeToMMFunc(image) {
   return (pos) => {
-    let p = {x: image.x + pos.x * image.w / image.pixW, y: image.y + pos.y * image.h / image.pixH}
+    let p = {x: image.x + (pos.x+0.5) * image.w / image.pixW, y: image.y + (pos.y+0.5) * image.h / image.pixH}
     return image.rotate(p, true);
   }
 }
