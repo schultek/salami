@@ -97,8 +97,8 @@ function prepareParams(params, layer, machine) {
 
   params.preview = layer.renderParams.preview;
 
-  params.upper = params.preview ? 3 : 1.5;
-  params.lower = params.preview ? 0.01 : 0.4;
+  params.upper = params.preview ? 4 : 1.5;
+  params.lower = params.preview ? 0.005 : 0.4;
 
   params.maxIterations = params.preview ? 30 : 50;
 

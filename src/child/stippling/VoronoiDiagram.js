@@ -27,8 +27,8 @@ export default class VoronoiDiagram {
     this.setup(params.preview);
   }
   setup(preview) {
-    this.scaleX = preview ? this.image.w / this.image.pixW : 1
-    this.scaleY = preview ? this.image.h / this.image.pixH : 1
+    this.scaleX = preview ? this.image.w / this.image.pixW * 0.8 : 1
+    this.scaleY = preview ? this.image.h / this.image.pixH * 0.8 : 1
     this.bbox = {xl: 0, xr: this.image.pixW * this.scaleX, yt: 0, yb: this.image.pixH * this.scaleY}
     this.areaScale = (this.image.w * this.image.h) / (this.image.pixW * this.image.pixH) / this.scaleX / this.scaleY;
   }
