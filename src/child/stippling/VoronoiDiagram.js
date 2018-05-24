@@ -1,6 +1,7 @@
 
 import Voronoi from "voronoi"
 import Canvas from "canvas"
+import {map, round} from "@/functions.js"
 
 class Moments {
   constructor() {
@@ -14,17 +15,22 @@ class VoronoiCell {
     this.centroid = {x: 0, y: 0}
     this.id = id
     this.orientation = this.area = this.sumDensity = 0;
+    this.min = this.max = this.div = 0;
   }
 }
 
 export default class VoronoiDiagram {
   constructor(image, layer, params) {
     this.voronoi = new Voronoi()
-    this.scale = params.quality
-    this.bbox = {xl: 0, xr: image.pixW * this.scale, yt: 0, yb: image.pixH * this.scale}
     this.image = image;
     this.layer = layer;
-    this.areaScale =  (this.image.w * this.image.h) / (this.image.pixW * this.image.pixH) / this.scale / this.scale;
+    this.setup(params.preview);
+  }
+  setup(preview) {
+    this.scaleX = preview ? this.image.w / this.image.pixW * 0.8 : 1
+    this.scaleY = preview ? this.image.h / this.image.pixH * 0.8 : 1
+    this.bbox = {xl: 0, xr: this.image.pixW * this.scaleX, yt: 0, yb: this.image.pixH * this.scaleY}
+    this.areaScale = (this.image.w * this.image.h) / (this.image.pixW * this.image.pixH) / this.scaleX / this.scaleY;
   }
   checkDimens(p) {
     return [
@@ -33,17 +39,18 @@ export default class VoronoiDiagram {
     ]
   }
   *calculate(points) {
+
     if (this.diagram) {
       try {
         this.voronoi.recycle(this.diagram);
       } catch (e) {
-        console.log("Recycle: ",e)
+        console.log("Recycle: ", e)
       }
     }
 
     let positions = points.map(p => {
       let pos = this.image.toPix(p.pos)
-      return {x: pos.x * this.scale, y: pos.y * this.scale}
+      return {x: pos.x * this.scaleX, y: pos.y * this.scaleY}
     })
 
     try {
@@ -54,8 +61,8 @@ export default class VoronoiDiagram {
 
     yield;
 
-    let map = yield this.createMap(points.map((p, i) => ({id: p.id, cellId: positions[i].voronoiId})))
-    let stipples = yield this.computeCells(map)
+    let imap = yield this.createMap(points.map((p, i) => ({id: p.id, cellId: positions[i].voronoiId})))
+    let stipples = yield this.computeCells(imap)
 
     return stipples;
   }
@@ -148,18 +155,11 @@ export default class VoronoiDiagram {
     for (let x = this.bbox.xl; x < this.bbox.xr; x++) {
       for (let y = this.bbox.yt; y < this.bbox.yb; y++) {
 
-        let pos = this.image.toMM({x: x / this.scale, y: y / this.scale})
-
         let index = map.getIndex(x, y);
         if (cells[index] === undefined) continue;
 
-        let density;
-        if (!this.layer.inArea(pos)) {
-          density = this.layer.inverted ? 0 : 1
-        } else {
-          let pixel = this.image.get(x / this.scale, y / this.scale) / 255;
-          density = this.layer.inverted ? pixel : 1 - pixel
-        }
+        let pixel = this.image.get(x / this.scaleX, y / this.scaleY) / 255;
+        let density = this.layer.inverted ? pixel : 1 - pixel
 
         let cell = cells[index]
 
@@ -197,8 +197,9 @@ export default class VoronoiDiagram {
       cell.area = cell.area * this.areaScale
       cell.sumDensity = cell.sumDensity * this.areaScale
 
-      cell.centroid = this.image.toMM({x: cell.centroid.x / this.scale, y: cell.centroid.y / this.scale})
+      cell.centroid = this.image.toMM({x: (cell.centroid.x+0.5) / this.scaleX, y: (cell.centroid.y+0.5) / this.scaleY})
 
+      cell.size = 2 * Math.sqrt(cell.sumDensity / Math.PI)
     }
 
     return cells;

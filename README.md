@@ -67,6 +67,8 @@ npm run build
 - [x] delete confirmation
 - [?] keep selected tool in submenu
 - [x] rename layers with enter
+- [x] enhance stippling mode
+- [ ] unlink forms from rendering
 
 ### New Features
 
@@ -89,5 +91,10 @@ npm run build
   - [ ] rendering behaviors
   - [ ] auto leveling
 - [ ] notification system: [vue-component](https://github.com/euvl/vue-notification)
+  - [ ] no pixels
+  - [ ] render error
+  - [ ] rendering finished (stippling)
+  - [ ] font error
+  - [ ] console errors (beta version)
 - [x] form snapping
 - [ ] context menu

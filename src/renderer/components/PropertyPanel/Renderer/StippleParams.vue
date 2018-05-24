@@ -1,9 +1,5 @@
 <template>
   <div>
-    <div class="settings-dimensions dimen-row-2">
-      <Dimen title="Quality" type="number" v-model="params.quality" unit="%"></Dimen>
-      <Dimen title="Accuracy" type="number" v-model="params.accuracy" unit="%"></Dimen>
-    </div>
     <div class="settings-dimensions dimen-row-4" >
       <div class="dimen">
         <input type="button" :value="params.running ? 'Stop' : 'Start'" @click="togglePrim()"/>
@@ -11,6 +7,7 @@
       <div class="dimen">
         <input type="button" :value="params.running ? params.paused ? 'Resume' : 'Pause' : 'Next'" @click="toggleSnd()" />
       </div>
+      <Dimen type="checkbox" title="Preview" v-model="params.preview"></Dimen>
     </div>
     <div class="stipple-status" v-if="params.status">
       <i class="fa fa-compass"></i>
@@ -24,7 +21,7 @@
         <b>Merges:</b> {{params.status.merges}}
       </span>
     </div>
-    <!-- <img class="voronoi" :src="params.voronoi" /> -->
+    <img class="voronoi" :src="params.voronoi" />
   </div>
 </template>
 
