@@ -18,12 +18,12 @@ export default [
     }
   }),
   store => store.subscribe((mutation, state) => {
-    if (store.state.centered && (mutation.type == "setSubLayersOpen" || mutation.type == "selectObject")) {
+    if (store.state.centered && mutation.type == "selectObject") {
       store.dispatch("centerProject", {withSidebar: true});
     }
   }),
   store => store.subscribe((mutation, state) => {
-    if ((mutation.type == "selectObject" && mutation.payload != null) || (mutation.type == "selectTool" && mutation.payload != "select") || (mutation.type == "setSubLayersOpen" && mutation.payload === false)) {
+    if ((mutation.type == "selectObject" && mutation.payload != null) || (mutation.type == "selectTool" && mutation.payload != "select")) {
       store.commit("setFullPreview", false);
     }
   })

@@ -7,14 +7,14 @@
       </radialGradient>
     </defs>
     <g id="svgProject" :transform="'translate('+p.x+' '+p.y+') scale('+p.zoom+')'">
-      <g id="svgLayers" :style="{opacity: subLayersOpen ? 1 : 0.6}">
+      <g id="svgLayers">
         <component v-for="layer in layers" :key="layer.id" :is="compType(layer)+'X'" :ref="layer.id" :id="layer.id"></component>
       </g>
-      <g id="svgImages" :style="{display: subLayersOpen ? 'none' : 'inherit'}">
-        <imageX v-for="image in images" :key="image.id" :ref="image.id" :id="image.id"></imageX>
+      <g id="svgImages" v-if="!fullPreview">
+        <imageX v-for="image in images" v-if="image.visible || selectedObject == image.id" :key="image.id" :ref="image.id" :id="image.id"></imageX>
       </g>
-      <g id="svgRenderer" :style="{display: subLayersOpen ? 'none' : 'inherit'}">
-        <rendererX v-for="renderer in renderer" :key="renderer.id" :ref="renderer.id" :id="renderer.id" :type="rendererType(renderer)"></rendererX>
+      <g id="svgRenderer" v-if="!fullPreview">
+        <rendererX v-for="renderer in renderer" v-if="renderer.visible || selectedObject == renderer.id" :key="renderer.id" :ref="renderer.id" :id="renderer.id" :type="rendererType(renderer)"></rendererX>
       </g>
       <Preview v-if="object" v-model="object" :mouse="mouse" :mode="objectMode"></Preview>
     </g>
@@ -59,14 +59,14 @@
       p() {
         return this.$store.state.project
       },
-      subLayersOpen() {
-        return this.$store.state.subLayersOpen
-      },
       adding() {
         return this.$store.state.selectedTool != "select"
       },
       fullPreview() {
         return this.$store.state.fullPreview
+      },
+      selectedObject() {
+        return this.$store.state.selectedObject
       }
     },
     methods: {

@@ -3,7 +3,7 @@ import $ from "jquery"
 import fs from "mz/fs"
 
 import {showOpenDialog, showSaveDialog, timeout} from "../helpers.js"
-import {HalftoneRenderer, StippleRenderer} from "@/models.js"
+import {HalftoneRenderer, StippleRenderer, Artboard} from "@/models.js"
 
 import UserStore from "@/includes/UserStore.js"
 
@@ -47,11 +47,7 @@ export default {
       }
     }
 
-    let objects;
-    if (state.subLayersOpen)
-      objects = state.layers;
-    else
-      objects = state.layers.concat(state.images)
+    let objects = state.fullPreview ? state.layers.filter(l => l instanceof Artboard) : state.layers.concat(state.images.filter(i => i.visible || i.id == state.selectedObject))
 
     if (objects.length == 0) return;
 
@@ -60,8 +56,8 @@ export default {
         y: Math.max(max.y, o.h ? o.y+o.h : o.y)
       }), {x: -Number.MAX_VALUE, y: -Number.MAX_VALUE})
 
-    if (!state.subLayersOpen)
-      max = state.renderer.reduce((max, r) => {
+    if (!state.fullPreview)
+      max = state.renderer.filter(r => r.visible || r.id == state.selectedObject).reduce((max, r) => {
         if (r instanceof HalftoneRenderer) {
           return {x: Math.max(max.x, r.x), y: Math.max(max.y, r.y)}
         } else if (r instanceof StippleRenderer) {
@@ -75,8 +71,8 @@ export default {
         y: Math.min(min.y, o.y)
       }), {x: Number.MAX_VALUE, y: Number.MAX_VALUE})
 
-    if (!state.subLayersOpen)
-      min = state.renderer.reduce((min, r) => {
+    if (!state.fullPreview)
+      min = state.renderer.filter(r => r.visible || r.id == state.selectedObject).reduce((min, r) => {
         if (r instanceof HalftoneRenderer) {
           return {x: Math.min(min.x, r.x), y: Math.min(min.y, r.y)}
         } else if (r instanceof StippleRenderer) {
@@ -99,10 +95,8 @@ export default {
     }
   },
   async toggleQuickMode({state, commit, dispatch}) {
-    commit("setQuickMode", !state.quickMode)
     commit("selectTool", "select")
     commit("selectObject", null)
-    commit("setSubLayersOpen", state.quickMode)
     dispatch("centerProject", {withSidebar: true})
   },
   async setFullPreview({state, commit, dispatch}, fp) {
@@ -110,48 +104,7 @@ export default {
     if (fp) {
       commit("selectObject", null)
       commit("selectTool", "select")
-      commit("setQuickMode", false)
-      commit("setSubLayersOpen", true)
       dispatch("centerProject", {withSidebar: true})
-    }
-  },
-  updateQuickProject({commit, state, getters}, {w, h, detail}) {
-    if (w != state.machine.w || h != state.machine.h) {
-      let c = {
-        x: state.machine.w/2,
-        y: state.machine.h/2
-      }
-      let d = {
-        x: w / state.machine.w,
-        y: h / state.machine.h
-      }
-      let bit = JSON.parse(JSON.stringify(state.machine.bit))
-      bit.inDepth = detail;
-      commit("updateObject", {
-        id: 'machine',
-        x: c.x - w/2, w: w,
-        y: c.y - h/2, h: h,
-        bit
-      })
-      state.layers.forEach(l => commit("updateObject", {
-        id: l.id,
-        x: c.x - (c.x - l.x) * d.x,
-        w: l.w * d.x,
-        y: c.y - (c.y - l.y) * d.y,
-        h: l.h * d.y
-      }))
-      let maxRad = Math.round(state.machine.bit.inDepth/state.machine.bit.height*state.machine.bit.width/2*100)/100;
-      state.renderer.forEach(e => {
-        // let maxLen = getters.getMaxLength(e.id);
-        // commit("updateObject", {
-        //   id: e.id,
-        //   x: c.x - (c.x - e.x) * d.x,
-        //   y: c.y - (c.y - e.y) * d.y,
-        //   steps: maxLen / maxRad*2+0.5,
-        //   gap: maxRad*2+0.5
-        // })
-        //TODO adjust renderer params
-      })
     }
   }
 }

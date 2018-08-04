@@ -30,17 +30,11 @@ export default {
   APP STATUS
   *****************/
 
-  setQuickMode(state, q) {
-    state.quickMode = q
-  },
   setFullPreview(state, p) {
     state.fullPreview = p
   },
   selectObject(state, id) {
     state.selectedObject = id
-  },
-  setSubLayersOpen(state, open) {
-    state.subLayersOpen = open
   },
   selectTool(state, tid) {
     state.selectedTool = tid

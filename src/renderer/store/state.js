@@ -1,12 +1,9 @@
 import {Machine} from "@/models.js"
 
 export default {
-  quickMode: false,
   fullPreview: false,
   selectedObject: null,
   selectedTool: "select",
-  subLayersOpen: false,
-  progress: null,
   centered: false,
   project: {
     name: "",

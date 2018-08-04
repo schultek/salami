@@ -37,7 +37,6 @@
         if (t != "select") {
           this.$store.commit("selectObject", null)
           this.$store.dispatch("centerProject", {withSidebar: true})
-          this.$store.commit("setSubLayersOpen", !(t == "image" || t == "halftone" || t == "stipple"))
         }
       },
       getSelected(tool) {

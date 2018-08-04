@@ -154,6 +154,7 @@ export class Image extends BaseObject {
     this.rot = o.rot || 0
     this.url = o.url || ""
     this.data = o.data || ""
+    this.visible = true;
   }
   toObj() {
     return super.asObject("id", "x", "y", "w", "h", "rot", "title", "url", "data")
@@ -166,6 +167,7 @@ export class Image extends BaseObject {
 export class Renderer extends BaseObject {
   constructor(o) {
     super(o)
+    this.visible = true;
   }
   asObject(...params) {
     return super.asObject(...params)

@@ -1,6 +1,8 @@
 <template>
   <div class="sidebar panel" :class="selectedObject ? 'open' : ''">
-    <component class="settings" :is="type+'X'" :id="selectedObject"></component>
+    <transition name="delay">
+      <component v-if="selectedObject" class="settings" :is="type+'X'" :id="selectedObject"></component>
+    </transition>
   </div>
 
 </template>
@@ -14,7 +16,6 @@
   import Image from "./Image.vue"
   import HalftoneRenderer from "./Renderer/HalftoneRenderer.vue"
   import StippleRenderer from "./Renderer/StippleRenderer.vue"
-
 
   export default {
     components: {
