@@ -6,8 +6,8 @@
         <span>{{layer.title}}</span>
         <span class="stretch"></span>
         <span>
-          <i class="fa fa-trash-alt" @click.stop="removeLayer(layer.id)"></i>
-          <i class="fa fa-fw fa-bars"></i>
+          <fa-icon icon="trash-alt" @click.stop="removeLayer(layer.id)"></fa-icon>
+          <fa-icon icon="bars" fixed-width></fa-icon>
         </span>
       </div>
     </transition-group>

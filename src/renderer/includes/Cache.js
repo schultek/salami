@@ -15,6 +15,16 @@ export default {
   },
   paste() {
     if (copied) {
+      try {
+        let parts = copied.object.title.split(" ");
+        let num = parseInt(parts.pop());
+        parts.push(num+1)
+        let newT = parts.join(" ");
+        console.log(parts, num, newT);
+        copied.object.title = newT;
+      } catch (e) {
+        console.error(e);
+      }
       let obj = store.getters.getNewObjectByType(copied.type, copied.object)
       store.commit("addObject", obj)
       store.commit("selectObject", obj.id)

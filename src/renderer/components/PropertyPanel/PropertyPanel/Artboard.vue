@@ -2,7 +2,7 @@
   <div>
     <TitleModule :id="id" v-model="object.title"></TitleModule>
     <div class="size-warning" v-show="sizewarning">
-      <i class="fa fa-compress" @click="compressPart"></i>
+      <fa-icon icon="compress" @click="compressPart"></fa-icon>
       <span>This Part is bigger then your machine. Resize!</span>
     </div>
     <DimensModule :id="id" :row="2" dimens="default" :add="{title: 'fa-adjust', prop: 'inverted', type:'checkbox'}"></DimensModule>
@@ -64,11 +64,11 @@
   border-bottom: none !important;
 }
 
-.size-warning i {
+.size-warning .svg-inline--fa {
   margin: 5px;
 }
 
-.size-warning i:hover {
+.size-warning .svg-inline--fa:hover {
   color: #008dea;
 }
 

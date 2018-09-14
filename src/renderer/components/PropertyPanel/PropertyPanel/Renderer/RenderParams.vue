@@ -5,12 +5,12 @@
       <span>{{renderer.title}}</span>
       <span class="stretch"></span>
       <span>
-        <i class="fas fa-trash-alt" @click.stop="deleteParams()"></i>
-        <i class="fa fa-angle-right link"></i>
+        <fa-icon icon="trash-alt" @click.stop="deleteParams()"></fa-icon>
+        <fa-icon icon="angle-right" class="link"></fa-icon>
       </span>
     </div>
     <div class="linked-layer-item" @click="selectObject(params.image)">
-      <i class="fas fa-fw fa-image icon"></i>
+      <fa-icon icon="image" fixed-width class="icon"></fa-icon>
       <span>
         <select v-model="params.image" @click.stop="">
           <option :value="image.id" v-for="image in images">
@@ -20,15 +20,15 @@
       </span>
       <span class="stretch"></span>
       <span>
-        <i v-show="params.image" class="fa fa-angle-right link"></i>
+        <fa-icon v-show="params.image" icon="angle-right" class="link"></fa-icon>
       </span>
     </div>
     <div v-if="forms && forms.length > 0" class="linked-layer-item toggle" :class="showForms ? 'toggled' : ''" @click="toggleForms()">
-      <i class="fas fa-fw fa-object-ungroup icon"></i>
+      <fa-icon icon="object-ungroup" fixed-width class="icon"></fa-icon>
       <span>Forms</span>
       <span class="stretch"></span>
       <span>
-        <i class="fa fa-angle-right toggle_icon link" :class="showForms ? 'toggled' : ''"></i>
+        <fa-icon icon="angle-right" class="toggle_icon link" :class="showForms ? 'toggled' : ''"></fa-icon>
       </span>
     </div>
     <div v-if="showForms" class="linked-layer-item form-list-item" v-for="form in forms" @click="selectObject(form.id)">
@@ -37,15 +37,15 @@
       <span>{{form.title}}</span>
       <span class="stretch"></span>
       <span>
-        <i class="fa fa-angle-right link"></i>
+        <fa-icon icon="angle-right" class="link"></fa-icon>
       </span>
     </div>
     <div class="linked-layer-item toggle" :class="showSettings ? 'toggled' : ''" @click="toggleSettings()">
-      <i class="fas fa-fw fa-cogs icon"></i>
+      <fa-icon icon="cogs" class="icon" fixed-width></fa-icon>
       <span>Settings</span>
       <span class="stretch"></span>
       <span>
-        <i class="fa fa-angle-right toggle_icon link"></i>
+        <fa-icon icon="angle-right" class="toggle_icon link"></fa-icon>
       </span>
     </div>
     <component v-show="showSettings" :is="params.type" :params="params.params" class="params" @cmd="sendCommand"></component>

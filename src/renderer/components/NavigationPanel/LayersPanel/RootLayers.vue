@@ -1,11 +1,11 @@
 <template>
   <div id="root-layers" class="layer-list">
     <div class="layer-item" :class="[selectedObject=='machine'?'selected':'']" @click="openSublayers">
-      <i class="fa fa-fw fa-folder icon"></i>
+      <fa-icon icon="folder" class="icon" fixed-width></fa-icon>
       <span>Layers</span>
       <span class="stretch"></span>
-      <span>
-        <i class="fa fa-fw fa-cog" @click.stop="selectObject('machine')"></i>
+      <span @click.stop="selectObject('machine')">
+        <fa-icon icon="cog" fixed-width></fa-icon>
       </span>
     </div>
     <div class="layer-item" v-for="layer in layers" :class="[selectedObject==layer.id?'selected':'']" @click="selectObject(layer.id)">
@@ -13,7 +13,7 @@
       <span>{{layer.title}}</span>
       <span class="stretch"></span>
       <span>
-        <i class="fa fa-fw fa-trash-alt" @click.stop="removeObject(layer.id)"></i>
+        <fa-icon icon="trash-alt" fixed-width @click.stop="removeObject(layer.id)"></fa-icon>
       </span>
     </div>
   </div>

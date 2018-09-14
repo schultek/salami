@@ -10,16 +10,18 @@
     <div class="settings-panel linked-layer-list">
       <div class="settings-header">
         <span>Hotspots</span>
-        <span class="add-hotspot" @click="addHotspot"><i class="fa fa-plus"></i></span>
+        <span class="add-hotspot" @click="addHotspot">
+          <fa-icon icon="plus"></fa-icon>
+          </span>
       </div>
       <template v-for="(hotspot, i) in object.hotspots">
         <div class="linked-layer-item toggle" :class="object.selectedHotspot == hotspot.id ? 'toggled' : ''" @click="toggleHotspotSettings(hotspot.id)">
-          <i class="far fa-fw fa-dot-circle icon"></i>
+          <fa-icon icon="dot-circle" fixed-width class="icon"></fa-icon>
           <span>Hotspot {{i+1}}</span>
           <span class="stretch"></span>
           <span class="hotspot-controls">
-            <i class="far fa-trash-alt" @click="removeHotspot(i)"></i>
-            <i class="fa fa-angle-right toggle_icon link" :class="object.selectedHotspot == hotspot.id ? 'toggled' : ''"></i>
+            <fa-icon icon="trash-alt" @click="removeHotspot(i)"></fa-icon>
+            <fa-icon icon="angle-right" class="toggle_icon link" :class="object.selectedHotspot == hotspot.id ? 'toggled' : ''"></fa-icon>
           </span>
         </div>
         <div class="params hotspot-settings" v-if="object.selectedHotspot == hotspot.id">
@@ -85,10 +87,10 @@
   color: #008dea;
 }
 
-.linked-layer-item:hover .hotspot-controls i {
+.linked-layer-item:hover .hotspot-controls .svg-inline--fa {
   color: #aaa;
 }
-.linked-layer-item .hotspot-controls i:hover {
+.linked-layer-item .hotspot-controls .svg-inline--fa:hover {
   color: #555;
 }
 

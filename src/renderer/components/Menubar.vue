@@ -13,11 +13,11 @@
         <div><div></div></div>
       </div> -->
       <div id="fullPreview" @click="togglePreview">
-        <i class="fa fa-magic fa-sm" :style="{color: fullPreview?'#008dea':'inherit'}"></i>
+        <fa-icon icon="magic" size="sm" :style="{color: fullPreview?'#008dea':'inherit'}"></fa-icon>
       </div>
       <div id="showSettings"  @click="unselectObject">
-        <i class="fa fa-wrench fa-sm" ></i>
-        <i class="fa fa-angle-right"></i>
+        <fa-icon icon="wrench" size="sm" ></fa-icon>
+        <fa-icon icon="angle-right"></fa-icon>
       </div>
     </div>
   </div>
@@ -163,11 +163,11 @@
   vertical-align: middle;
 }
 
-#showSettings i, #fullPreview i {
+#showSettings .svg-inline--fa, #fullPreview .svg-inline--fa {
   vertical-align: middle;
 }
 
-#showSettings i:first-child {
+#showSettings .svg-inline--fa:first-child {
   margin-right: -3px;
 }
 

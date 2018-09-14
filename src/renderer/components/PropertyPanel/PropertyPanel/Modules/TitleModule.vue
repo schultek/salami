@@ -2,7 +2,7 @@
   <div class="settings-title">
     <span>{{caption}}</span>
     <span><input type="text" v-model.lazy="title" v-blur/></span>
-    <i class="fa fa-trash-alt" @click="removeObject"></i>
+    <fa-icon icon="trash-alt" @click="removeObject"></fa-icon>
   </div>
 </template>
 
@@ -60,13 +60,13 @@ export default {
   width: 100%;
 }
 
-.settings-title i {
-  font-size: 14px;
+.settings-title .svg-inline--fa {
+  font-size: 12px;
   margin: 6px;
   color: #9f9f9f;
 }
 
-.settings-title i:hover {
+.settings-title .svg-inline--fa:hover {
   color: #008dea;
 }
 

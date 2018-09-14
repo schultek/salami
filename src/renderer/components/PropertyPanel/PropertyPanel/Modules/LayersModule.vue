@@ -8,7 +8,7 @@
       <span>{{layer.title}}</span>
       <span class="stretch"></span>
       <span>
-        <i class="fa fa-angle-right link"></i>
+        <fa-icon icon="angle-right" class="link"></fa-icon>
       </span>
     </div>
   </div>

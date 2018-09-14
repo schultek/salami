@@ -2,12 +2,12 @@
   <div id="navigation" class="sidepanel panel">
     <div id="layer-heading" @click="toggleSublayers">
       <span>Layouts</span>
-      <i class="fa" :class="subLayersOpen?'angle-down':'angle-up'"></i>
+      <fa-icon :icon="subLayersOpen?'angle-down':'angle-up'"></fa-icon>
     </div>
-    <i class="fa fa-plus fa-xs" id="add-layout" @click="addLayout"></i>
+    <fa-icon class="plus" size="xs" id="add-layout" @click="addLayout"></fa-icon>
     <div>
       <div class="layer-item" v-for="layout in layouts" @click="buildLayout(layout.id)" :class="[selectedLayout==layout.id?'selected':'']">
-        <i class="fa fa-columns icon"></i>
+        <fa-icon icon="columns" class="icon"></fa-icon>
         <template v-if="edit == layout.id">
           <input id="edit-title" type="text" v-model="title" @click.stop="" @blur="closeEditLayout" v-blur/>
         </template>
@@ -16,8 +16,8 @@
         </template>
         <span class="stretch"></span>
         <span style="display: block">
-          <i v-if="layout.custom" class="fas fa-pencil-alt" @click.stop="startEditLayout(layout)"></i>
-          <i v-if="layout.custom" class="fa fa-trash-alt" @click.stop="removeLayout(layout.id)"></i>
+          <fa-icon v-if="layout.custom" icon="pencil-alt" @click.stop="startEditLayout(layout)"></fa-icon>
+          <fa-icon v-if="layout.custom" icon="trash-alt" @click.stop="removeLayout(layout.id)"></fa-icon>
         </span>
       </div>
     </div>

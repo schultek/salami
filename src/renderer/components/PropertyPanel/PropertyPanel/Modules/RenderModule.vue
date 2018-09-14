@@ -9,8 +9,8 @@
       <span>{{r.title}}</span>
       <span class="stretch"></span>
       <span>
-        <i class="fa fa-xs fa-plus link">
-      </i></span>
+        <fa-icon icon="plus" size="xs" class="link"></fa-icon>
+      </span>
     </div>
   </div>
 </template>

@@ -9,7 +9,7 @@
     </div>
     <notifications group="default" />
     <modal :classes="'v--modal naming-modal'" :width="'50%'" :height="55" :pivotY="0.2" name="name-layer" @before-open="setModalId" @opened="focusInput" @before-close="updateTitle" >
-      <i class="fa fa-pencil-alt fa-md"></i>
+      <fa-icon icon="pencil-alt"></fa-icon>
       <input v-model="modalTitle" @blur="$modal.hide('name-layer')" v-blur/>
     </modal>
     <v-dialog></v-dialog>
@@ -24,11 +24,12 @@
   import NavigationPanel from "./components/NavigationPanel/main.vue"
   import Workarea from "./components/Workarea/main.vue"
   import PropertyPanel from "./components/PropertyPanel/main.vue"
+  import Icon from "./components/Icon.vue"
 
   import {mapState} from "vuex"
 
   export default {
-    components: {Menubar, Toolbar, NavigationPanel, Workarea, PropertyPanel},
+    components: {Menubar, Toolbar, NavigationPanel, Workarea, PropertyPanel, Icon},
     computed: mapState(["quickMode"]),
     data: () => ({
       modalId: null,
@@ -54,7 +55,7 @@
 
 <style>
 
-@import "./assets/fontawesome-all.css";
+@import "./assets/fa/all.css";
 
 html, body, #app {
   position: fixed;
@@ -121,7 +122,7 @@ html, body, #app {
   border-radius: 10px;
 }
 
-.naming-modal i {
+.naming-modal .svg-inline--fa {
   margin: 15px;
 }
 

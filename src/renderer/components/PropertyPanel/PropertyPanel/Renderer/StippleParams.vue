@@ -10,7 +10,7 @@
       <Dimen type="checkbox" title="Preview" v-model="params.preview"></Dimen>
     </div>
     <div class="stipple-status" v-if="params.status">
-      <i class="fa fa-compass"></i>
+      <fa-icon icon="compass"></fa-icon>
       <span>
         <b>Iteration:</b> {{params.status.iteration}}
         &nbsp;&nbsp;
@@ -67,7 +67,7 @@ export default {
   margin: 0 -10px;
 }
 
-.stipple-status i {
+.stipple-status .svg-inline--fa {
   margin: 5px
 }
 

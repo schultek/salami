@@ -1,7 +1,7 @@
 <template>
   <div id="navigation" class="sidepanel panel">
     <div id="layer-heading" @click="closeSublayers">
-      <i v-if="subLayersOpen" class="fa fa-angle-left"></i>
+      <fa-icon v-if="subLayersOpen" icon="angle-left"></fa-icon>
       <span>{{subLayersOpen?'Layers':'Workarea'}}</span>
     </div>
     <SubLayers v-if="subLayersOpen"></SubLayers>
@@ -45,7 +45,7 @@
   align-items: center;
 }
 
-#layer-heading i {
+#layer-heading .fa-angle-left {
   margin-right: 5px;
 }
 
@@ -56,7 +56,7 @@
   text-transform: uppercase;
 }
 
-#layer-heading:hover i {
+#layer-heading:hover .fa-angle-left {
   color: #008dea;
 }
 
@@ -102,11 +102,11 @@
   align-items: center;
 }
 
-.layer-item span:last-of-type i {
+.layer-item span:last-of-type .svg-inline--fa {
   margin: 0 2px;
 }
 
-.layer-item span i:hover {
+.layer-item span .svg-inline--fa:hover {
   color: #555;
 }
 

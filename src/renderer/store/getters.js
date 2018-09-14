@@ -130,11 +130,14 @@ export default {
 
       if (["artboard", "form"].indexOf(type) >= 0) {
         if (!("renderParams" in o))
-          o.renderParams = [new RenderParams()]
-        o.renderParams.forEach(p => {
-          if (!p.renderer) p.renderer = (state.renderer[0] || {id: null}).id
-          if (!p.image)    p.image    = (state.images[0] || {id: null}).id
-          p = new RenderParams(p)
+          o.renderParams = [{}]
+        o.renderParams.forEach((p, i) => {
+          if (!p.renderer) {
+            p.renderer = (state.renderer[0] || {id: null}).id
+            p.type = (state.renderer[0] || {}) instanceof StippleRenderer ? "stipple" : "halftone"
+          }
+          if (!p.image) p.image = (state.images[0] || {id: null}).id
+          o.renderParams[i] = new RenderParams(p)
         })
       }
 

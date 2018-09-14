@@ -22,6 +22,14 @@ import Cache from "@/includes/Cache.js"
 import Modal from "@/includes/Modal.js"
 import UserStore from "@/includes/UserStore.js"
 
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+library.add(fas);
+
+Vue.component('fa-icon', FontAwesomeIcon)
+
 Vue.use(VueElectron);
 Vue.use(Notification);
 Vue.use(VModal, {dialog: true})

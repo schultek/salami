@@ -2,7 +2,7 @@
   <div class="dimen">
     <span class="title">
       <template v-if="title && title.startsWith('fa-')">
-        <i class="fa fa-sm" :class="title"></i>
+        <fa-icon :icon="title.substring(3)" size="sm"></fa-icon>
       </template>
       <template v-else>
         {{title}}

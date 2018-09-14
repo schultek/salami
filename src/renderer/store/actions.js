@@ -11,6 +11,7 @@ import fontActions      from "./actions/font.js"
 import renderingActions from "./actions/rendering.js"
 import gcodeActions     from "./actions/gcode.js"
 import objectActions    from "./actions/object.js"
+import exportActions    from "./actions/export.js"
 
 import {Font} from "@/models.js"
 
@@ -46,5 +47,6 @@ export default {
   ...fontActions,
   ...renderingActions,
   ...gcodeActions,
-  ...objectActions
+  ...objectActions,
+  ...exportActions
 }

@@ -20,6 +20,7 @@ export default {
           {type: 'separator'},
           {label: 'Export', submenu: [
             {label: 'Layout', click: send('file', 'export-layout')},
+            {label: 'Image', accelerator: c+"+E", click: send('file', 'export-image')},
             {label: 'GCode', click: send('file', 'export-gcode')},
           ]},
           {type: 'separator'},

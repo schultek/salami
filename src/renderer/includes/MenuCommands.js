@@ -15,6 +15,7 @@ export default {
         case "save-project-as": store.dispatch("saveProject", true); break;
         case "export-layout": /*TODO*/ break;
         case "export-gcode": /*TODO*/ break;
+        case "export-image": store.dispatch("exportAsImage"); break;
         case "settings": /*TODO*/ break;
       }
     });

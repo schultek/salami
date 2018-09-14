@@ -1,6 +1,6 @@
 <template>
   <div class="spinner" v-show="loading">
-    <i class="fa fa-spinner fa-spin"></i>
+    <fa-icon icon="spinner" spin></fa-icon>
   </div>
 </template>
 

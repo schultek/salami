@@ -4,16 +4,16 @@
       <template v-for="tool in tools" >
         <span v-if="'id' in tool" @click="selectTool(tool.id)" class="tool" :class="[tool.id == selectedTool ? 'selected':'']">
           <Icon :icon="tool.icon"></Icon>
-          <i class="fa fa-plus fa-xs plus-icon" v-show="tool.id!='select'"></i>
+          <fa-icon icon="plus" size="xs" class="plus-icon" v-show="tool.id!='select'"></fa-icon>
         </span>
         <span v-else @click="selectTool(tool.selected)" class="tool" :class="[tool.selected == selectedTool ? 'selected':'']">
           <Icon :icon="getSelected(tool).icon"></Icon>
-          <i class="fa fa-plus fa-xs plus-icon" v-show="tool.selected!='select'"></i>
-          <i class="fa fa-xs fa-caret-right more-icon"></i>
+          <fa-icon icon="plus" size="xs" class="plus-icon" v-show="tool.selected!='select'"></fa-icon>
+          <fa-icon icon="caret-right" size="xs" class="more-icon"></fa-icon>
           <div class="tool-sublist">
             <span v-for="t in tool.tools.filter(el => el.id != tool.selected)" @click="selectTool(t.id)" class="tool" :class="[t.id == selectedTool ? 'selected':'']">
               <Icon :icon="t.icon"></Icon>
-              <i class="fa fa-plus fa-xs plus-icon" v-show="t.id!='select'"></i>
+              <fa-icon icon="plus" size="xs" class="plus-icon" v-show="t.id!='select'"></fa-icon>
             </span>
           </div>
         </span>
@@ -27,7 +27,7 @@
         <LayoutsIcon></LayoutsIcon>
       </div>
       <!-- <div @click="selectNavigationPanel(2)" :class="[navigationPanel==2?'selected':'']">
-        <i class="fa fa-users"></i>
+        <fa-icon icon="users"></fa-icon>
       </div> -->
     </div>
   </div>

@@ -84,7 +84,7 @@
   color: #aaa;
 }
 
-.linked-layer-item span:last-child i {
+.linked-layer-item span:last-child .svg-inline--fa {
   padding: 5px;
 }
 
@@ -92,11 +92,11 @@
   background-color: #ededed;
 }
 
-.linked-layer-item span:last-child i:hover {
+.linked-layer-item span:last-child .svg-inline--fa:hover {
   color: #555;
 }
 
-.linked-layer-item:hover i.link {
+.linked-layer-item:hover .svg-inline--fa.link {
   color: #555;
 }
 

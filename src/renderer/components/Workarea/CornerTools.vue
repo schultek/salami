@@ -2,7 +2,7 @@
   <div id="corner-tools">
     <vue-slider v-model="zoom" v-bind="sliderOptions"></vue-slider>
     <div class="corner-action" @click="centerProject">
-      <i class="fa fa-expand"></i>
+      <fa-icon icon="expand"></fa-icon>
     </div>
   </div>
 </template>

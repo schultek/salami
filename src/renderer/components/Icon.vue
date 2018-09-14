@@ -1,6 +1,5 @@
 <template>
-
-  <i v-if="mode == 'font-awesome'" class="fa fa-fw icon" :class="i"></i>
+  <fa-icon v-if="mode == 'font-awesome'" :icon="i" class="icon" fixed-width></fa-icon>
   <component v-else :is="i" class="svg-icon icon"></component>
 
 </template>
@@ -25,7 +24,7 @@ export default {
       return this.compIcon.startsWith("/") ? "file" : "font-awesome"
     },
     i() {
-      return this.compIcon.startsWith("/") ? this.compIcon.slice(1) : "fa-" + this.compIcon
+      return this.compIcon.startsWith("/") ? this.compIcon.slice(1) : this.compIcon
     },
     icons() {
       let icons = {}
